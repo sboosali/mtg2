@@ -1,0 +1,47 @@
+# my
+ignored
+ignore/
+notes
+goals
+TODO
+cbits/main
+.projectile
+
+# large files
+data/large/
+
+# Haskell
+ghcid.txt
+dist/
+dist-newstyle/
+.stack-work/
+cabal.project.local
+.ghc.environment.*
+*.o
+*.hi
+*.chi
+*.chs.h
+cabal-dev
+.cabal-sandbox/
+cabal.sandbox.config
+cabal.config
+report.html
+
+# Emacs
+\#*
+*~
+.#*
+\#*\#
+*.log
+TAGS
+
+# Nix
+result/
+result-*/
+
+# Nano
+*.swp 
+
+# OSX
+.DS_Store
+
