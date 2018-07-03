@@ -1,0 +1,303 @@
+name:                mtg-scryfall
+version:             0.0.0
+cabal-version:       >=1.24
+
+-- `x-revision` must be incremented on every hackage metadata revision. 
+-- `x-_` means "an extension field". 
+-- x-revision: 0
+
+----------------------------------------
+
+build-type:          Simple 
+category:            Data 
+synopsis:            Scryfall bindings
+description:         
+ .
+ Bindings (minimal) for some Scryfall APIs. See [scryfall.com](https://scryfall.com/docs/api/).
+ . 
+ Currently, a bash script (included) downloads the cards via @curl@. The haskell executable parses the JSON data, extracting information for downloading images, and validating them. See @scripts/get-cards-from-scryfall.sh@ and @scripts/get-images-from-scryfall.sh@ in the source of the @mtg@ project. Which is a "megarepo" containing this package as a subdirectory, hosted at >http://github.com/sboosali/mtg#readme>.
+ . 
+
+homepage:            http://github.com/sboosali/mtg/mtg-scryfall#readme
+bug-reports:         http://github.com/sboosali/mtg/issues
+author:              Spiros Boosalis
+maintainer:          Spiros Boosalis <samboosalis@gmail.com>
+copyright:           2018 Spiros Boosalis
+license:             GPL-3
+license-file:        LICENSE.txt
+stability:           provisional
+tested-with:
+ -- GHC == 7.10.3
+ -- GHC == 8.0.2
+ GHC == 8.2.2
+ GHC == 8.4.3
+
+----------------------------------------
+
+extra-source-files:
+  README.md
+  NOTES.md
+  -- stack.yaml
+  LICENSE.txt ???
+
+-- data-files:
+--   data/
+
+----------------------------------------
+
+source-repository head
+  type:     git
+  location: git://github.com/sboosali/mtg.git
+  subdir:   mtg-scryfall
+
+-- source-repository this
+--   type:     git
+--   location: https://github.com/sboosali/mtg/tree/v0.1.0
+--   subdir: mtg-scryfall
+-- 
+-- -- Update the `source-repository` for `this` package version on every release
+-- -- (i.e. every hackage upload or metadata revision).  
+-- -- Assuming you've created a git tag with that version, 
+-- -- (e.g. `git tag -a v0.1.0 -m "Hackage Release of Version 0.1.0" && git push origin v0.1.0`). 
+
+----------------------------------------
+-- FLAGS
+
+----------------------------------------
+-- LIBRARY
+
+library
+
+
+ hs-source-dirs:
+   sources
+ --  examples
+
+
+ exposed-modules:
+   MTG.Scryfall.Schemas.Card
+   MTG.Scryfall.Schemas.Face
+   MTG.Scryfall.Schemas.Image
+
+ --  Example.MTG.Scryfall.Schemas
+
+ other-modules:
+   Prelude.MTG.Scryfall
+   -- Paths_mtg_scryfall
+
+ -- autogen-modules:
+   -- Paths_mtg_scryfall
+
+
+ build-depends:
+
+ --------------------
+ -- boot libraries / "standard" library
+ --------------------
+
+    base >=4.7 && <5
+  , text 
+  , bytestring
+  , transformers
+  , mtl
+  , containers
+
+  --------------------
+  -- my packages
+  -- (sboosali on github, sboo on hackage)
+  --------------------
+
+  , spiros 
+-- >=0.2
+  -- , enumerate >=0.2 
+
+  --------------------
+  -- "extended" standard library 
+  --------------------
+
+  , deepseq
+  , hashable
+  , unordered-containers
+
+  --------------------
+  -- ekmett 
+  --------------------
+
+  , exceptions
+  , lens
+  , profunctors
+
+  --------------------
+  -- JSON
+  --------------------
+
+  , aeson
+  , lens-aeson
+  , scientific
+
+  --------------------
+  -- Parsing
+  --------------------
+
+  , parsers  >= 0.12
+  
+  , megaparsec
+  , trifecta >= 1.7
+             -- 2.0
+  , Earley >= 0.12
+
+  --------------------
+  -- (miscellaneous packages)
+  --------------------
+
+  -- ,
+
+
+
+ ghc-options:
+
+  --------------------
+  -- warning groups
+  --------------------
+
+  -Wall
+
+  --------------------
+  -- disabled warnings
+  --------------------
+
+  -Wno-unticked-promoted-constructors
+
+  --------------------
+  -- enabled warnings
+  --------------------
+
+  -- enable
+  -Wincomplete-uni-patterns
+  -Wincomplete-record-updates
+  -Widentities
+  -Wmissing-methods
+  -fwarn-tabs
+ 
+  --------------------
+  -- typed-holes
+  --------------------
+
+  -- use `typed-holes`, not `undefined`, during development
+
+  -fdefer-typed-holes
+  -Wtyped-holes
+
+  --------------------
+  -- (miscellaneous warnings)
+  --------------------
+
+  -- raise a warning into an error
+  -- -Werror=missing-fields
+
+
+ if impl(ghc >= 8.0)
+    ghc-options:
+
+        --------------------
+        -- warning groups
+        --------------------     
+        -Wcompat
+      
+        --------------------
+        -- enabled warnings
+        --------------------
+        -Wnoncanonical-monad-instances
+        -Wnoncanonical-monadfail-instances
+
+        --------------------
+
+ default-language: Haskell2010
+
+ default-extensions:
+
+   --------------------
+   -- "controversial"
+   --------------------
+   NoImplicitPrelude
+   -- NOTE thus every module implicitly has -XNoImplicitPrelude
+   
+   --------------------
+   -- deriving
+   --------------------
+   AutoDeriveTypeable
+   DeriveDataTypeable
+   DeriveGeneric
+   DeriveFunctor
+   DeriveFoldable
+   DeriveTraversable
+   DeriveLift
+   StandaloneDeriving
+
+   --------------------
+   -- syntax
+   --------------------
+   PackageImports
+   LambdaCase
+   EmptyCase
+   TypeOperators
+   PostfixOperators
+   BangPatterns
+   KindSignatures
+   NamedFieldPuns
+   RecordWildCards
+   TupleSections
+   MultiWayIf
+   DoAndIfThenElse
+   EmptyDataDecls
+   InstanceSigs
+   
+   --------------------
+   -- typeclasses
+   --------------------
+   MultiParamTypeClasses
+   FlexibleContexts
+   FlexibleInstances
+   TypeFamilies
+   FunctionalDependencies
+
+   --------------------
+   -- patterns
+   --------------------
+   ViewPatterns
+   PatternSynonyms
+
+   --------------------
+   -- (miscellaneous extensions)
+   --------------------
+   ScopedTypeVariables
+
+ other-extensions:
+
+   --------------------
+   -- macros
+   --------------------
+   TemplateHaskell
+   -- QuasiQuotes
+
+   --------------------
+   -- syntax (of literals)
+   --------------------
+   OverloadedStrings
+   OverloadedLists
+
+   --------------------
+   -- (miscellaneous extensions)
+   --------------------
+   -- RebindableSyntax
+   -- kinds
+   -- DataKinds ConstraintKinds
+   -- harmful to inference
+   -- GADTs RankNTypes
+   -- (miscellaneous)
+
+
+----------------------------------------
+-- TESTS...
+
+----------------------------------------
