@@ -1,8 +1,9 @@
 haskellPackages:
 
 ########################################
+let
 
-haskellPackages.override
+haskellPackagesWithHoogle = haskellPackages.override
  {
    overrides = self: super:
      {
@@ -12,6 +13,11 @@ haskellPackages.override
            withPackages = super.ghc.withHoogle;
          };
      };
- }
+ };
+
+in
+########################################
+
+haskellPackagesWithHoogle
 
 ########################################

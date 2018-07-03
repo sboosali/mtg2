@@ -107,8 +107,7 @@ library
   -- (sboosali on github, sboo on hackage)
   --------------------
 
-  , spiros 
--- >=0.2
+  , spiros >=0.2
   -- , enumerate >=0.2 
 
   --------------------
@@ -149,6 +148,9 @@ library
   --------------------
   -- (miscellaneous packages)
   --------------------
+
+  , reflex >= 0.5
+  
 
   -- ,
 

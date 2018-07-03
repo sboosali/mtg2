@@ -21,6 +21,18 @@ withProfiling =
  then (import ./mkderivation/profiling.nix)
  else pkgs.lib.id;
 
+# # :: { <haskellPackages> } -> { <haskellPackages> }
+# withTesting =
+#  if   haskellFlags.testing
+#  then (import ./mkderivation/testing.nix)
+#  else pkgs.lib.id;
+
+# # :: { <haskellPackages> } -> { <haskellPackages> }
+# withBenchmarking =
+#  if   haskellFlags.benchmarking
+#  then (import ./mkderivation/benchmarking.nix)
+#  else pkgs.lib.id;
+
 # :: { <haskellPackages> } -> { <haskellPackages> }
 withHoogle =
  if   haskellFlags.hoogle

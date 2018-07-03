@@ -3,14 +3,14 @@ haskellPackages:
 ########################################
 let
 
-haskellPackagesWithProfiling = haskellPackages.override
+haskellPackagesWithTesting = haskellPackages.override
  {
    overrides = self: super:
    {
      mkDerivation = args:
        super.mkDerivation (args //
          {
-           enableLibraryProfiling = true;
+           doCheck = true;
          });
    };
  };
@@ -18,6 +18,6 @@ haskellPackagesWithProfiling = haskellPackages.override
 in
 ########################################
 
-haskellPackagesWithProfiling
+haskellPackagesWithTesting
 
 ########################################

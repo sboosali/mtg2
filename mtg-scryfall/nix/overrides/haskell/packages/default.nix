@@ -21,13 +21,14 @@ let
 originalHaskellPackages = 
  (import ../haskellPackages) projectConfiguration self;
 
-overridenHaskellPackages =
- (import ../myHaskellPackages) dependencies originalHaskellPackages; #TODO separate directory
+# overridenHaskellPackages =
+#  (import ../myHaskellPackages) dependencies originalHaskellPackages; #TODO separate directory
 
 in
 ########################################
 
-overridenHaskellPackages
+#TODO overridenHaskellPackages
+originalHaskellPackages
 
 ########################################
 /* NOTES
