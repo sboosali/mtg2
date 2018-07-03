@@ -1,0 +1,5 @@
+{
+
+ # spiros = ~/haskell/spiros;
+
+}
