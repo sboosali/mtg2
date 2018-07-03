@@ -1,8 +1,34 @@
 #!/bin/bash
 set -e
 ########################################
+# CONSTANTS
+
+Color_Off='\033[0m'           # Reset any previous formatting.
+
+Red='\033[0;31m'              # Red.
+
+Red_Bold='\033[1;31m'         # Red, bold.
+
+Black_Underlined='\033[4;30m' # Black, underlined.
 
 ########################################
+# CHECKS
+
+if   command -v curl
+then
+  echo "[CHECK passed] the {{{ curl }}} command is present."
+else
+  >&2 echo -e '\n--------------------------------------------------------------------------------\n[CHECK failed] the {{{ curl }}} command is absent.\n               this script requires {{{ curl }}}, which downloads files by url.\n               you should provision the environment with this command (between the braces): {{{ nix-shell ./scripts/shell.nix }}}. or you can install it directly with your package manager; for example, for the {{{ nix }}} package manager, with this command: {{{ nix-env -i curl }}}.\n--------------------------------------------------------------------------------'
+  exit 1;
+fi
+
+# ^ fail early if the required `command`s aren't present.
+#
+# the `set -e` (above) aborts the whole file on any error;
+# an "error" means "an expression/command returned non-zero".
+
+########################################
+# SCRIPT: VARIABLES
 
 PAGE_RANGE=$(seq 1 1075)
 
@@ -13,13 +39,17 @@ DIRECTORY=./data/large/scryfall/cards
 DELAY=0.5
 # ^ in seconds.
 
+_FAILED=
+# ^ :: pseudo-Bool
+#   a blank environment-variable assignment (e.g. `<X>=`) means "it's set but empty".
+
 ########################################
-# "Before"
+# SCRIPT: BEFOREHAND
 
 mkdir -p "$DIRECTORY"
 
 ########################################
-# "During"
+# SCRIPT: ACTIONS
 
 for PAGE in $PAGE_RANGE; do
  
@@ -39,22 +69,33 @@ for PAGE in $PAGE_RANGE; do
     echo "[Skipping    $FILE] it already exists."
  else
     echo "[Downloading $FILE]"
-    curl "$QUERY" > "$FILE" || true
-    # ^ continue, ignoring errors.
-    sleep "$DELAY"
-    # ^ rate-limit ourselves (we're crawling a free API).
+    if curl "$QUERY" > "$FILE"; then
+       # ^ (whether the command succeeded)
+       sleep "$DELAY"
+       # ^ rate-limit ourselves (we're crawling a free API).
+    else
+       # ^ continue, ignoring errors. but, also warn the user.
+       _FAILED=1;
+    fi
  fi
- 
+
 done
 
 ########################################
-# "After"
+# SCRIPT: AFTERWARDS
 
-find "$DIRECTORY"
+if [ -z "$_FAILED" ]; then
+   # ^ (whether either [1] the environment-variable is unset, or [2] the string is empty)
+   find "$DIRECTORY" | sort
+else
+   # ^ (then both [1] the variable is non-null and [2] the string is non-empty)
+   >&2 echo "[WARNING] some downloads failed."
+fi
 
 find "$DIRECTORY" | wc -l
 
 ########################################
+# NOTES
 
 # USAGE
 # $ ./scripts/get-cards-from-scryfall.sh
@@ -67,3 +108,5 @@ find "$DIRECTORY" | wc -l
 # - Scryfall currently [circa 2018] has 188,091 cards;
 # - this endpoint [/cards] has 1075 pages;
 # - representing over 400 MB of JSON data
+
+########################################
