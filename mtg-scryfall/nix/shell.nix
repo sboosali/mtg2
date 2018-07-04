@@ -32,28 +32,6 @@ in
 ########################################
 let
 
-isCabalNewBuildSourceFile = filepath: filetype:
-  true
-
-  && (if   "regular" == filetype
-      then null      == builtins.match
-                        "\.ghc.environment\..*"
-                         (builtins.baseNameOf filepath)
-      else true)
-
-  # && builtins.baseNameOf filepath != "..."
-
-  ;
-
-filterCabalNewBuildSource = 
-  builtins.filterSource isCabalNewBuildSourceFile;
-
-# ^ e.g. 
-# 
-#   mkDerivation {
-#     src = filterCabalNewBuildSource ../../spiros;
-#   }
-#
 
 in
 ########################################
@@ -73,15 +51,6 @@ projectConfiguration =
 in
 ########################################
 let
-
-fetchPrefetched = p:
- (fetchgit (importPrefetched p));
-
-importPrefetched = p:
- matchPrefetched (lib.importJSON p);
-
-matchPrefetched = { url, rev, sha256, fetchSubmodules ? false, ... }:
- { inherit url rev sha256 fetchSubmodules; };
 
 in
 ########################################
@@ -104,7 +73,7 @@ haskellPackagesPlusUtilities = haskell.packages.override {
     #     (fetchPrefetched     path) # e.g. <fetchgit   ...> = ...
     #     ;
 
-    #TODO
+    #TODO (import ./project/call) nixpkgs pkgs self super
     # callPrefetchedJSON = path:     # e.g. path = "~/haskell/spiros"
     #   self.callCabal2nix
     #     (builtins.baseNameOf path) # e.g. <baseNameOf ...> = "spiros"
@@ -114,33 +83,28 @@ haskellPackagesPlusUtilities = haskell.packages.override {
   };
 };
 
+in
+########################################
+let
+
+in
+########################################
+let
+
 haskellPackagesPlusPackages = haskellPackagesPlusUtilities.override {
   overrides = self: super:
 
     let
-
-    callPrefetchedJSON = path:     # e.g. path = ./<...>/reflex.json (or, "<...>/reflex.json").
-      self.callCabal2nix
-        (builtins.baseNameOf path) # e.g. <baseNameOf ...> = "reflex"
-        (fetchPrefetched     path) # e.g. <fetchgit   ...> = ...
-        ;
-
+    call = (import ./project/call) nixpkgs pkgs self super;
     in
 
- {
+    (import ./overrides) call;
 
-    spiros =
-      self.callCabal2nix "spiros" (filterCabalNewBuildSource ~/haskell/spiros) {};
-    
-    # reflex = callPrefetchedJSON ./overrides/haskell/myHaskellPackages/git/reflex.json; #TODO self.callPrefetchedJSON #TODO shorten path
-
-    # spiros = self.callCabal2nix "spiros" 
-    #           (fetchPrefetched ./overrides/haskell/myHaskellPackages/git/spiros.json) {}; 
-
-    reflex = self.callCabal2nix "reflex"
-              (fetchPrefetched ./overrides/haskell/myHaskellPackages/git/reflex.json) {}; 
-  };
 };
+
+in
+########################################
+let
 
 haskellPackagesPlusEverything = haskellPackagesPlusPackages;
 

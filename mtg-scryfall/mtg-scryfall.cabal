@@ -38,7 +38,7 @@ extra-source-files:
   README.md
   NOTES.md
   -- stack.yaml
-  LICENSE.txt ???
+  LICENSE.txt
 
 -- data-files:
 --   data/
