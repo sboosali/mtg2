@@ -1,19 +1,14 @@
 # my
-ignored
 ignore/
-notes
-goals
 TODO
-cbits/main
-.projectile
 
 # large files
 data/large/
 
 # Haskell
 ghcid.txt
-dist/
 dist-newstyle/
+dist/
 .stack-work/
 cabal.project.local
 .ghc.environment.*
@@ -30,10 +25,11 @@ report.html
 # Emacs
 \#*
 *~
-.#*
+\.#*
 \#*\#
 *.log
 TAGS
+.projectile
 
 # Nix
 result/
