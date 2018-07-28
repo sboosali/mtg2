@@ -27,13 +27,19 @@ filterCabalNewBuildSource =
   builtins.filterSource isCabalNewBuildSourceFile;
 
 isCabalNewBuildSourceFile = filepath: filetype:
-  true
+  let
 
-  && (if   "regular" == filetype
-      then null      == builtins.match
-                        "\.ghc.environment\..*"
-                         (builtins.baseNameOf filepath)
-      else true)
+  filename = builtins.baseNameOf filepath;
+
+  regexDontMatch = regex: string:
+   null == builtins.match regex string;
+
+  in
+
+  (if   "regular" == filetype
+   then regexDontMatch "\.ghc.environment\..*" filename
+   then regexDontMatch ".*\.project\.local"    filename
+   else true)
 
   # && builtins.baseNameOf filepath != "..."
 

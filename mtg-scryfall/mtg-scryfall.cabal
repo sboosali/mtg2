@@ -15,7 +15,7 @@ description:
  .
  Bindings (minimal) for some Scryfall APIs. See [scryfall.com](https://scryfall.com/docs/api/).
  . 
- Currently, a bash script (included) downloads the cards via @curl@. The haskell executable parses the JSON data, extracting information for downloading images, and validating them. See @scripts/get-cards-from-scryfall.sh@ and @scripts/get-images-from-scryfall.sh@ in the source of the @mtg@ project. Which is a "megarepo" containing this package as a subdirectory, hosted at >http://github.com/sboosali/mtg#readme>.
+ Currently, a bash script (included) downloads the cards via @curl@. The haskell executable parses the JSON data, extracting information for downloading images, and validating them. See @scripts/get-cards-from-scryfall.sh@ and @scripts/get-images-from-scryfall.sh@ in the source of the @mtg@ project. Which is a "megarepo" containing this package as a subdirectory, hosted at <http://github.com/sboosali/mtg#readme>.
  . 
 
 homepage:            http://github.com/sboosali/mtg/mtg-scryfall#readme
