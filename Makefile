@@ -1,48 +1,85 @@
 ##################################################
-all: develop
+##################################################
+all: build
 
-########################################
+####################
+.PHONY:	all check configure build clean docs update rebuild
+
+##################################################
+##################################################
 configure:
 	cabal --enable-nix new-configure --project-file ./cabal.project
 
-########################################
+####################
 check:
 	cabal new-build -fno-code -O0 all
 
-########################################
-build:
+####################
+compile:
 	cabal new-build all
 
-########################################
-develop: check build
+####################
+repl:
+	cabal new-repl mtg-scryfall
 
-########################################
-watch:
-	@exec ./scripts/watch.sh &
+# ####################
+# install:
+# 	cabal new-build all
 
-########################################
-install:
-	cabal new-build -O2 all
+####################
+rebuild: clean update configure build docs
 
-########################################
+####################
 clean:
-	rm -rf dist/ dist-newstyle/
+	rm -rf dist/ dist-newstyle/ .sboo/
 	rm -f *.project.local .ghc.environment.*
 
-########################################
-docs: 
-	cabal new-haddock 
+##################################################
+##################################################
+build: check compile
+
+####################
+tags: compile
+	mkdir -p .sboo/
+	fast-tags -o ".sboo/tags" -R .
+	cat ".sboo/tags"
+
+########################
+build-docs: compile
+	cabal new-haddock all
+
+########################
+copy-docs: build-docs
+	rm -fr ".sboo/documentation/"
+	mkdir -p ".sboo/documentation/"
+	cp -aRv  ./dist-newstyle/build/*-*/ghc-*/mtg-scryfall-*/noopt/doc/html/mtg-scryfall/* ".sboo/documentation/"
+
+########################
+open-docs: copy-docs
+	xdg-open ".sboo/documentation/index.html"
+
+#       ^ TODO: cross-platform, use 'open' and alias it to 'xdg-open'; wildcard the platform-directory (and also the various versions), i.e.:
+#
+#           open ./dist-newstyle/build/*-*/ghc-*/*-*/noopt/doc/html/*/index.html
+#       rather than, e.g.:
+#
+#           xdg-open ./dist-newstyle/build/x86_64-linux/ghc-8.4.3/mtg-scryfall-0.0/noopt/doc/html/mtg-scryfall/index.html
+#
+
+# ekmett:
 # 	cp -aRv dist-newstyle/build/*/*/unpacked-containers-0/doc/html/unpacked-containers/* docs
 # 	cd docs && git commit -a -m "update haddocks" && git push && cd ..
 
-##################################################
+########################
+docs: open-docs
+
+####################
 update:
 	cabal new-update
 
-########################################
-rebuild: clean update configure build docs
+####################
+watch:
+	@exec ./scripts/sboo/ghcid.sh & disown
 
-########################################
-.PHONY:	all check configure build clean docs update rebuild install watch
-
+##################################################
 ##################################################

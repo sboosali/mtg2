@@ -118,12 +118,18 @@ library
   , hashable
   , unordered-containers
 
+   --------------------
+   -- records libraries.
+   --------------------
+  , lens
+  , generic-lens
+  , vinyl
+
   --------------------
   -- ekmett 
   --------------------
 
   , exceptions
-  , lens
   , profunctors
 
   --------------------
@@ -133,6 +139,18 @@ library
   , aeson
   , lens-aeson
   , scientific
+
+  --------------------
+  -- Text
+  --------------------
+
+  , text-metrics
+
+  --------------------
+  -- ZIP
+  --------------------
+
+  , zip
 
   --------------------
   -- Parsing
