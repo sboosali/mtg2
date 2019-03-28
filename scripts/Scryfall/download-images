@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cabal new-run ./DownloadImages.hs -- 
+

@@ -4,6 +4,8 @@ TODO
 
 # large files
 data/large/
+scripts/data/large/
+mtg-scryfall/data/json/*.json
 
 # Haskell
 ghcid.txt

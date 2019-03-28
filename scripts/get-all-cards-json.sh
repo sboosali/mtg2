@@ -7,7 +7,7 @@ set -e
 
 
 
-https://archive.scryfall.com/json/scryfall-all-cards.json
+# https://archive.scryfall.com/json/scryfall-all-cards.json
 
 # CONSTANTS
 

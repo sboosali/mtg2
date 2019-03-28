@@ -1,93 +1,483 @@
-name:                mtg-scryfall
-version:             0.0.0
-cabal-version:       >=1.24
+cabal-version:       2.4
+build-type:          Simple
 
--- `x-revision` must be incremented on every hackage metadata revision. 
--- `x-_` means "an extension field". 
--- x-revision: 0
+--------------------------------------------------
 
-----------------------------------------
+name:    mtg-scryfall
+version: 0.0.0
 
-build-type:          Simple 
-category:            Data 
-synopsis:            Scryfall bindings
-description:         
- .
- Bindings (minimal) for some Scryfall APIs. See [scryfall.com](https://scryfall.com/docs/api/).
- . 
- Currently, a bash script (included) downloads the cards via @curl@. The haskell executable parses the JSON data, extracting information for downloading images, and validating them. See @scripts/get-cards-from-scryfall.sh@ and @scripts/get-images-from-scryfall.sh@ in the source of the @mtg@ project. Which is a "megarepo" containing this package as a subdirectory, hosted at <http://github.com/sboosali/mtg#readme>.
- . 
+--------------------------------------------------
+
+author:              Spiros Boosalis
+maintainer:          Spiros Boosalis <samboosalis@gmail.com>
+
+--------------------------------------------------
+
+synopsis:    Scryfall bindings
+description: Haskell bindings to the Scryfall API (<https://scryfall.com/docs/api>).
+             .
+             (Work In Progress)
+             .
+             Bindings (minimal) for some Scryfall APIs. See [scryfall.com](https://scryfall.com/docs/api/).
+             .
+             The executable parses JSON data, extracting information for downloading images, and validating them.
+             .
+--------------------------------------------------
+-- Portability -----------------------------------
+--------------------------------------------------
+
+stability:           provisional
+tested-with:         GHC == 8.6.3
+
+--------------------------------------------------
+-- Licensing -------------------------------------
+--------------------------------------------------
+
+license:             GPL-3.0-or-later
+copyright:           2019 Sam Boosalis
+license-file:        LICENSE.txt
+
+--------------------------------------------------
+-- (Non-Code) Files ------------------------------
+--------------------------------------------------
+
+data-dir:   data
+data-files: json/**.json
+
+--------------------------------------------------
+-- Repository ------------------------------------
+--------------------------------------------------
 
 homepage:            http://github.com/sboosali/mtg/mtg-scryfall#readme
 bug-reports:         http://github.com/sboosali/mtg/issues
-author:              Spiros Boosalis
-maintainer:          Spiros Boosalis <samboosalis@gmail.com>
-copyright:           2018 Spiros Boosalis
-license:             GPL-3
-license-file:        LICENSE.txt
-stability:           provisional
-tested-with:
- -- GHC == 7.10.3
- -- GHC == 8.0.2
- GHC == 8.2.2
- GHC == 8.4.3
 
-----------------------------------------
-
-extra-source-files:
-  README.md
-  NOTES.md
-  -- stack.yaml
-  LICENSE.txt
-
--- data-files:
---   data/
-
-----------------------------------------
+--------------------------------------------------
 
 source-repository head
   type:     git
   location: git://github.com/sboosali/mtg.git
   subdir:   mtg-scryfall
 
--- source-repository this
---   type:     git
---   location: https://github.com/sboosali/mtg/tree/v0.1.0
---   subdir: mtg-scryfall
--- 
--- -- Update the `source-repository` for `this` package version on every release
--- -- (i.e. every hackage upload or metadata revision).  
--- -- Assuming you've created a git tag with that version, 
--- -- (e.g. `git tag -a v0.1.0 -m "Hackage Release of Version 0.1.0" && git push origin v0.1.0`). 
+--------------------------------------------------
+-- Flags -----------------------------------------
+--------------------------------------------------
 
-----------------------------------------
--- FLAGS
+flag develop
 
-----------------------------------------
--- LIBRARY
+  default:     False
+
+  description: Exposed internals and/or dynamic typechecking (for development).
+
+  manual:      True
+
+--------------------------------------------------
+
+-- flag ...
+--   default:     False
+--   description: Enable ...
+--   manual:      True
+
+--------------------------------------------------
+-- Common Stanzas --------------------------------
+--------------------------------------------------
+
+common Haskell2020Library
+
+ -----------------------------
+ --TODO cross-platform template...
+
+ -- if   os(linux)
+ -- --   linux-only:
+ -- --   ...
+ -- elif os(windows)
+ -- --   windows-only:
+ -- --   ...
+ -- elif os(darwin)
+ -- --   mac-only:
+ -- --   ...
+
+ -- -- ^ See « System.Info.os ».
+ -- -- ^ NOTE « os(windows) » canonicalizes « os(mingw32) », « os(cygwin32) », etc.
+
+ -----------------------------
+ --TODO cross-platform template...
+
+ -- if   arch(x86_64)
+ -- --   64-bit-only:
+ -- --   ...
+ -- elif arch(i386)
+ -- --   32-bit-only:
+ -- --   ...
+
+ -- -- ^ See « System.Info.arch ».
+
+ -----------------------------
+
+ default-language: Haskell2010
+
+ -----------------------------
+
+ build-depends: base >=4.10 && <5
+--build-depends: base-noprelude >=4.10 && <5
+
+ -----------------------------
+
+ include-dirs:     include
+ includes:         HsSbooMacros.h
+ install-includes: HsSbooMacros.h
+
+ -----------------------------
+
+ ghc-options:
+
+  --------------------
+  -- warning groups
+  --------------------
+
+             -Wall
+
+  --------------------
+  -- disabled warnings
+  --------------------
+
+  --------------------
+  -- enabled warnings
+  --------------------
+
+             -fwarn-name-shadowing
+             -fwarn-tabs
+
+  --------------------
+  -- (miscellaneous warnings)
+  --------------------
+
+  -- raise a warning into an error
+  -- -Werror=missing-fields
+
+ -----------------------------
+
+ if impl(ghc >= 7.10)
+    ghc-options:
+
+        --------------------
+        -- disabled warnings
+        --------------------
+
+                -fno-warn-unticked-promoted-constructors
+                -- ^ NOTE « -fno-warn-... » is the old style,
+                --        « -Wno-... » is the new style.
+
+ -----------------------------
+
+ if impl(ghc >= 8.0)
+    ghc-options:
+
+        --------------------
+        -- warning groups
+        --------------------
+
+                -Wcompat
+
+        --------------------
+        -- disabled warnings
+        --------------------
+
+                -Wno-unticked-promoted-constructors
+         --TODO -fno-warn-redundant-constraints
+
+        --------------------
+        -- enabled warnings
+        --------------------
+
+                -Wnoncanonical-monad-instances
+                -Wnoncanonical-monadfail-instances
+
+                -Wincomplete-record-updates
+                -Wincomplete-uni-patterns
+
+                -Wmissing-methods
+                -Widentities
+
+                -- -Wmissing-exported-signatures
+                -- -Whi-shadowing
+
+        --------------------
+
+                -Wtyped-holes
+
+ -----------------------------
+
+ if flag(develop)
+ 
+    cpp-options: -DDEVELOP
+                 -- ^ Define the « DEVELOP » symbol for CPP.
+
+ -----------------------------
+
+ if flag(develop) && impl(ghc >= 8.0)
+ 
+    ghc-options: -fdefer-typed-holes
+                 -- ^ Use `typed-holes`, not `undefined`, during development.
+
+ -----------------------------
+
+ if impl(ghc >= 8.2)
+    ghc-options:
+
+        --------------------
+        -- enabled warnings
+        --------------------
+
+                -Wcpp-undef
+
+                -Wmissing-home-modules
+
+                -Wunbanged-strict-patterns
+
+ -----------------------------
+
+ default-extensions:
+
+   --------------------
+   -- "controversial"
+   --------------------
+                    NoImplicitPrelude
+
+   --------------------
+   -- `deriving`
+   --------------------
+                    AutoDeriveTypeable
+                    DeriveDataTypeable
+                    DeriveGeneric
+                    DeriveFunctor
+                    DeriveFoldable
+                    DeriveTraversable
+                    StandaloneDeriving
+--TODO
+
+   --------------------
+   -- syntax
+   --------------------
+                    PackageImports
+                    LambdaCase
+                    EmptyCase
+                    TypeOperators
+                    PostfixOperators
+                    BangPatterns
+                    KindSignatures
+                    NamedFieldPuns
+                    RecordWildCards
+                    TupleSections
+                    MultiWayIf
+                    DoAndIfThenElse
+                    EmptyDataDecls
+                    InstanceSigs
+
+   --------------------
+   -- typeclasses
+   --------------------
+                    MultiParamTypeClasses
+                    FlexibleContexts
+                    FlexibleInstances
+                    TypeFamilies
+                    FunctionalDependencies
+                    ConstrainedClassMethods
+
+   --------------------
+   -- patterns
+   --------------------
+                    ViewPatterns
+                    PatternSynonyms
+
+   --------------------
+   -- (miscellaneous)
+   --------------------
+                    ScopedTypeVariables
+
+ -----------------------------
+
+ other-extensions:
+
+   --------------------
+   -- macros
+   --------------------
+                  CPP
+   --               TemplateHaskell
+   --               QuasiQuotes
+
+   --------------------
+   -- syntax (of literals)
+   --------------------
+                  OverloadedStrings
+                  OverloadedLists
+
+   --------------------
+   -- (miscellaneous)
+   --------------------
+
+   -- RebindableSyntax
+   -- kinds:
+   -- DataKinds ConstraintKinds
+   -- harmful to inference:
+   -- GADTs RankNTypes
+   -- (miscellaneous)
+
+ -----------------------------
+
+ if impl(ghc >= 7.2)
+
+    default-extensions: DeriveLift
+
+ -----------------------------
+
+ if impl(ghc >= 7.10)
+
+    other-extensions: DeriveAnyClass
+
+ -----------------------------
+
+ if impl(ghc >= 8.0)
+
+    default-extensions: DuplicateRecordFields
+
+    other-extensions:   TemplateHaskellQuotes
+
+ -----------------------------
+
+ if impl(ghc >= 8.4)
+
+    default-extensions: DerivingStrategies
+                      , DeriveAnyClass
+                      , GeneralizedNewtypeDeriving
+
+ -----------------------------
+
+ if impl(ghc >= 8.6)
+
+    default-extensions: StarIsType
+                      , BlockArguments
+
+    -- ^ Enabling « StarIsType » is necessary for forwards-compatibility.
+    --
+    --   Using « :: * -> * » versus « :: Type -> Type » is necessary
+    --   for backwards-compatibility.
+    --
+    --   "Before GHC 8.0: the only way to refer to the kind of lifted types was the * syntax."
+    --
+    --   See « https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0030-remove-star-kind.rst ».
+
+ -----------------------------
+
+ other-extensions:
+
+   --------------------
+   -- macros
+   --------------------
+                  TemplateHaskell
+   -- QuasiQuotes
+
+   --------------------
+   -- syntax (of literals)
+   --------------------
+                  OverloadedStrings
+                  OverloadedLists
+
+   --------------------
+   -- (miscellaneous)
+   --------------------
+
+   -- RebindableSyntax
+   -- kinds:
+   -- DataKinds ConstraintKinds
+   -- harmful to inference:
+   -- GADTs RankNTypes
+   -- (miscellaneous)
+
+--------------------------------------------------
+
+common Haskell2020Program
+
+ import: Haskell2020Library
+
+ -----------------------------
+
+ ghc-options:
+
+   --------------------
+   -- Compilation -----
+   --------------------
+
+             -O2
+
+   --------------------
+   -- Runtime ---------
+   --------------------
+
+             -threaded
+             -rtsopts -with-rtsopts=-N             
+
+   --------------------
+   -- Warnings --------
+   --------------------
+
+             -Wno-missing-signatures
+             -fno-warn-type-defaults
+
+
+--------------------------------------------------
+
+common Haskell2020Benchmark
+
+ import: Haskell2020Program
+
+ -----------------------------
+
+ ghc-options:
+
+   --------------------
+   -- Compilation -----
+   --------------------
+
+             -O2
+
+   --------------------
+   -- Runtime ---------
+   --------------------
+
+             -fdicts-cheap
+             -funbox-strict-fields
+
+   --------------------
+
+--------------------------------------------------
+-- Library ---------------------------------------
+--------------------------------------------------
 
 library
 
+ -----------------------------
 
- hs-source-dirs:
-   sources
- --  examples
+ hs-source-dirs: library
 
+ -----------------------------
 
- exposed-modules:
-   MTG.Scryfall.Schemas.Card
-   MTG.Scryfall.Schemas.Face
-   MTG.Scryfall.Schemas.Image
+ exposed-modules: MTG.Scryfall
 
- --  Example.MTG.Scryfall.Schemas
+                  MTG.Scryfall.Fetch
 
- other-modules:
-   Prelude.MTG.Scryfall
-   -- Paths_mtg_scryfall
+                  MTG.Scryfall.Schemas
+                  MTG.Scryfall.Schemas.Card
+                  MTG.Scryfall.Schemas.Face
+                  MTG.Scryfall.Schemas.Image
 
- -- autogen-modules:
-   -- Paths_mtg_scryfall
+ -----------------------------
 
+ other-modules: Prelude.MTG.Scryfall
+
+ -- other-modules:   Paths_mtg_scryfall
+ -- autogen-modules: Paths_mtg_scryfall
+
+ -----------------------------
 
  build-depends:
 
@@ -172,152 +562,7 @@ library
 
   -- ,
 
+ -----------------------------
 
-
- ghc-options:
-
-  --------------------
-  -- warning groups
-  --------------------
-
-  -Wall
-
-  --------------------
-  -- disabled warnings
-  --------------------
-
-  -Wno-unticked-promoted-constructors
-
-  --------------------
-  -- enabled warnings
-  --------------------
-
-  -- enable
-  -Wincomplete-uni-patterns
-  -Wincomplete-record-updates
-  -Widentities
-  -Wmissing-methods
-  -fwarn-tabs
- 
-  --------------------
-  -- typed-holes
-  --------------------
-
-  -- use `typed-holes`, not `undefined`, during development
-
-  -fdefer-typed-holes
-  -Wtyped-holes
-
-  --------------------
-  -- (miscellaneous warnings)
-  --------------------
-
-  -- raise a warning into an error
-  -- -Werror=missing-fields
-
-
- if impl(ghc >= 8.0)
-    ghc-options:
-
-        --------------------
-        -- warning groups
-        --------------------     
-        -Wcompat
-      
-        --------------------
-        -- enabled warnings
-        --------------------
-        -Wnoncanonical-monad-instances
-        -Wnoncanonical-monadfail-instances
-
-        --------------------
-
- default-language: Haskell2010
-
- default-extensions:
-
-   --------------------
-   -- "controversial"
-   --------------------
-   NoImplicitPrelude
-   -- NOTE thus every module implicitly has -XNoImplicitPrelude
-   
-   --------------------
-   -- deriving
-   --------------------
-   AutoDeriveTypeable
-   DeriveDataTypeable
-   DeriveGeneric
-   DeriveFunctor
-   DeriveFoldable
-   DeriveTraversable
-   DeriveLift
-   StandaloneDeriving
-
-   --------------------
-   -- syntax
-   --------------------
-   PackageImports
-   LambdaCase
-   EmptyCase
-   TypeOperators
-   PostfixOperators
-   BangPatterns
-   KindSignatures
-   NamedFieldPuns
-   RecordWildCards
-   TupleSections
-   MultiWayIf
-   DoAndIfThenElse
-   EmptyDataDecls
-   InstanceSigs
-   
-   --------------------
-   -- typeclasses
-   --------------------
-   MultiParamTypeClasses
-   FlexibleContexts
-   FlexibleInstances
-   TypeFamilies
-   FunctionalDependencies
-
-   --------------------
-   -- patterns
-   --------------------
-   ViewPatterns
-   PatternSynonyms
-
-   --------------------
-   -- (miscellaneous extensions)
-   --------------------
-   ScopedTypeVariables
-
- other-extensions:
-
-   --------------------
-   -- macros
-   --------------------
-   TemplateHaskell
-   -- QuasiQuotes
-
-   --------------------
-   -- syntax (of literals)
-   --------------------
-   OverloadedStrings
-   OverloadedLists
-
-   --------------------
-   -- (miscellaneous extensions)
-   --------------------
-   -- RebindableSyntax
-   -- kinds
-   -- DataKinds ConstraintKinds
-   -- harmful to inference
-   -- GADTs RankNTypes
-   -- (miscellaneous)
-
-
-----------------------------------------
--- TESTS...
-
-----------------------------------------
+--------------------------------------------------
+--------------------------------------------------

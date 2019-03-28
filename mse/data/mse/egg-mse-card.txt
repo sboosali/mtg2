@@ -1,0 +1,30 @@
+card:
+	stylesheet: planeshifted
+	has styling: true
+	styling data:
+		use guild mana symbols: yes
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		inverted common symbol: no
+		overlay: 
+		image size: standard
+	notes: 
+	time created: 2019-02-01 21:07:58
+	time modified: 2019-02-05 22:02:11
+	name: Selesnya Chant
+	casting cost: XG/W
+	image: 
+	super type: <word-list-type>Instant</word-list-type>
+	sub type: <word-list-spell></word-list-spell>
+	rarity: common
+	rule text:
+		<kw-A><nospellcheck>Fork <param-number>X</param-number></nospellcheck><atom-reminder-custom> <i-auto>(When you cast this spell, copy it <param-number>X</param-number><error-spelling> </error-spelling> times. The copies resolve before the card.)</i-auto></atom-reminder-custom></kw-A>
+		Create an X/X green and white Beast creature token.
+	flavor text: <i-flavor></i-flavor>
+	power: 
+	toughness: 
+	copyright: Spiros Boosalis (CC BY-NC)
+	image 2: 
+	copyright 2: Spiros Boosalis (CC BY-NC)
+	copyright 3: Spiros Boosalis (CC BY-NC)
+	mainframe image: 
+	mainframe image 2: 
