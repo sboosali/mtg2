@@ -14,6 +14,15 @@ pg_ctl start
 createdb myproject
 ```
 
+## Development
+
+`M-x sql-postgres`
+
+## Related
+
+* <https://github.com/mtgjson/mtgsqlive>
+* <https://github.com/Arevor/mtg-sql>
+
 
 
 ## 
