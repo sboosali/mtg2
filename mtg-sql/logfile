@@ -1,0 +1,19 @@
+LOG:  database system was shut down at 2019-04-08 06:28:28 UTC
+LOG:  MultiXact member wraparound protections are now enabled
+LOG:  database system is ready to accept connections
+LOG:  autovacuum launcher started
+FATAL:  database "sboo" does not exist
+FATAL:  database "/mtgsql" does not exist
+ERROR:  type "string" does not exist at character 54
+STATEMENT:  CREATE TABLE temp (id INT NOT NULL PRIMARY KEY, name STRING NOT NULL);
+ERROR:  syntax error at or near "/" at character 1
+STATEMENT:  /d
+	CREATE TABLE temp (id INT NOT NULL PRIMARY KEY, name TEXT NOT NULL);
+ERROR:  syntax error at or near "/" at character 1
+STATEMENT:  /d
+	DROP TABLE temp;
+ERROR:  table "temp" does not exist
+STATEMENT:  DROP TABLE temp;
+ERROR:  syntax error at or near "/" at character 1
+STATEMENT:  /d
+	;

@@ -1,0 +1,152 @@
+==============================================
+
+$ ./shell 
+
+The files belonging to this database system will be owned by user "sboo".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C.UTF-8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are disabled.
+
+creating directory /home/sboo/.cache/postgresql/pgdata ... ok
+creating subdirectories ... ok
+selecting default max_connections ... 100
+selecting default shared_buffers ... 128MB
+selecting dynamic shared memory implementation ... posix
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... locale: Cannot set LC_MESSAGES to default locale: No such file or directory
+ok
+syncing data to disk ... ok
+
+WARNING: enabling "trust" authentication for local connections
+You can change this by editing pg_hba.conf or using the option -A, or
+--auth-local and --auth-host, the next time you run initdb.
+
+Success. You can now start the database server using:
+
+    /nix/store/39z93l6r5618jwrg594h1yhnxm7m0bgl-postgresql-9.6.11/bin/pg_ctl -D /home/sboo/.cache/postgresql/pgdata -l logfile start
+
+server starting
+createdb: could not connect to database template1: could not connect to server: No such file or directory
+	Is the server running locally and accepting
+	connections on Unix domain socket "/tmp/.s.PGSQL.5432"?
+LOG:  could not bind IPv4 socket: Address already in use
+HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+WARNING:  could not create listen socket for "localhost"
+FATAL:  could not create any TCP/IP sockets
+LOG:  database system is shut down
+
+==============================================
+
+$ postgres 
+LOG:  could not bind IPv4 socket: Address already in use
+HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+WARNING:  could not create listen socket for "localhost"
+FATAL:  could not create any TCP/IP sockets
+LOG:  database system is shut down
+
+==============================================
+
+$ ls -l "/var/pgsql_socket/.s.PGSQL.5432"
+
+==============================================
+
+$ cat /etc/hosts
+
+127.0.0.1	localhost
+127.0.1.1	SpirOS
+
+==============================================
+
+$ /sbin/ifconfig lo 127.0.0.1 
+
+==============================================
+
+$ ps auxwww | grep postgres
+
+sboo     21180  0.0  0.0 165460 18772 pts/30   S+   23:09   0:00 /nix/store/39z93l6r5618jwrg594h1yhnxm7m0bgl-postgresql-9.6.11/bin/postgres -D /home/sboo/.cache/postgresql/pgdata
+sboo     21183  0.0  0.0 165460  3044 ?        Ss   23:09   0:00 postgres: checkpointer process   
+sboo     21184  0.0  0.0 165460  3044 ?        Ss   23:09   0:00 postgres: writer process   
+sboo     21185  0.0  0.0 165460  3044 ?        Ss   23:09   0:00 postgres: wal writer process   
+sboo     21186  0.0  0.0 165860  4084 ?        Ss   23:09   0:00 postgres: autovacuum launcher process   
+sboo     21187  0.0  0.0  20460  2536 ?        Ss   23:09   0:00 postgres: stats collector process
+
+==============================================
+
+$ cd /nix/store/*-postgresql-9.6.11/
+
+$ find ./bin
+
+./bin
+./bin/vacuumdb
+./bin/pg_ctl
+./bin/createuser
+./bin/createdb
+./bin/psql
+./bin/clusterdb
+./bin/pg_isready
+./bin/createlang
+./bin/pg_config
+./bin/pg_upgrade
+./bin/pgbench
+./bin/pg_test_fsync
+./bin/pg_dumpall
+./bin/postgres
+./bin/pg_test_timing
+./bin/pg_rewind
+./bin/reindexdb
+./bin/initdb
+./bin/pg_restore
+./bin/.initdb-wrapped
+./bin/vacuumlo
+./bin/pg_xlogdump
+./bin/oid2name
+./bin/pg_controldata
+./bin/pg_dump
+./bin/pg_archivecleanup
+./bin/pg_basebackup
+./bin/ecpg
+./bin/pg_receivexlog
+./bin/dropuser
+./bin/pg_resetxlog
+./bin/postmaster
+./bin/pg_standby
+./bin/dropdb
+./bin/pg_recvlogical
+./bin/droplang
+
+==============================================
+
+# Start manually:
+
+$ pg_ctl -D /usr/local/var/postgres start
+
+# Stop manually:
+
+$ pg_ctl -D /usr/local/var/postgres stop
+
+==============================================
+
+
+
+
+==============================================
+
+
+
+
+==============================================
+
+
+
+
+==============================================
+
+
+
+
+==============================================
