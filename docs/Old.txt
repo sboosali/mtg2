@@ -100,3 +100,89 @@ CREATE TYPE color AS ENUM ( 'white',
 
 
 
+extensions = 
+
+    "AutoDeriveTypeable\ 
+     BangPatterns\ 
+     CPP\ 
+     ConstraintKinds\ 
+     DataKinds\ 
+     DefaultSignatures\ 
+     DeriveAnyClass\ 
+     DeriveAnyClass\ 
+     DeriveDataTypeable\ 
+     DeriveDataTypeable\ 
+     DeriveFoldable\ 
+     DeriveFunctor\ 
+     DeriveGeneric\ 
+     DeriveGeneric\ 
+     DeriveLift\ 
+     DeriveTraversable\ 
+     DerivingStrategies\
+     DerivingStrategies\ 
+     DoAndIfThenElse\ 
+     DuplicateRecordFields\ 
+     EmptyCase\ 
+     EmptyDataDecls\ 
+     ExplicitNamespaces\ 
+     FlexibleContexts\ 
+     FlexibleContexts\ 
+     FlexibleInstances\ 
+     FlexibleInstances\ 
+     FunctionalDependencies\ 
+     GADTs\ 
+     GeneralizedNewtypeDeriving\ 
+     InstanceSigs\ 
+     KindSignatures\ 
+     KindSignatures\ 
+     LambdaCase\ 
+     LambdaCase\ 
+     MultiParamTypeClasses\ 
+     MultiWayIf\ 
+     NamedFieldPuns\ 
+     NoImplicitPrelude\ 
+     NoImplicitPrelude\ 
+     PackageImports\ 
+     PackageImports\ 
+     PatternSynonyms\ 
+     PostfixOperators\ 
+     RankNTypes\ 
+     RecordWildCards\ 
+     ScopedTypeVariables \ 
+     ScopedTypeVariables\ 
+     StandaloneDeriving\ 
+     TupleSections\ 
+     TupleSections\ 
+     TypeFamilies\ 
+     TypeFamilies\ 
+     TypeOperators\ 
+     TypeOperators\ 
+     UndecidableInstances\ 
+     ViewPatterns"
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+extensions2flags :: [String] -> [String]
+extensions2flags = fmap go . filterBlanks
+  where
+
+  go s = if (not (null s)) then ("-X" ++ s) else
+
+
+
+
+
+
+
+
+

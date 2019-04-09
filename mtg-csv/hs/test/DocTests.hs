@@ -30,7 +30,8 @@ main = do
 --------------------------------------------------
 
 sources = modules2filepaths "hs" "library" $
-  "MTG.SQL.Postgres MTG.SQL.Postgres.Enum"
+
+  "MTG.CSV MTG.CSV.Types"
 
 --------------------------------------------------
 

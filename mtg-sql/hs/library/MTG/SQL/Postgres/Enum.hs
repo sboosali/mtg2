@@ -3,7 +3,9 @@
 --------------------------------------------------
 
 {-# LANGUAGE OverloadedStrings #-}
+
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns  #-}
 
 --------------------------------------------------
 
@@ -14,20 +16,19 @@
 'ppSQLCreateEnum':
 
 >>> ppSQLCreateEnum SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
-CREATE TYPE color AS ENUM ('white', 'blue', 'black', 'red', 'green');
+CREATE TYPE color AS ENUM ( 'white', 'blue', 'black', 'red', 'green' );
 
 'sql_CREATE_TYPE_AS_ENUM':
 
 >>> sql_CREATE_color layout = sql_CREATE_TYPE_AS_ENUM layout SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
 >>> Prelude.putStrLn (sql_CREATE_color Nothing)
-CREATE TYPE color AS ENUM ('white', 'blue', 'black', 'red', 'green');
+CREATE TYPE color AS ENUM ( 'white', 'blue', 'black', 'red', 'green' );
 >>> Prelude.putStrLn (sql_CREATE_color (Just PP.LayoutOptions { PP.layoutPageWidth = PP.AvailablePerLine 30 1.0 }))
 CREATE TYPE color AS ENUM ( 'white',
                             'blue',
                             'black',
                             'red',
                             'green' );
-
 
 -}
 
