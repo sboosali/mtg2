@@ -3,7 +3,7 @@ ignore/
 TODO
 
 # large files
-data/large/
+data/gitignored
 scripts/data/large/
 mtg-scryfall/data/json/*.json
 
