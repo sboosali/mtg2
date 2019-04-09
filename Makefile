@@ -94,12 +94,6 @@ dist:
 
 #------------------------------------------------#
 
-all: build check install dist
-
-.PHONY: all
-
-#------------------------------------------------#
-
 clean:
 
 	rm -rf dist/ dist-newstyle/ .sboo/
@@ -112,6 +106,12 @@ clean:
 #	killall _
 
 .PHONY: clean
+
+#------------------------------------------------#
+
+all: mtg-types mtg-json mtg-csv mtg-sql dist
+
+.PHONY: all
 
 #------------------------------------------------#
 # Makefile Targets: Custom ----------------------#

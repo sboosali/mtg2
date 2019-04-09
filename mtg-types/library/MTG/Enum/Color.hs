@@ -7,19 +7,41 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Name where
 
-import MTGJSON.Extra
+module MTG.Enum.Color where
+
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
 ----------------------------------------
 
-newtype CardName = CardName Text
+newtype Color = Color Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
-makePrisms ''CardName
+makePrisms ''Color
 
 ----------------------------------------
 
+toColors :: Maybe [Text] -> [Color]
+toColors = maybe [] (fmap Color)
+
 ----------------------------------------
+
+white :: Color
+white = "White"
+
+blue :: Color
+blue = "Blue"
+
+black :: Color
+black = "Black"
+
+red :: Color
+red = "Red"
+
+green :: Color
+green = "Green"
+
+----------------------------------------
+

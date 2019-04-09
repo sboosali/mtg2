@@ -7,9 +7,9 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Supertype where
+module MTG.Enum.Supertype where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
@@ -28,7 +28,7 @@ basicSupertype = "Basic"
 legendarySupertype :: Supertype
 legendarySupertype = "Legendary"
 
-snowSupertype ::Supertype
+snowSupertype :: Supertype
 snowSupertype = "Snow"
 
 ongoingSupertype :: Supertype

@@ -151,9 +151,9 @@ From the Comprehensive Rules (Rivals of Ixalan (January 19, 2018))
 @
 
 -}
-module MTGJSON.AllSets.Enums.Keyword where
+module MTG.Enum.Keyword where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 

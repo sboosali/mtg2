@@ -8,10 +8,10 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Edition where
+module MTG.Enum.Edition where
 
-import MTGJSON.Extra
-import MTGJSON.AllSets.Enums.Language
+import MTG.Prelude
+import MTG.Enum.Language
 
 import Control.Lens (makeLenses, makePrisms)
 

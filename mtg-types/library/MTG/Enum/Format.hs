@@ -7,9 +7,9 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Format where
+module MTG.Enum.Format where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 

@@ -1,3 +1,6 @@
+{-# LANGUAGE PackageImports #-}
+
+--------------------------------------------------
 
 module MTG.CSV.Prelude
 

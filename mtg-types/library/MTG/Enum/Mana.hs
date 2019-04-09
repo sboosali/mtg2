@@ -7,9 +7,9 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Mana where
+module MTG.Enum.Mana where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
@@ -110,7 +110,7 @@ monohybridGreen = monohybrid greenSymbol
 ----------------------------------------
 
 genericSymbol :: Natural -> ManaSymbol
-genericSymbol n = ManaSymbol $ show' n
+genericSymbol n = ManaSymbol $ (fromString . show) n
 
 zeroSymbol :: ManaSymbol
 zeroSymbol = genericSymbol 0

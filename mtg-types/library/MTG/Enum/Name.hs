@@ -7,31 +7,19 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Legality where
+module MTG.Enum.Name where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
 ----------------------------------------
 
-newtype Legality = Legality Text
+newtype CardName = CardName Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
-makePrisms ''Legality
-
--- | @= 'legal'@
-instance Default Legality where def = legal
+makePrisms ''CardName
 
 ----------------------------------------
-
-legal :: Legality
-legal = "legal"
-
-restricted :: Legality
-restricted = "restricted"
-
-banned :: Legality
-banned = "banned"
 
 ----------------------------------------

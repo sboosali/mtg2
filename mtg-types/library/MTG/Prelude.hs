@@ -2,7 +2,7 @@
 
 --------------------------------------------------
 
-module MTG.SQL.Postgres.Prelude
+module MTG.Prelude
 
   ( module EXPORT
   ) where
@@ -15,7 +15,7 @@ import "spiros" Prelude.Spiros as EXPORT
 
 --------------------------------------------------
 
-
+import "enumerate" Enumerate as EXPORT
 
 --------------------------------------------------
 -- EOF -------------------------------------------

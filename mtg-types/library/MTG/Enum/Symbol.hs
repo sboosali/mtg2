@@ -7,11 +7,11 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Symbol where
+module MTG.Enum.Symbol where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
---import MTGJSON.AllSets.Enums.Mana
+--import MTG.Enum.Mana
 
 import Control.Lens (makePrisms)
 
@@ -38,6 +38,6 @@ loyaltyActivationSymbol i =
   then Symbol $ "+" <> s -- {+0}, {+1}, ...
   else Symbol $ "-" <> s -- {-1}, ...
   where
-  s = show' (abs i)
+  s = (fromString . show) (abs i)
 
 ----------------------------------------

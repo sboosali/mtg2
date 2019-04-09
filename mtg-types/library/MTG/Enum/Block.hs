@@ -7,11 +7,11 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Block where
+module MTG.Enum.Block where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
-import MTGJSON.AllSets.Enums.Edition
+import MTG.Enum.Edition
 
 import Control.Lens (makeLenses, makePrisms)
 

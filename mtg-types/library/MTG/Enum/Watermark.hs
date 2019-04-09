@@ -17,9 +17,9 @@ These groups of watermarks have been printed:
 * 'miscellaneousWatermarks' (ungrouped)
 
 -}
-module MTGJSON.AllSets.Enums.Watermark where
+module MTG.Enum.Watermark where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 

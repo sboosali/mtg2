@@ -7,40 +7,31 @@
 {-|
 
 -}
-module MTGJSON.AllSets.Enums.Color where
+module MTG.Enum.Legality where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
 ----------------------------------------
 
-newtype Color = Color Text
+newtype Legality = Legality Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
-makePrisms ''Color
+makePrisms ''Legality
+
+-- | @= 'legal'@
+instance Default Legality where def = legal
 
 ----------------------------------------
 
-toColors :: Maybe [Text] -> [Color]
-toColors = maybe [] (fmap Color)
+legal :: Legality
+legal = "legal"
+
+restricted :: Legality
+restricted = "restricted"
+
+banned :: Legality
+banned = "banned"
 
 ----------------------------------------
-
-white :: Color
-white = "White"
-
-blue :: Color
-blue = "Blue"
-
-black :: Color
-black = "Black"
-
-red :: Color
-red = "Red"
-
-green :: Color
-green = "Green"
-
-----------------------------------------
-

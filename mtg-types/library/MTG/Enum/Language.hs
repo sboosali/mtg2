@@ -21,9 +21,9 @@ Languages that are officially supported:
 * 'korean'
 
 -}
-module MTGJSON.AllSets.Enums.Language where
+module MTG.Enum.Language where
 
-import MTGJSON.Extra
+import MTG.Prelude
 
 import Control.Lens (makeLenses, makePrisms)
 
