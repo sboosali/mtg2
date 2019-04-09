@@ -1,0 +1,2 @@
+$ find ./mtg-csv/hs -type f '(' -name '*.hs' -o -name '*.cabal' ')' -exec sed -e 's:SQL:CSV:g' '{}' ';'
+

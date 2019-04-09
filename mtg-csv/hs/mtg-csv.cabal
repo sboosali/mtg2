@@ -4,7 +4,7 @@ build-type:          Simple
 
 --------------------------------------------------
 
-name:                mtg-sql
+name:                mtg-csv
 version:             0.0.0
                      -- ^ ❲ A.B.C.D ❳:
                      --
@@ -18,27 +18,14 @@ version:             0.0.0
 -- Description -----------------------------------
 --------------------------------------------------
 
-synopsis: SQL Database from « mtg.json » (of Magic The Gathering cards)
+synopsis: CSV from « mtg.json »
 
 category: MTG
 
 --------------------------------------------------
 
-description: Create a SQL database from « mtg.json ».
+description: Create a CSV file from « mtg.json ».
              .
-             @CREATE TABLE@s for:
-             .
-             * Magic The Gathering cards.
-             * Magic The Gathering sets.
-             .
-             @CREATE TYPE@s for:
-             .
-             * Colors
-             * (Known) Keywords
-             * (Known) Card Types
-             * (Known) Sub-Types
-             * (Known) Super-Types
-             * (Known) Card Names
              .
 
 --------------------------------------------------
@@ -105,7 +92,7 @@ bug-reports: https://github.com/sboosali/mtg/issues
 source-repository head
   type:     git
   location: git://github.com/sboosali/mtg.git
-  subdir:   ./mtg-sql/hs
+  subdir:   ./mtg-csv/hs
 
 --------------------------------------------------
 -- Flags -----------------------------------------
@@ -517,10 +504,10 @@ library
   
  -----------------------------
 
- exposed-modules: MTG.SQL.Postgres
-                , MTG.SQL.Postgres.Prelude
+ exposed-modules: MTG.CSV
+                , MTG.CSV.Prelude
 
-                , MTG.SQL.Postgres.Enum
+                , MTG.CSV.Types
 
  -----------------------------
 
@@ -570,10 +557,10 @@ library
              , prettyprinter-ansi-terminal ^>= 1.1
 
   --------------------
-  -- Database --------
+  -- CSV -------------
   --------------------
 
-             , postgresql-simple
+             , cassava ^>= 0.5
 
   --------------------
   -- (Miscellaneous) -
@@ -591,7 +578,7 @@ library
 -- Executables -----------------------------------
 --------------------------------------------------
 
-executable mtg-sql
+executable mtg-csv
 
   import: Haskell2020Program
 
@@ -599,20 +586,17 @@ executable mtg-sql
 
   hs-source-dirs: executable
 
-  main-is:       Program/MTG/SQL/Postgres/Main.hs
+  main-is:       Program/MTG/CSV/Main.hs
 
-  other-modules: Program.MTG.SQL.Postgres.IO
-                 Program.MTG.SQL.Postgres.CLI
+  other-modules: Program.MTG.CSV.IO
+                 Program.MTG.CSV.CLI
 
-                 Program.MTG.SQL.Postgres.Types
-                 Program.MTG.SQL.Postgres.Constants
-                 Program.MTG.SQL.Postgres.Paths
-
-                 Program.MTG.SQL.Postgres.Prelude
+                 Program.MTG.CSV.Types
+                 Program.MTG.CSV.Prelude
 
   ----------------------------
 
-  build-depends: mtg-sql
+  build-depends: mtg-csv
                , spiros
 
                , optparse-applicative ^>= 0.14
