@@ -4,7 +4,7 @@ build-type:          Simple
 
 --------------------------------------------------
 
-name:                mtg-json
+name:                mtg-types
 version:             0.0.0
                      -- ^ ❲ A.B.C.D ❳:
                      --
@@ -18,27 +18,20 @@ version:             0.0.0
 -- Description -----------------------------------
 --------------------------------------------------
 
-synopsis: SQL Database from « mtg.json » (of Magic The Gathering cards)
+synopsis: Types for Magic The Gathering
 
 category: MTG
 
 --------------------------------------------------
 
-description: Create a SQL database from « mtg.json ».
+description: Types for Magic The Gathering.
              .
-             @CREATE TABLE@s for:
+             @mtg-types@ is a /reverse dependency/ for these packages:
              .
-             * Magic The Gathering cards.
-             * Magic The Gathering sets.
-             .
-             @CREATE TYPE@s for:
-             .
-             * Colors
-             * (Known) Keywords
-             * (Known) Card Types
-             * (Known) Sub-Types
-             * (Known) Super-Types
-             * (Known) Card Names
+             * @mtg-json@
+             * @mtg-csv@
+             * @mtg-sql@
+             * @mtg-scryfall@
              .
 
 --------------------------------------------------
@@ -73,25 +66,11 @@ extra-source-files: LICENSE
                     README.md
                     CHANGELOG.md
 
-  --TODO:
-  --
-  -- share/man/*.man
-  -- share/info/
-  -- share/bash-completion/
-  -- share/doc/
-  -- share/elisp/*.el
-  -- share//
-
 --------------------------------------------------
             
 data-dir: data
 
-data-files: json/*.json
-
---------------------------------------------------
-
---TODO add images
--- extra-doc-files: docs/
+data-files: *.txt
 
 --------------------------------------------------
 -- Repository ------------------------------------
@@ -105,7 +84,7 @@ bug-reports: https://github.com/sboosali/mtg/issues
 source-repository head
   type:     git
   location: git://github.com/sboosali/mtg.git
-  subdir:   ./mtg-json
+  subdir:   ./mtg-types
 
 --------------------------------------------------
 -- Flags -----------------------------------------
@@ -116,16 +95,6 @@ flag develop
   default:     False
 
   description: Exposed internals and/or dynamic typechecking (for development).
-
-  manual:      True
-
---------------------------------------------------
-
-flag static
-
-  default:     False
-
-  description: Build a statically-linked executable (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
 
   manual:      True
 
@@ -440,68 +409,6 @@ common Haskell2020Library
    -- (miscellaneous)
 
 --------------------------------------------------
-
-common Haskell2020Program
-
- import: Haskell2020Library
-
- -----------------------------
-
- ghc-options:
-
-   --------------------
-   -- Compilation -----
-   --------------------
-
-             -O2
-
-   --------------------
-   -- Runtime ---------
-   --------------------
-
-             -threaded
-             -rtsopts -with-rtsopts=-N             
-
-   --------------------
-   -- Warnings --------
-   --------------------
-
-             -Wno-missing-signatures
-             -fno-warn-type-defaults
-
- -----------------------------
-
- if flag(static)
-    ghc-options: -static -optl=-static
-
- -----------------------------
-
---------------------------------------------------
-
-common Haskell2020Benchmark
-
- import: Haskell2020Program
-
- -----------------------------
-
- ghc-options:
-
-   --------------------
-   -- Compilation -----
-   --------------------
-
-             -O2
-
-   --------------------
-   -- Runtime ---------
-   --------------------
-
-             -fdicts-cheap
-             -funbox-strict-fields
-
-   --------------------
-
---------------------------------------------------
 -- Library ---------------------------------------
 --------------------------------------------------
 
@@ -517,13 +424,26 @@ library
   
  -----------------------------
 
- exposed-modules: MTG.JSON
-                -- , MTG.JSON.Enum
+ exposed-modules: MTG.Types
 
-                , MTG.JSON.Schema.Set
-                , MTG.JSON.Schema.Card
-
-                -- , MTG.JSON.Prelude
+                -- , MTG.Enum.Block
+                -- , MTG.Enum.Border
+                -- , MTG.Enum.Cardtype
+                -- , MTG.Enum.Color
+                -- , MTG.Enum.Edition
+                -- , MTG.Enum.Format
+                -- , MTG.Enum.Frame
+                -- , MTG.Enum.Keyword
+                -- , MTG.Enum.Language
+                -- , MTG.Enum.Layout
+                -- , MTG.Enum.Legality
+                -- , MTG.Enum.Mana
+                -- , MTG.Enum.Name
+                -- , MTG.Enum.Rarity
+                -- , MTG.Enum.Subtype
+                -- , MTG.Enum.Supertype
+                -- , MTG.Enum.Symbol
+                -- , MTG.Enum.Watermark
 
  -----------------------------
 
@@ -540,8 +460,8 @@ library
   -- My Libraries ----
   --------------------
 
-               spiros       ^>= 0.4
-   --        , enumerate
+               spiros     ^>= 0.4
+             , enumerate
 
   --------------------
   -- Standard Library
@@ -550,7 +470,6 @@ library
              , text             
              , bytestring
              , transformers
-             , mtl
              , containers
 
   --------------------
@@ -559,22 +478,6 @@ library
 
              , deepseq
              , hashable
-             , unordered-containers
-             , vector
-
-  --------------------
-  -- Filesystem ------
-  --------------------
-
-             , filepath
-             , directory
-
-  --------------------
-  -- JSON ------------
-  --------------------
-
-             , aeson
-             , lens-aeson
 
   --------------------
   -- (Miscellaneous) -
@@ -590,7 +493,7 @@ library
 
 test-suite doc
 
- import: Haskell2020Program
+ import: Haskell2020Library
 
  -----------------------------
 
@@ -601,7 +504,7 @@ test-suite doc
  -----------------------------
 
  build-depends: base
-              , mtg-json
+              , mtg-types
 
               ----------------
 
@@ -611,46 +514,6 @@ test-suite doc
 
  type: exitcode-stdio-1.0
 
---------------------------------------------------
--- Executables -----------------------------------
---------------------------------------------------
-
-executable mtg-json
-
-  import: Haskell2020Program
-
-  ----------------------------
-
-  hs-source-dirs: ./executables
-
-  main-is:       Program/MTG/SQL/JSON/Main.hs
-
-  other-modules: Program.MTG.JSON.IO
-                 Program.MTG.JSON.CLI
-
-  ----------------------------
-
-  build-depends: mtg-json
-               , spiros
-
-               , optparse-applicative ^>= 0.14
-
-               , bytestring
-
-               , filepath
-               , directory
-
-               , lens
-               , lens-aeson
-
-               , zlib
-               , tar
-               , zip-archive
-
-               , http-client 
-               , http-client-tls
-               , http-types 
-               , wreq
 
 --------------------------------------------------
 -- EOF -------------------------------------------
