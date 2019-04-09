@@ -1,2 +1,4 @@
 $ find ./mtg-csv/hs -type f '(' -name '*.hs' -o -name '*.cabal' ')' -exec sed -e 's:SQL:CSV:g' '{}' ';'
 
+$ cat Vintage.json | jq '[(.LEA, .LEB)]' > LEX.json
+
