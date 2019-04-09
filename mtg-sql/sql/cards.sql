@@ -1,43 +1,44 @@
+-- -*- sql-product: postgres; -*-
+
 --------------------------------------------------
 
 CREATE TABLE cards
 
-( id   INT  NOT NULL PRIMARY KEY
+( id                    INT     NOT NULL PRIMARY KEY
 
-, name  TEXT NOT NULL
-, names ARRAY TEXT,
+, name                  TEXT    NOT NULL
+, names                 ARRAY TEXT
 
-artist                TEXT,
-borderColor           TEXT,
-colorIdentity         TEXT,
-colorIndicator        TEXT,
-colors                TEXT,
-convertedManaCost     INTEGER,
-flavorText            TEXT,
-frameVersion          TEXT,
-layout                TEXT,
-loyalty               TEXT,
-manaCost              TEXT,
-multiverseId          INTEGER,
-collectorsNumber      TEXT,
-originalText          TEXT,
-originalType          TEXT,
-printings             TEXT,
-power                 TEXT,
-rarity                TEXT,
-scryfallId            TEXT,
-setCode               TEXT,
-side                  TEXT,
-subtypes              TEXT,
-supertypes            TEXT,
-text                  TEXT,
-toughness             TEXT,
-type                  TEXT,
-types                 TEXT,
-variations            TEXT,
-watermark             TEXT
+, artist                TEXT
+, borderColor           TEXT
+, colorIdentity         TEXT
+, colorIndicator        TEXT
+, colors                TEXT
+, convertedManaCost     INTEGER NOT NULL
+, flavorText            TEXT
+, frameVersion          TEXT
+, layout                TEXT
+, loyalty               TEXT
+, manaCost              TEXT
+, multiverseId          INTEGER
+, collectorsNumber      TEXT
+, originalText          TEXT
+, originalType          TEXT
+, printings             TEXT
+, power                 TEXT
+, rarity                TEXT
+, scryfallId            TEXT
+, setCode               TEXT
+, side                  TEXT
+, subtypes              TEXT
+, supertypes            TEXT
+, text                  TEXT
+, toughness             TEXT
+, type                  TEXT
+, types                 TEXT
+, variations            TEXT
+, watermark             TEXT
 
--- uuid                  TEXT(36) PRIMARY KEY
 );
 
 --------------------------------------------------

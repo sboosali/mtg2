@@ -1,0 +1,633 @@
+cabal-version:       2.2
+
+build-type:          Simple
+
+--------------------------------------------------
+
+name:                mtg-sql
+version:             0.0.0
+                     -- ^ ❲ A.B.C.D ❳:
+                     --
+                     -- • ❲ A.B ❳ — the MajorVersion
+                     -- • ❲ C ❳   — the MinorVersion
+                     -- • ❲ D ❳   — a PatchVersion
+
+-- x-revision:          1
+
+--------------------------------------------------
+-- Description -----------------------------------
+--------------------------------------------------
+
+synopsis: SQL Database from « mtg.json » (of Magic The Gathering cards)
+
+category: MTG
+
+--------------------------------------------------
+
+description: Create a SQL database from « mtg.json ».
+             .
+             @CREATE TABLE@s for:
+             .
+             * Magic The Gathering cards.
+             * Magic The Gathering sets.
+             .
+             @CREATE TYPE@s for:
+             .
+             * Colors
+             * (Known) Keywords
+             * (Known) Card Types
+             * (Known) Sub-Types
+             * (Known) Super-Types
+             * (Known) Card Names
+             .
+
+--------------------------------------------------
+
+author:              Spiros Boosalis
+maintainer:          Spiros Boosalis <samboosalis@gmail.com>
+
+--------------------------------------------------
+-- Portability -----------------------------------
+--------------------------------------------------
+
+stability: provisional
+
+--------------------------------------------------
+
+tested-with: GHC   == 8.6.4
+           , GHC   == 8.4.4
+
+--------------------------------------------------
+-- Licensing -------------------------------------
+--------------------------------------------------
+
+license:             GPL-3.0-or-later
+license-file:        LICENSE
+copyright:           2019 Spiros Boosalis
+
+--------------------------------------------------
+-- (Non-Code) Files ------------------------------
+--------------------------------------------------
+
+extra-source-files: LICENSE
+                    README.md
+                    CHANGELOG.md
+
+  --TODO:
+  --
+  -- share/man/*.man
+  -- share/info/
+  -- share/bash-completion/
+  -- share/doc/
+  -- share/elisp/*.el
+  -- share//
+
+--------------------------------------------------
+            
+data-dir: data
+
+data-files: json/*.json
+
+--------------------------------------------------
+
+--TODO add images
+-- extra-doc-files: docs/
+
+--------------------------------------------------
+-- Repository ------------------------------------
+--------------------------------------------------
+
+homepage:    https://github.com/sboosali/mtg#readme
+bug-reports: https://github.com/sboosali/mtg/issues
+
+--------------------------------------------------
+
+source-repository head
+  type:     git
+  location: git://github.com/sboosali/mtg.git
+  subdir:   ./mtg-sql/hs
+
+--------------------------------------------------
+-- Flags -----------------------------------------
+--------------------------------------------------
+
+flag develop
+
+  default:     False
+
+  description: Exposed internals and/or dynamic typechecking (for development).
+
+  manual:      True
+
+--------------------------------------------------
+
+flag static
+
+  default:     False
+
+  description: Build a statically-linked executable (NOTE you should also, via « ./nix/static.nix », provision an environment with « musl » and other statically-linkable C Libraries.)
+
+  manual:      True
+
+--------------------------------------------------
+-- Common Stanzas --------------------------------
+--------------------------------------------------
+
+common Haskell2020Library
+
+ -----------------------------
+ --TODO cross-platform template...
+
+ -- if   os(linux)
+ -- --   linux-only:
+ -- --   ...
+ -- elif os(windows)
+ -- --   windows-only:
+ -- --   ...
+ -- elif os(darwin)
+ -- --   mac-only:
+ -- --   ...
+
+ -- -- ^ See « System.Info.os ».
+ -- -- ^ NOTE « os(windows) » canonicalizes « os(mingw32) », « os(cygwin32) », etc.
+
+ -----------------------------
+ --TODO cross-platform template...
+
+ -- if   arch(x86_64)
+ -- --   64-bit-only:
+ -- --   ...
+ -- elif arch(i386)
+ -- --   32-bit-only:
+ -- --   ...
+
+ -- -- ^ See « System.Info.arch ».
+
+ -----------------------------
+
+ default-language: Haskell2010
+
+ -----------------------------
+
+ build-depends: base >=4.10 && <5
+--build-depends: base-noprelude >=4.10 && <5
+
+ -----------------------------
+
+ ghc-options:
+
+  --------------------
+  -- warning groups
+  --------------------
+
+             -Wall
+
+  --------------------
+  -- disabled warnings
+  --------------------
+
+  --------------------
+  -- enabled warnings
+  --------------------
+
+             -fwarn-name-shadowing
+             -fwarn-tabs
+
+  --------------------
+  -- (miscellaneous warnings)
+  --------------------
+
+  -- raise a warning into an error
+  -- -Werror=missing-fields
+
+ -----------------------------
+
+ if impl(ghc >= 7.10)
+    ghc-options:
+
+        --------------------
+        -- disabled warnings
+        --------------------
+
+                -fno-warn-unticked-promoted-constructors
+                -- ^ NOTE « -fno-warn-... » is the old style,
+                --        « -Wno-... » is the new style.
+
+ -----------------------------
+
+ if impl(ghc >= 8.0)
+    ghc-options:
+
+        --------------------
+        -- warning groups
+        --------------------
+
+                -Wcompat
+
+        --------------------
+        -- disabled warnings
+        --------------------
+
+                -Wno-unticked-promoted-constructors
+         --TODO -fno-warn-redundant-constraints
+
+        --------------------
+        -- enabled warnings
+        --------------------
+
+                -Wnoncanonical-monad-instances
+                -Wnoncanonical-monadfail-instances
+
+                -Wincomplete-record-updates
+                -Wincomplete-uni-patterns
+
+                -Wmissing-methods
+                -Widentities
+
+                -- -Wmissing-exported-signatures
+                -- -Whi-shadowing
+
+        --------------------
+
+                -Wtyped-holes
+
+ -----------------------------
+
+ if flag(develop)
+ 
+    cpp-options: -DDEVELOP
+                 -- ^ Define the « DEVELOP » symbol for CPP.
+
+ -----------------------------
+
+ if flag(develop) && impl(ghc >= 8.0)
+ 
+    ghc-options: -fdefer-typed-holes
+                 -- ^ Use `typed-holes`, not `undefined`, during development.
+
+ -----------------------------
+
+ if impl(ghc >= 8.2)
+    ghc-options:
+
+        --------------------
+        -- enabled warnings
+        --------------------
+
+                -Wcpp-undef
+
+                -Wmissing-home-modules
+
+                -Wunbanged-strict-patterns
+
+ -----------------------------
+
+ default-extensions:
+
+   --------------------
+   -- "controversial"
+   --------------------
+                    NoImplicitPrelude
+
+   --------------------
+   -- `deriving`
+   --------------------
+                    AutoDeriveTypeable
+                    DeriveDataTypeable
+                    DeriveGeneric
+                    DeriveFunctor
+                    DeriveFoldable
+                    DeriveTraversable
+                    StandaloneDeriving
+--TODO
+
+   --------------------
+   -- syntax
+   --------------------
+                    PackageImports
+                    LambdaCase
+                    EmptyCase
+                    TypeOperators
+                    PostfixOperators
+                    BangPatterns
+                    KindSignatures
+                    NamedFieldPuns
+                    RecordWildCards
+                    TupleSections
+                    MultiWayIf
+                    DoAndIfThenElse
+                    EmptyDataDecls
+                    InstanceSigs
+
+   --------------------
+   -- typeclasses
+   --------------------
+                    MultiParamTypeClasses
+                    FlexibleContexts
+                    FlexibleInstances
+                    TypeFamilies
+                    FunctionalDependencies
+                    ConstrainedClassMethods
+
+   --------------------
+   -- patterns
+   --------------------
+                    ViewPatterns
+                    PatternSynonyms
+
+   --------------------
+   -- (miscellaneous)
+   --------------------
+                    ScopedTypeVariables
+
+ -----------------------------
+
+ other-extensions:
+
+   --------------------
+   -- macros
+   --------------------
+                  CPP
+   --               TemplateHaskell
+   --               QuasiQuotes
+
+   --------------------
+   -- syntax (of literals)
+   --------------------
+                  OverloadedStrings
+                  OverloadedLists
+
+   --------------------
+   -- (miscellaneous)
+   --------------------
+
+   -- RebindableSyntax
+   -- kinds:
+   -- DataKinds ConstraintKinds
+   -- harmful to inference:
+   -- GADTs RankNTypes
+   -- (miscellaneous)
+
+ -----------------------------
+
+ if impl(ghc >= 7.2)
+
+    default-extensions: DeriveLift
+
+ -----------------------------
+
+ if impl(ghc >= 7.10)
+
+    other-extensions: DeriveAnyClass
+
+ -----------------------------
+
+ if impl(ghc >= 8.0)
+
+    default-extensions: DuplicateRecordFields
+
+    other-extensions:   TemplateHaskellQuotes
+
+ -----------------------------
+
+ if impl(ghc >= 8.4)
+
+    default-extensions: DerivingStrategies
+                      , DeriveAnyClass
+                      , GeneralizedNewtypeDeriving
+
+ -----------------------------
+
+ if impl(ghc >= 8.6)
+
+    default-extensions: StarIsType
+                      , BlockArguments
+
+    -- ^ Enabling « StarIsType » is necessary for forwards-compatibility.
+    --
+    --   Using « :: * -> * » versus « :: Type -> Type » is necessary
+    --   for backwards-compatibility.
+    --
+    --   "Before GHC 8.0: the only way to refer to the kind of lifted types was the * syntax."
+    --
+    --   See « https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0030-remove-star-kind.rst ».
+
+ -----------------------------
+
+ other-extensions:
+
+   --------------------
+   -- macros
+   --------------------
+                  TemplateHaskell
+   -- QuasiQuotes
+
+   --------------------
+   -- syntax (of literals)
+   --------------------
+                  OverloadedStrings
+                  OverloadedLists
+
+   --------------------
+   -- (miscellaneous)
+   --------------------
+
+   -- RebindableSyntax
+   -- kinds:
+   -- DataKinds ConstraintKinds
+   -- harmful to inference:
+   -- GADTs RankNTypes
+   -- (miscellaneous)
+
+--------------------------------------------------
+
+common Haskell2020Program
+
+ import: Haskell2020Library
+
+ -----------------------------
+
+ ghc-options:
+
+   --------------------
+   -- Compilation -----
+   --------------------
+
+             -O2
+
+   --------------------
+   -- Runtime ---------
+   --------------------
+
+             -threaded
+             -rtsopts -with-rtsopts=-N             
+
+   --------------------
+   -- Warnings --------
+   --------------------
+
+             -Wno-missing-signatures
+             -fno-warn-type-defaults
+
+ -----------------------------
+
+ if flag(static)
+    ghc-options: -static -optl=-static
+
+ -----------------------------
+
+--------------------------------------------------
+
+common Haskell2020Benchmark
+
+ import: Haskell2020Program
+
+ -----------------------------
+
+ ghc-options:
+
+   --------------------
+   -- Compilation -----
+   --------------------
+
+             -O2
+
+   --------------------
+   -- Runtime ---------
+   --------------------
+
+             -fdicts-cheap
+             -funbox-strict-fields
+
+   --------------------
+
+--------------------------------------------------
+-- Library ---------------------------------------
+--------------------------------------------------
+
+library
+
+------------------------------
+
+ import: Haskell2020Library
+
+------------------------------
+
+ hs-source-dirs: library
+  
+ -----------------------------
+
+ exposed-modules: MTG.SQL.Postgres
+                , MTG.SQL.Postgres.Prelude
+
+ -----------------------------
+
+ -- signatures:
+
+ -----------------------------
+
+ build-depends:
+
+  --------------------
+  -- My Libraries ----
+  --------------------
+
+               spiros       ^>= 0.4
+   --        , enumerate
+
+  --------------------
+  -- Standard Library
+  --------------------
+
+             , text             
+             , bytestring
+             , transformers
+             , mtl
+             , containers
+
+  --------------------
+  -- "Extended" Library
+  --------------------
+
+             , deepseq
+             , hashable
+             , unordered-containers
+
+  --------------------
+  -- Filesystem ------
+  --------------------
+
+             , filepath
+             , directory
+
+  --------------------
+  -- Printing --------
+  --------------------
+
+             , prettyprinter               ^>= 1.2
+             , prettyprinter-ansi-terminal ^>= 1.1
+
+  --------------------
+  -- Database --------
+  --------------------
+
+             , postgresql-simple
+
+  --------------------
+  -- (Miscellaneous) -
+  --------------------
+
+             -- , pkg
+
+ -----------------------------
+
+--------------------------------------------------
+-- Tests -----------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
+-- Executables -----------------------------------
+--------------------------------------------------
+
+executable mtg-sql
+
+  import: Haskell2020Program
+
+  ----------------------------
+
+  hs-source-dirs: executable
+
+  main-is:       Program/MTG/SQL/Postgres/Main.hs
+
+  other-modules: Program.MTG.SQL.Postgres.IO
+                 Program.MTG.SQL.Postgres.CLI
+
+                 Program.MTG.SQL.Postgres.Types
+                 Program.MTG.SQL.Postgres.Constants
+                 Program.MTG.SQL.Postgres.Paths
+
+                 Program.MTG.SQL.Postgres.Prelude
+
+  ----------------------------
+
+  build-depends: mtg-sql
+               , spiros
+
+               , optparse-applicative ^>= 0.14
+
+               , filepath
+               , directory
+
+--TODO--
+-- 
+-- <https://github.com/haskell/cabal/issues/4677>
+-- 
+-- given an Archive File named `libXYZ.a`, then add this in your `.cabal` file:
+-- 
+--     ghc-options: -pgml gcc "-optl-Wl,--allow-multiple-definition" "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lXYZ" "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
+-- 
+--
+
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------

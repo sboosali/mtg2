@@ -1,0 +1,63 @@
+==============================================
+
+
+
+
+{-
+
+  format "CREATE TYPE %s AS ENUM ( %s );" name labels
+
+   [ "CREATE TYPE"
+  , docLabels 
+  , "AS ENUM"
+  , " ("
+  , docLabels 
+  , " );"
+  ]
+
+  go
+    = PP.align
+    . PP.sep
+    . List.zipWith (<+>) (List.repeat ", ")
+
+type SQLDoc = PP.Doc SQLAnnotation
+
+data SQLAnnotation
+
+  = SQLKeyword 
+  | SQLString 
+  | SQLComment 
+  | SQLEnumName 
+  | SQLEnumLabel 
+
+PP.ANSI.bold
+PP.ANSI.italicized
+PP.ANSI.underlined
+
+PP.ANSI.colorDull
+
+-- The 8 ANSI terminal colors:
+
+enum Color
+
+Black	 
+Red	 
+Green	 
+Yellow	 
+Blue	 
+Magenta	 
+Cyan	 
+White	 
+
+
+
+
+-}
+
+
+
+==============================================
+
+
+
+==============================================
