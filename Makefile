@@ -60,7 +60,7 @@ check:
 
 	@printf "%s\n\n" "Testing..."
 
-	$(Cabal) new-test $(CabalOptions) $(CabalTargets)
+	$(Cabal) new-test $(CabalOptions) --enable-tests $(CabalTargets)
 
 	@printf "\n%s\n" "========================================"
 

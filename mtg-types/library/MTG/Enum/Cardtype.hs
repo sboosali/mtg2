@@ -13,7 +13,7 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Cardtype = Cardtype Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
@@ -23,7 +23,7 @@ makePrisms ''Cardtype
 -- | @= 'instantType'@
 instance Default Cardtype where def = instantType
 
-----------------------------------------
+--------------------------------------------------
 
 instantType :: Cardtype
 instantType = "Instant"
@@ -49,4 +49,4 @@ planeswalkerType = "Planeswalker"
 conspiracyType :: Cardtype
 conspiracyType = "Conspiracy"
  
-----------------------------------------
+--------------------------------------------------

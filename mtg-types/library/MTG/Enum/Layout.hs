@@ -14,7 +14,7 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Layout = Layout Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
@@ -24,12 +24,12 @@ makePrisms ''Layout
 -- | @= 'normalLayout'@
 instance Default Layout where def = normalLayout
 
-----------------------------------------
+--------------------------------------------------
 
 toLayout :: Maybe Text -> Layout
 toLayout = maybe def Layout
 
-----------------------------------------
+--------------------------------------------------
 
 {-|
 -}
@@ -91,7 +91,7 @@ tokenLayout = "token"
 vanguardLayout :: Layout
 vanguardLayout = "vanguard"
 
-----------------------------------------
+--------------------------------------------------
 
 {-
 

@@ -27,7 +27,7 @@ import MTG.Prelude
 
 import Control.Lens (makeLenses, makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Language = Language Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
@@ -35,7 +35,7 @@ newtype Language = Language Text
 -- | @= 'english'@
 instance Default Language where def = english
 
-----------------------------------------
+--------------------------------------------------
 
 data LanguageInfo = LanguageInfo
  { _languageAbbreviation :: Text
@@ -48,7 +48,7 @@ instance Hashable LanguageInfo
 -- | @= 'englishInfo'@
 instance Default LanguageInfo where def = englishInfo
 
-----------------------------------------
+--------------------------------------------------
 
 knownLanguages :: Set Language
 knownLanguages =
@@ -65,7 +65,7 @@ knownLanguages =
   , korean
   ]
 
-----------------------------------------
+--------------------------------------------------
 
 -- | 'englishAbbreviation' and 'englishEndonym'. 
 englishInfo :: LanguageInfo
@@ -111,7 +111,7 @@ taiwaneseInfo = LanguageInfo taiwaneseAbbreviation taiwaneseEndonym
 koreanInfo :: LanguageInfo
 koreanInfo = LanguageInfo koreanAbbreviation koreanEndonym
 
-----------------------------------------
+--------------------------------------------------
 
 english :: Language
 english = "English"
@@ -146,7 +146,7 @@ taiwanese = "Taiwanese"
 korean :: Language
 korean = "Korean"
 
-----------------------------------------
+--------------------------------------------------
 
 englishAbbreviation :: Text
 englishAbbreviation = "en"
@@ -181,7 +181,7 @@ taiwaneseAbbreviation = "tw"
 koreanAbbreviation :: Text
 koreanAbbreviation = "ko"
 
-----------------------------------------
+--------------------------------------------------
 
 englishEndonym :: Text
 englishEndonym = "English"
@@ -216,7 +216,7 @@ taiwaneseEndonym = "繁體中文"
 koreanEndonym :: Text
 koreanEndonym = "한국어"
 
-----------------------------------------
+--------------------------------------------------
 
 {-
 languageInfo :: (MonadThrow m) => Language -> m LanguageInfo
@@ -235,10 +235,10 @@ languageInfo = \case
  Language language     -> throwT $ "unknown language " <> language
 -}
 
-----------------------------------------
+--------------------------------------------------
 
 makePrisms ''Language
 
 makeLenses ''LanguageInfo
 
-----------------------------------------
+--------------------------------------------------

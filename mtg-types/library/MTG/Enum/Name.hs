@@ -13,13 +13,13 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype CardName = CardName Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''CardName
 
-----------------------------------------
+--------------------------------------------------
 
-----------------------------------------
+--------------------------------------------------

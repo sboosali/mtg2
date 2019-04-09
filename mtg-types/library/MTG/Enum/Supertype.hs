@@ -13,14 +13,14 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Supertype = Supertype Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''Supertype
 
-----------------------------------------
+--------------------------------------------------
 
 basicSupertype :: Supertype
 basicSupertype = "Basic"
@@ -37,4 +37,4 @@ ongoingSupertype = "Ongoing"
 worldSupertype :: Supertype
 worldSupertype = "World"
  
-----------------------------------------
+--------------------------------------------------

@@ -13,7 +13,7 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Format = Format Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
@@ -23,7 +23,7 @@ makePrisms ''Format
 -- | @= 'vintageFormat'@
 instance Default Format where def = vintageFormat
 
-----------------------------------------
+--------------------------------------------------
 
 standardFormat :: Format
 standardFormat = "standard"
@@ -49,4 +49,4 @@ modernFormat = "modern"
 commanderFormat :: Format
 commanderFormat = "commander"
 
-----------------------------------------
+--------------------------------------------------

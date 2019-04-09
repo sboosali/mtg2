@@ -15,14 +15,14 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Symbol = Symbol Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''Symbol
 
-----------------------------------------
+--------------------------------------------------
 
 tapSymbol :: Symbol
 tapSymbol = "T"
@@ -30,7 +30,7 @@ tapSymbol = "T"
 untapSymbol :: Symbol
 untapSymbol = "Q"
 
-----------------------------------------
+--------------------------------------------------
 
 loyaltyActivationSymbol :: Integer -> Symbol
 loyaltyActivationSymbol i =
@@ -40,4 +40,4 @@ loyaltyActivationSymbol i =
   where
   s = (fromString . show) (abs i)
 
-----------------------------------------
+--------------------------------------------------

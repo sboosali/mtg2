@@ -13,21 +13,21 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype ManaCost = ManaCost Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''ManaCost
 
-----------------------------------------
+--------------------------------------------------
 
 newtype ManaSymbol = ManaSymbol Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''ManaSymbol
 
-----------------------------------------
+--------------------------------------------------
 
 --TODO  
 toManaCost :: Maybe Text -> ManaCost
@@ -36,7 +36,7 @@ toManaCost = maybe noManaCost ManaCost
 noManaCost :: ManaCost
 noManaCost = ""
 
-----------------------------------------
+--------------------------------------------------
 
 whiteSymbol :: ManaSymbol
 whiteSymbol = "W"
@@ -53,7 +53,7 @@ redSymbol = "R"
 greenSymbol :: ManaSymbol
 greenSymbol = "G"
 
-----------------------------------------
+--------------------------------------------------
 
 colorlessSymbol :: ManaSymbol
 colorlessSymbol = "C"
@@ -67,7 +67,7 @@ energySymbol = "E"
 variableSymbol :: ManaSymbol
 variableSymbol = "X"
 
-----------------------------------------
+--------------------------------------------------
 
 phyrexian :: ManaSymbol -> ManaSymbol
 phyrexian (ManaSymbol s) = ManaSymbol ("{P" <> s <> "}")
@@ -87,7 +87,7 @@ phyrexianRed = phyrexian redSymbol
 phyrexianGreen :: ManaSymbol
 phyrexianGreen = phyrexian greenSymbol
 
-----------------------------------------
+--------------------------------------------------
 
 monohybrid :: ManaSymbol -> ManaSymbol
 monohybrid (ManaSymbol s) = ManaSymbol ("{2/" <> s <> "}")
@@ -107,7 +107,7 @@ monohybridRed = monohybrid redSymbol
 monohybridGreen :: ManaSymbol
 monohybridGreen = monohybrid greenSymbol
 
-----------------------------------------
+--------------------------------------------------
 
 genericSymbol :: Natural -> ManaSymbol
 genericSymbol n = ManaSymbol $ (fromString . show) n
@@ -175,7 +175,7 @@ nineteenSymbol = genericSymbol 19
 twentySymbol :: ManaSymbol
 twentySymbol = genericSymbol 20
 
-----------------------------------------
+--------------------------------------------------
 
 {-
 

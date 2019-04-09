@@ -15,14 +15,14 @@ import MTG.Enum.Edition
 
 import Control.Lens (makeLenses, makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype BlockName = BlockName Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''BlockName
 
-----------------------------------------
+--------------------------------------------------
 
 data BlockInfo = BlockInfo
  { _blockAbbreviation :: Text
@@ -36,7 +36,7 @@ instance Hashable BlockInfo
 
 makeLenses ''BlockInfo
 
-----------------------------------------
+--------------------------------------------------
 
 mirageBlock :: BlockName
 mirageBlock = "Mirage"
@@ -116,7 +116,7 @@ amonkhetBlock = "Amonkhet"
 ixalanBlock :: BlockName
 ixalanBlock = "Ixalan"
 
-----------------------------------------
+--------------------------------------------------
 
 antediluvianPseudoBlock :: BlockName
 antediluvianPseudoBlock = "Antediluvian Sets"
@@ -127,4 +127,4 @@ ordinalPseudoBlock = "Ordinal Core Sets"
 cardinalPseudoBlock :: BlockName
 cardinalPseudoBlock = "Cardinal Core Sets"
 
-----------------------------------------
+--------------------------------------------------

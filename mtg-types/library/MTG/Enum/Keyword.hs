@@ -157,14 +157,14 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Keyword = Keyword Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''Keyword
 
-----------------------------------------
+--------------------------------------------------
 
 _Deathtouch :: Keyword
 _Deathtouch = "Deathtouch"
@@ -553,7 +553,7 @@ _Afflict = "Afflict"
 _Ascend :: Keyword
 _Ascend = "Ascend"
 
-----------------------------------------
+--------------------------------------------------
 
 allKeywordAbilities :: [Keyword]
 allKeywordAbilities =
@@ -688,4 +688,4 @@ allKeywordAbilities =
   , _Ascend
   ]
 
-----------------------------------------
+--------------------------------------------------

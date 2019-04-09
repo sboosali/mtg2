@@ -15,7 +15,7 @@ import MTG.Enum.Language
 
 import Control.Lens (makeLenses, makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype EditionName = EditionName Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
@@ -32,7 +32,7 @@ newtype EditionType = EditionType Text
 
 makePrisms ''EditionType
 
-----------------------------------------
+--------------------------------------------------
 
 data QualifiedEdition = QualifiedEdition
  { _editionEdition  :: EditionName
@@ -44,7 +44,7 @@ instance Hashable QualifiedEdition
 
 makeLenses ''QualifiedEdition
   
-----------------------------------------
+--------------------------------------------------
 
 data EditionInfo = EditionInfo
  { _editionAbbreviation :: Text
@@ -57,7 +57,7 @@ instance Hashable EditionInfo
 
 makeLenses ''EditionInfo
 
-----------------------------------------
+--------------------------------------------------
 
 coreEdition :: EditionType
 coreEdition = "core"
@@ -110,9 +110,9 @@ conspiracyEdition = "conspiracy"
 masterpieceEdition :: EditionType
 masterpieceEdition = "masterpiece"
 
-----------------------------------------
+--------------------------------------------------
 
-----------------------------------------
+--------------------------------------------------
 
 eAL :: EditionCode
 eAL = "AL"
@@ -405,4 +405,4 @@ eXLN = "XLN"
 eRIX :: EditionCode
 eRIX = "RIX"
 
-----------------------------------------
+--------------------------------------------------

@@ -13,7 +13,7 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Rarity = Rarity Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
@@ -23,7 +23,7 @@ makePrisms ''Rarity
 -- | @= 'common'@
 instance Default Rarity where def = common
 
-----------------------------------------
+--------------------------------------------------
 
 mythic :: Rarity
 mythic = "Mythic"
@@ -37,7 +37,7 @@ uncommon = "Uncommon"
 common :: Rarity
 common = "Common"
 
-----------------------------------------
+--------------------------------------------------
 
 mythicAbbreviation :: Char
 mythicAbbreviation = 'M'
@@ -65,4 +65,4 @@ commonAbbreviation :: Rarity
 commonAbbreviation = "C"
 -}
 
-----------------------------------------
+--------------------------------------------------

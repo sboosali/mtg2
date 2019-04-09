@@ -5,10 +5,11 @@
 module MTG.Prelude
 
   ( module EXPORT
+  , module MTG.Prelude
   ) where
 
 --------------------------------------------------
--- Imports ---------------------------------------
+-- Exports ---------------------------------------
 --------------------------------------------------
 
 import "spiros" Prelude.Spiros as EXPORT
@@ -16,6 +17,25 @@ import "spiros" Prelude.Spiros as EXPORT
 --------------------------------------------------
 
 import "enumerate" Enumerate as EXPORT
+
+--------------------------------------------------
+
+import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc as PP
+
+--------------------------------------------------
+-- Definitions -----------------------------------
+--------------------------------------------------
+
+braced :: PP.Doc i -> PP.Doc i 
+braced 
+
+  = PP.surround PP.lbrace PP.rbrace
 
 --------------------------------------------------
 -- EOF -------------------------------------------

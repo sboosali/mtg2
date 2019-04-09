@@ -23,14 +23,14 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Watermark = Watermark Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''Watermark
 
-----------------------------------------
+--------------------------------------------------
 
 colorWatermarks :: Set Watermark
 colorWatermarks =
@@ -93,7 +93,7 @@ miscellaneousWatermarks =
   , colorlessWatermark
   ]
 
-----------------------------------------
+--------------------------------------------------
 
 abzanWatermark :: Watermark
 abzanWatermark = "Abzan"
@@ -197,4 +197,4 @@ temurWatermark = "Temur"
 whiteWatermark :: Watermark
 whiteWatermark = "White"
 
-----------------------------------------
+--------------------------------------------------

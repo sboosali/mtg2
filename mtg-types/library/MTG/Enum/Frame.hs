@@ -13,13 +13,13 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Frame = Frame Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''Frame
-----------------------------------------
+--------------------------------------------------
 
 oldFrame :: Frame
 oldFrame = "old"
@@ -33,4 +33,4 @@ newFrame = "new"
 futureFrame :: Frame
 futureFrame = "future"
 
-----------------------------------------
+--------------------------------------------------

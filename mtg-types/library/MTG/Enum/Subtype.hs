@@ -14,16 +14,16 @@ import MTG.Prelude
 
 import Control.Lens (makePrisms)
 
-----------------------------------------
+--------------------------------------------------
 
 newtype Subtype = Subtype Text
  deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
 
 makePrisms ''Subtype
 
-----------------------------------------
+--------------------------------------------------
 
-----------------------------------------
+--------------------------------------------------
 
 {-
 

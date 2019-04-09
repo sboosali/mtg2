@@ -18,17 +18,26 @@
 >>> ppSQLCreateEnum SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
 CREATE TYPE color AS ENUM ( 'white', 'blue', 'black', 'red', 'green' );
 
-'sql_CREATE_TYPE_AS_ENUM':
+'renderString_SQLCreateEnum':
 
->>> sql_CREATE_color layout = sql_CREATE_TYPE_AS_ENUM layout SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
->>> Prelude.putStrLn (sql_CREATE_color Nothing)
+>>> sqlCreateColor = SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
+>>> Prelude.putStrLn (renderString_SQLCreateEnum Nothing sqlCreateColor)
 CREATE TYPE color AS ENUM ( 'white', 'blue', 'black', 'red', 'green' );
->>> Prelude.putStrLn (sql_CREATE_color (Just PP.LayoutOptions { PP.layoutPageWidth = PP.AvailablePerLine 30 1.0 }))
+>>> Prelude.putStrLn (renderString_SQLCreateEnum (Just PP.LayoutOptions { PP.layoutPageWidth = PP.AvailablePerLine 30 1.0 }) sqlCreateColor)
 CREATE TYPE color AS ENUM ( 'white',
                             'blue',
                             'black',
                             'red',
                             'green' );
+
+'putANSI_SQLCreateEnum':
+
+@
+> sqlCreateColor = SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
+
+> putANSI_SQLCreateEnum IO.stdout Nothing sqlCreateColor
+\ESC[0;95mCREATE TYPE\ESC[0m \ESC[0;94;1mcolor\ESC[0m \ESC[0;95mAS ENUM\ESC[0m ( \ESC[0;92;4m'white'\ESC[0m, \ESC[0;92;4m'blue'\ESC[0m, \ESC[0;92;4m'black'\ESC[0m, \ESC[0;92;4m'red'\ESC[0m, \ESC[0;92;4m'green'\ESC[0m );
+@
 
 -}
 
@@ -52,12 +61,13 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 --------------------------------------------------
 
 import qualified "prettyprinter-ansi-terminal" Data.Text.Prettyprint.Doc.Render.Terminal as PP.ANSI
+
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
 --import qualified "base" Data.List as List
---import qualified "base" Prelude
+import qualified "base" System.IO as IO
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -68,6 +78,10 @@ type SQLDoc = PP.Doc (Maybe SQLAnnotation)
 --------------------------------------------------
 
 type ANSIDoc = PP.Doc PP.ANSI.AnsiStyle
+
+--------------------------------------------------
+
+type SimpleANSIDoc = PP.SimpleDocStream PP.ANSI.AnsiStyle
 
 --------------------------------------------------
 
@@ -98,10 +112,15 @@ data SQLAnnotation
 --------------------------------------------------
 -- Definitions -----------------------------------
 --------------------------------------------------
--- « Doc »s for « CREATE TYPE AS ENUM »...
+-- Renderers...
 
 sql_CREATE_TYPE_AS_ENUM :: Maybe PP.LayoutOptions -> SQLCreateEnum -> String
-sql_CREATE_TYPE_AS_ENUM mLayout enum = renderedDocument
+sql_CREATE_TYPE_AS_ENUM = renderString_SQLCreateEnum
+
+--------------------------------------------------
+
+renderString_SQLCreateEnum :: Maybe PP.LayoutOptions -> SQLCreateEnum -> String
+renderString_SQLCreateEnum mLayout enum = renderedDocument
   where
 
   renderedDocument = PP.String.renderString simpleDocument
@@ -111,6 +130,43 @@ sql_CREATE_TYPE_AS_ENUM mLayout enum = renderedDocument
   layout = mLayout & maybe PP.defaultLayoutOptions id
 
 --------------------------------------------------
+
+renderANSI_SQLCreateEnum :: Maybe PP.LayoutOptions -> SQLCreateEnum -> Text
+renderANSI_SQLCreateEnum mLayout enum = renderedDocument
+  where
+
+  renderedDocument = PP.ANSI.renderStrict simpleDocument
+
+  simpleDocument   = complexSQLDocument_to_simpleANSIDocument layout complexDocument
+  complexDocument  = ppSQLCreateEnum enum
+
+  layout = mLayout & maybe PP.defaultLayoutOptions id
+
+--------------------------------------------------
+
+putANSI_SQLCreateEnum :: IO.Handle -> Maybe PP.LayoutOptions -> SQLCreateEnum -> IO ()
+putANSI_SQLCreateEnum handle mLayout enum = do
+
+  PP.ANSI.renderIO handle simpleDocument
+
+  where
+
+  simpleDocument   = complexSQLDocument_to_simpleANSIDocument layout complexDocument
+  complexDocument  = ppSQLCreateEnum enum
+
+  layout = mLayout & maybe PP.defaultLayoutOptions id
+
+--------------------------------------------------
+
+complexSQLDocument_to_simpleANSIDocument :: PP.LayoutOptions -> SQLDoc -> SimpleANSIDoc
+complexSQLDocument_to_simpleANSIDocument layout doc = simpleDocument 
+  where
+
+  simpleDocument   = PP.layoutSmart layout ansiDocument
+  ansiDocument     = reAnnotate_SQL_ANSI doc
+
+--------------------------------------------------
+-- « Doc »s for « CREATE TYPE AS ENUM »...
 
 ppSQLCreateEnum :: SQLCreateEnum -> SQLDoc
 ppSQLCreateEnum SQLCreateEnum{ enumName, enumLabels } = doc

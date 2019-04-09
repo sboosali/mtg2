@@ -544,6 +544,12 @@ library
    --        , enumerate
 
   --------------------
+  -- Project Libraries
+  --------------------
+
+             , mtg-types
+
+  --------------------
   -- Standard Library
   --------------------
 
