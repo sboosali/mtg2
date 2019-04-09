@@ -58,6 +58,45 @@ White
 
 ==============================================
 
+annotateKeyword :: String -> SQLDoc
+annotateKeyword s = PP.annotate (Just SQLKeyword) (PP.pretty s)
+
+annotateString :: String -> SQLDoc
+annotateString s = PP.annotate (Just SQLString) (PP.pretty s)
+
+annotateType :: String -> SQLDoc
+annotateType s = PP.annotate (Just SQLType) (PP.pretty s)
+
+annotateComment :: String -> SQLDoc
+annotateComment s = PP.annotate (Just SQLComment) (PP.pretty s)
+
+annotateLiteral :: String -> SQLDoc
+annotateLiteral s = PP.annotate (Just SQLLiteral) (PP.pretty s)
 
 
-==============================================
+>>> sql_CREATE_rgb = sql_CREATE_TYPE_AS_ENUM SQLCreateEnum{ enumName = "rgb", enumLabels = [ "r", "g", "b" ] }
+>>> sql_CREATE_rgb
+CREATE TYPE rgb AS ENUM ('r', 'g', 'b');
+
+
+PP.SimpleDocStream
+
+(Just PP.defaultLayoutOptions{ = })
+
+
+
+>>> sql_CREATE_color layout = sql_CREATE_TYPE_AS_ENUM layout SQLCreateEnum{ enumName = "color", enumLabels = [ "white", "blue", "black", "red", "green" ] }
+>>> Prelude.putStrLn (sql_CREATE_color Nothing)
+CREATE TYPE color AS ENUM ('white', 'blue', 'black', 'red', 'green');
+>>> Prelude.putStrLn (sql_CREATE_color (Just PP.LayoutOptions { PP.layoutPageWidth = PP.AvailablePerLine 30 1.0 }))
+CREATE TYPE color AS ENUM ( 'white',
+                            'blue',
+                            'black',
+                            'red',
+                            'green' );
+
+
+
+
+
+

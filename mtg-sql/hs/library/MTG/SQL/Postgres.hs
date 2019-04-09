@@ -19,7 +19,7 @@ module MTG.SQL.Postgres
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import MTG.SQL.Postgres.Prelude
+--import MTG.SQL.Postgres.Prelude
 import MTG.SQL.Postgres.Enum
 
 --------------------------------------------------
