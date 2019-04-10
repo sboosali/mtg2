@@ -4,7 +4,12 @@
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-|
+{-| 
+
+== Examples
+
+>>> pretty blue
+{U}
 
 -}
 
@@ -80,8 +85,44 @@ colorless :: Color
 colorless = "Colorless"
 
 --------------------------------------------------
+-- Patterns --------------------------------------
+--------------------------------------------------
+
+-- | @≡ "White"@
+
+pattern White :: Color
+pattern White = "White"
+
+-- | @≡ "Blue"@
+
+pattern Blue :: Color
+pattern Blue = "Blue"
+
+-- | @≡ "Black"@
+
+pattern Black :: Color
+pattern Black = "Black"
+
+-- | @≡ "Red"@
+
+pattern Red :: Color
+pattern Red = "Red"
+
+-- | @≡ "Green"@
+
+pattern Green :: Color
+pattern Green = "Green"
+
+-- | @≡ "Colorless"@
+
+pattern Colorless :: Color
+pattern Colorless = "Colorless"
+
+--------------------------------------------------
 -- Pretty ----------------------------------------
 --------------------------------------------------
+
+-- | @≡ 'PP.braces' . 'abbreviateColor'@
 
 instance Pretty Color where
 
@@ -98,8 +139,8 @@ prettyColor color = PP.braces docColor
 
 --------------------------------------------------
 
-abbreviateColor :: Color -> Maybe String
-abbreviateColor (Color s0) = go s1
+abbreviateColor :: Color -> Maybe Text
+abbreviateColor (Color s0) = T.toUpper <$> (go s1)
   where
 
   s1 = T.toLower s0

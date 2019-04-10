@@ -30,7 +30,8 @@ main = do
 --------------------------------------------------
 
 sources = modules2filepaths "hs" "library" $
-  "MTG.Types MTG.Enum.Block MTG.Enum.Border MTG.Enum.Cardtype MTG.Enum.Color MTG.Enum.Edition MTG.Enum.Format MTG.Enum.Frame MTG.Enum.Keyword MTG.Enum.Language MTG.Enum.Layout MTG.Enum.Legality MTG.Enum.Mana MTG.Enum.Name MTG.Enum.Rarity MTG.Enum.Subtype MTG.Enum.Supertype MTG.Enum.Symbol MTG.Enum.Watermark"
+  "MTG.Types MTG.Prelude \
+  \ MTG.Enum.Block MTG.Enum.Border MTG.Enum.Cardtype MTG.Enum.Color MTG.Enum.Edition MTG.Enum.Format MTG.Enum.Frame MTG.Enum.Keyword MTG.Enum.Language MTG.Enum.Layout MTG.Enum.Legality MTG.Enum.Mana MTG.Enum.Name MTG.Enum.Rarity MTG.Enum.Subtype MTG.Enum.Supertype MTG.Enum.Symbol MTG.Enum.Watermark"
 
 --------------------------------------------------
 
@@ -122,10 +123,15 @@ extension2flag = ("-X" ++)
 --------------------------------------------------
 
 modules2filepaths :: String -> String -> String -> [String]
-modules2filepaths extension directory = fmap go . words
+modules2filepaths extension directory
 
- where
- go s = directory ++ "/" ++ (module2filename s) ++ "." ++ extension
+  = fmap go
+  . filterBlanks
+  . words
+
+  where
+
+  go s = directory ++ "/" ++ (module2filename s) ++ "." ++ extension
 
 --------------------------------------------------
 
