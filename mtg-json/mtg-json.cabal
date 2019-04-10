@@ -518,12 +518,13 @@ library
  -----------------------------
 
  exposed-modules: MTG.JSON
-                -- , MTG.JSON.Enum
+
+                , MTG.JSON.UUID
 
                 , MTG.JSON.Schema.Set
                 , MTG.JSON.Schema.Card
 
-                -- , MTG.JSON.Prelude
+                , MTG.JSON.Prelude
 
  -----------------------------
 
@@ -540,8 +541,8 @@ library
   -- My Libraries ----
   --------------------
 
-               spiros       ^>= 0.4
-   --        , enumerate
+               spiros    ^>= 0.4
+             , enumerate ^>= 0.3
 
   --------------------
   -- Project Libraries
@@ -567,6 +568,7 @@ library
              , hashable
              , unordered-containers
              , vector
+             , prettyprinter
 
   --------------------
   -- Filesystem ------

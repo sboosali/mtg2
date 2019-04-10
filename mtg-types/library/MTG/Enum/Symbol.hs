@@ -9,7 +9,7 @@
 -}
 module MTG.Enum.Symbol where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 --import MTG.Enum.Mana
 

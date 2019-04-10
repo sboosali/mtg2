@@ -10,7 +10,7 @@
 -}
 module MTG.Enum.Layout where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 

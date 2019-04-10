@@ -10,7 +10,7 @@
 -}
 module MTG.Enum.Edition where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 import MTG.Enum.Language
 
 import Control.Lens (makeLenses, makePrisms)

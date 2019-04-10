@@ -2,10 +2,10 @@
 
 --------------------------------------------------
 
-module MTG.Prelude
+module MTG.Types.Prelude
 
   ( module EXPORT
---, module MTG.Prelude
+--, module MTG.Types.Prelude
   ) where
 
 --------------------------------------------------

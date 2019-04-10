@@ -9,7 +9,7 @@
 -}
 module MTG.Enum.Block where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import MTG.Enum.Edition
 

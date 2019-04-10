@@ -9,7 +9,7 @@
 -}
 module MTG.Enum.Legality where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 

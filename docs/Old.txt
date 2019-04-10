@@ -204,3 +204,160 @@ CREATE TYPE color AS ENUM ( 'white',
 
 
 
+
+data CardObject = CardObject 
+ 
+  { _id            :: Text 
+  , _layout        :: Text 
+  , _name          :: Text 
+  , _names         :: Maybe [Text] 
+  , _manaCost      :: Maybe Text 
+  , _cmc           :: Natural 
+  , _colors        :: Maybe [Text] 
+  , _colorIdentity :: Maybe [Text] 
+  , _type          :: Text 
+  , _supertypes    :: Maybe [Text] 
+  , _types         :: Maybe [Text] -- ^ Un-cards can have no type 
+  , _subtypes      :: Maybe [Text] 
+  , _rarity        :: Text 
+  , _text          :: Maybe Text 
+  , _flavor        :: Maybe Text 
+  , _artist        :: Text
+  , _number        :: Maybe Text
+  , _power         :: Maybe Text -- ^ Un-cards can have non-integer power/toughness 
+  , _toughness     :: Maybe Text  
+  , _loyalty       :: Maybe Natural 
+  , _multiverseid  :: Maybe Natural
+  , _variations    :: Maybe [Natural] 
+  , _imageName     :: Maybe Text 
+  , _watermark     :: Maybe Text 
+  , _border        :: Maybe Text 
+  , _timeshifted   :: Maybe Bool -- IsCardTimeShifted
+  , _hand          :: Maybe Integer  -- ^ Vanguard only 
+  , _life          :: Maybe Integer -- ^ Vanguard only 
+  , _reserved      :: Maybe Bool -- IsCardReserved 
+  , _releaseDate   :: Maybe Text -- ^ Promo only 
+  , _starter       :: Maybe Bool -- IsCardStarter 
+  , _mciNumber     :: Maybe Text  -- ^ used by `MagicCards.info`, almost always identical to '_CardObject_number' 
+  , _rulings       :: Maybe [CardRulingObject] 
+  , _foreignNames  :: Maybe [CardForeignPrintingObject] 
+  , _printings     :: [Text]  
+  , _originalText  :: Maybe Text 
+  , _originalType  :: Maybe Text
+  , _legalities    :: Maybe [CardFormatLegalityObject]
+  , _source        :: Maybe Text 
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  , _artist                 :: -- ^ e.g. @"..."@
+  , _borderColor            :: -- ^ e.g. @"black"@
+  , _colorIdentity          :: -- ^ e.g. @[ ... ]@
+  , _colors                 :: -- ^ e.g. @[ ... ]@
+  , _convertedManaCost      :: -- ^ e.g. @0@
+  , _foreignData            :: -- ^ e.g. @[ ... ]@
+  , _frameVersion           :: -- ^ e.g. @YYYY@
+  , _hasFoil                :: -- ^ e.g. @"false"@
+  , _hasNonFoil             :: -- ^ e.g. @"true"@
+  , _isReserved             :: -- ^ e.g. @"true"@
+  , _layout                 :: -- ^ e.g. @"normal"@
+  , _legalities             :: -- ^ e.g. @{ "vintage": "restricted", "legacy": "banned", "standard": "legal", ... }@
+  , _manaCost               :: -- ^ e.g. @"{B}{B/2}{B/P}"@
+  , _multiverseId           :: -- ^ e.g. @390@
+  , _name                   :: -- ^ e.g. @"Phyrexian Goblin"@
+  , _number                 :: -- ^ e.g. @"51a"@ (@Delver of Secrets@, being a /Double-Faced Card/, has an alphanumeric @collectersNumber@; @Insectile Aberration@'s is @"51b"@).
+  , _originalText           :: -- ^ e.g. @"..."@
+  , _originalType           :: -- ^ e.g. @"Summon Legend"@
+  , _printings              :: -- ^ e.g. @[ "LEA", "LEB" ]@
+  , _rarity                 :: -- ^ e.g. @"common"@
+  , _rulings                :: -- ^ e.g. @[ ... ]@
+  , _scryfallId             :: -- ^ e.g. @"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"@
+  , _scryfallIllustrationId :: -- ^ e.g. @"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"@
+  , _scryfallOracleId       :: -- ^ e.g. @"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"@
+  , _subtypes               :: -- ^ e.g. @[ "Goblin", "Wizard" ]@
+  , _supertypes             :: -- ^ e.g. @[ "Legendary", "Snow" ]@
+  , _text                   :: -- ^ e.g. @"..."@
+  , _type                   :: -- ^ e.g. @"Legendary Snow Artifact Creature — Goblin Construct"@
+  , _types                  :: -- ^ e.g. @[ "Artifact", "Creature" ]@
+  , _uuid                   :: -- ^ e.g. @"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"@
+  , _uuidV421               :: -- ^ e.g. @"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"@
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+instance IsList Colors where
+  type Item Colors = String
+  fromList = coerce . fmap T.pack
+  toList   = fmap T.unpack . coerce
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+-- Pretty ----------------------------------------
+--------------------------------------------------
+
+instance Pretty UUID where
+
+  pretty = prettyUUID
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

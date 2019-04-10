@@ -23,7 +23,7 @@ Languages that are officially supported:
 -}
 module MTG.Enum.Language where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makeLenses, makePrisms)
 

@@ -153,7 +153,7 @@ From the Comprehensive Rules (Rivals of Ixalan (January 19, 2018))
 -}
 module MTG.Enum.Keyword where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 

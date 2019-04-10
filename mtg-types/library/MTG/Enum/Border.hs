@@ -8,7 +8,7 @@
 -}
 module MTG.Enum.Border where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 

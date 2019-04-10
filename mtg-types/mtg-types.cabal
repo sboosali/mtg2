@@ -425,7 +425,9 @@ library
  -----------------------------
 
  exposed-modules: MTG.Types
+                , MTG.Colors
 
+                , MTG.Enum.Artist
                 , MTG.Enum.Block
                 , MTG.Enum.Border
                 , MTG.Enum.Cardtype
@@ -445,7 +447,7 @@ library
                 , MTG.Enum.Symbol
                 , MTG.Enum.Watermark
 
-                , MTG.Prelude
+                , MTG.Types.Prelude
 
  -----------------------------
 
@@ -455,8 +457,8 @@ library
   -- My Libraries ----
   --------------------
 
-               spiros     ^>= 0.4
-             , enumerate
+               spiros    ^>= 0.4
+             , enumerate ^>= 0.3
 
   --------------------
   -- Standard Library

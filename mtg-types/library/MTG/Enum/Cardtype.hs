@@ -9,7 +9,7 @@
 -}
 module MTG.Enum.Cardtype where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 

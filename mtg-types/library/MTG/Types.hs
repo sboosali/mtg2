@@ -7,7 +7,11 @@ module MTG.Types
 
   ( module MTG.Types
 
+  , module MTG.Colors
+
   -- * Enum types.
+
+  , module MTG.Enum.Artist
 
   , module MTG.Enum.Block
 
@@ -51,6 +55,11 @@ module MTG.Types
 -- Exports ---------------------------------------
 --------------------------------------------------
 
+import MTG.Colors
+
+--------------------------------------------------
+
+import MTG.Enum.Artist
 import MTG.Enum.Block
 import MTG.Enum.Border
 import MTG.Enum.Cardtype

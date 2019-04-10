@@ -19,7 +19,7 @@ These groups of watermarks have been printed:
 -}
 module MTG.Enum.Watermark where
 
-import MTG.Prelude
+import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 
