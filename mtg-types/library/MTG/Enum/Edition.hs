@@ -18,17 +18,29 @@ import Control.Lens (makeLenses, makePrisms)
 --------------------------------------------------
 
 newtype EditionName = EditionName Text
- deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
+ 
+  deriving stock    (Show,Read,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
+  deriving newtype  (NFData,Hashable)
 
 makePrisms ''EditionName
 
 newtype EditionCode = EditionCode Text
- deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
+ 
+  deriving stock    (Show,Read,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
+  deriving newtype  (NFData,Hashable)
 
 makePrisms ''EditionCode
 
 newtype EditionType = EditionType Text
- deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
+ 
+  deriving stock    (Show,Read,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
+  deriving newtype  (NFData,Hashable)
 
 makePrisms ''EditionType
 

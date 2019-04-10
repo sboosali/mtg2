@@ -8,7 +8,7 @@ packages:
           ./mtg-json
           ./mtg-csv/hs
           ./mtg-sql/hs
-          ./mtg-scryfall
+          -- ./mtg-scryfall
 
 --------------------------------------------------
         

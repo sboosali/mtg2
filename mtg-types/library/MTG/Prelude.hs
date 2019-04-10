@@ -5,7 +5,7 @@
 module MTG.Prelude
 
   ( module EXPORT
-  , module MTG.Prelude
+--, module MTG.Prelude
   ) where
 
 --------------------------------------------------
@@ -31,11 +31,6 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc as PP
 --------------------------------------------------
 -- Definitions -----------------------------------
 --------------------------------------------------
-
-braced :: PP.Doc i -> PP.Doc i 
-braced 
-
-  = PP.surround PP.lbrace PP.rbrace
 
 --------------------------------------------------
 -- EOF -------------------------------------------

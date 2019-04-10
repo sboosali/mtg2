@@ -30,7 +30,11 @@ import Control.Lens (makeLenses, makePrisms)
 --------------------------------------------------
 
 newtype Language = Language Text
- deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
+ 
+  deriving stock    (Show,Read,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
+  deriving newtype  (NFData,Hashable)
 
 -- | @= 'english'@
 instance Default Language where def = english

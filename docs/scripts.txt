@@ -2,3 +2,6 @@ $ find ./mtg-csv/hs -type f '(' -name '*.hs' -o -name '*.cabal' ')' -exec sed -e
 
 $ cat Vintage.json | jq '[(.LEA, .LEB)]' > LEX.json
 
+$ find ./mtg-types/library/MTG/Enum/ -type f '(' -name '*.hs' -o -name '*.cabal' ')' -exec sed -i -e 's:deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString):\n  deriving stock    (Show,Read,Generic)\n  deriving newtype  (Eq,Ord,Semigroup,Monoid)\n  deriving newtype  (IsString)\n  deriving newtype  (NFData,Hashable):g' '{}' ';'
+
+$ 

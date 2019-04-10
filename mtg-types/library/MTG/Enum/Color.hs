@@ -45,12 +45,8 @@ newtype Color = Color
 
   deriving stock    (Show,Read,Generic)
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
-
---------------------------------------------------
-
-instance IsString Color where
-  fromString = (coerce . fromString)
 
 --------------------------------------------------
 
@@ -94,10 +90,11 @@ instance Pretty Color where
 --------------------------------------------------
 
 prettyColor :: Color -> PP.Doc i
-prettyColor color0 = braced color1
+prettyColor color = PP.braces docColor
   where
 
-  color1 = (abbreviateColor color0) & fromMaybe ""
+  docColor    = PP.pretty stringColor
+  stringColor = (abbreviateColor color) & fromMaybe ""
 
 --------------------------------------------------
 
@@ -109,19 +106,19 @@ abbreviateColor (Color s0) = go s1
 
   go = \case
 
-    "white"     -> Just "w"
-    "blue"      -> Just "u"
-    "black"     -> Just "b"
-    "red"       -> Just "r"
-    "green"     -> Just "g"
-    "colorless" -> Just "c"
+    "white"     -> Just "W"
+    "blue"      -> Just "U"
+    "black"     -> Just "B"
+    "red"       -> Just "R"
+    "green"     -> Just "G"
+    "colorless" -> Just "C"
 
-    "w"         -> Just "w"
-    "u"         -> Just "u"
-    "b"         -> Just "b"
-    "r"         -> Just "r"
-    "g"         -> Just "g"
-    "c"         -> Just "c"
+    "w"         -> Just "W"
+    "u"         -> Just "U"
+    "b"         -> Just "B"
+    "r"         -> Just "R"
+    "g"         -> Just "G"
+    "c"         -> Just "C"
 
     _           -> Nothing
 

@@ -17,7 +17,11 @@ import Control.Lens (makePrisms)
 --------------------------------------------------
 
 newtype Layout = Layout Text
- deriving (Show,Read,Eq,Ord,Generic,NFData,Hashable,IsString)
+ 
+  deriving stock    (Show,Read,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
+  deriving newtype  (NFData,Hashable)
 
 makePrisms ''Layout
 
