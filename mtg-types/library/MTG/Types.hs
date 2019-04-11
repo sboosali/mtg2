@@ -7,7 +7,10 @@ module MTG.Types
 
   ( module MTG.Types
 
+  -- * List types.
+
   , module MTG.List.Colors
+  , module MTG.List.ManaCost
 
   -- * Enum types.
 
@@ -56,6 +59,7 @@ module MTG.Types
 --------------------------------------------------
 
 import MTG.List.Colors
+import MTG.List.ManaCost
 
 --------------------------------------------------
 

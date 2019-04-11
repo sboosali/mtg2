@@ -425,6 +425,7 @@ library
  -----------------------------
 
  exposed-modules: MTG.Types
+                , MTG.Types.Errors
 
                 , MTG.Classes.Parse
                 , MTG.Classes.Print

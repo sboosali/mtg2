@@ -15,8 +15,8 @@ Which themselves are re-exported by "MTG.Types.Prelude"
 
 module MTG.Classes.Prelude
 
-  ( module EXPORT
-  , module MTG.Classes.Prelude
+  ( module MTG.Classes.Prelude
+  , module EXPORT
   ) where
 
 --------------------------------------------------
@@ -26,6 +26,15 @@ module MTG.Classes.Prelude
 import "spiros" Prelude.Spiros as EXPORT
 
 --------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
+
+import           "prettyprinter" Data.Text.Prettyprint.Doc ( Doc )
+
+--------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
@@ -33,6 +42,15 @@ import "spiros" Prelude.Spiros as EXPORT
 
 type Assoc a = [( Text, a )]
 
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+-- | Wraps 'renderString'.
+
+runPrinter :: Doc i -> String
+runPrinter = PP.layoutSmart PP.defaultLayoutOptions > PP.String.renderString
+  
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------

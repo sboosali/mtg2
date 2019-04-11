@@ -45,7 +45,7 @@ import qualified "containers" Data.Map as Map
 -- Types -----------------------------------------
 --------------------------------------------------
 
-type MTGDoc = Doc MTGAnnotations
+type MTGDocument = Doc MTGAnnotations
 
 --------------------------------------------------
 
@@ -149,6 +149,26 @@ annNamesake = MTGAnnotations [ AnnNamesake ]
 -- Functions -------------------------------------
 --------------------------------------------------
 
+{- | 
+
+-}
+
+renderString_MTGDocument :: MTGDocument -> String
+renderString_MTGDocument = runPrinter
+
+--------------------------------------------------
+
+{- | 
+
+-}
+
+-- renderANSI_MTGDocument :: MTGDocument -> String
+-- renderANSI_MTGDocument = _
+
+
+
+--------------------------------------------------
+
 {-| Pretty-Print an @Enum@, given an /association list/.
 
 Fails via @Nothing@.
@@ -176,6 +196,10 @@ ppAssoc kvs = \v ->
      > Map.fromList
 
 {-# INLINEABLE ppAssoc #-}
+
+--------------------------------------------------
+-- Utilities -------------------------------------
+--------------------------------------------------
 
 --------------------------------------------------
 -- EOF -------------------------------------------

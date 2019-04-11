@@ -63,7 +63,6 @@ newtype ManaSymbol = ManaSymbol Text
   deriving stock    (Lift,Data,Generic)
 
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
@@ -72,7 +71,7 @@ newtype ManaSymbol = ManaSymbol Text
 
 instance IsString ManaSymbol where
 
-  fromString = (coerce . fromString)
+  fromString = parseManaSymbol
 
 --------------------------------------------------
 -- Constants -------------------------------------

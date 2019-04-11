@@ -25,6 +25,7 @@ module MTG.Types.Prelude
 
   ( module MTG.Types.Prelude
 
+  , module MTG.Types.Errors
   , module MTG.Classes.Print
   , module MTG.Classes.Parse
   , module MTG.Classes.Prelude
@@ -35,6 +36,8 @@ module MTG.Types.Prelude
 --------------------------------------------------
 -- Exports ---------------------------------------
 --------------------------------------------------
+
+import MTG.Types.Errors
 
 import MTG.Classes.Print
 import MTG.Classes.Parse
@@ -57,7 +60,6 @@ import "enumerate" Enumerate as EXPORT
 
 import "prettyprinter" Data.Text.Prettyprint.Doc               as EXPORT ( Pretty(..) )
 import "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as EXPORT ( renderString )
-import "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as EXPORT ( renderStrict )
 
 --------------------------------------------------
 
@@ -70,7 +72,7 @@ import "parsers" Text.Parser.Token       as EXPORT ( TokenParsing )
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as PP.Text
 
 --------------------------------------------------
 
@@ -87,10 +89,10 @@ runParser
   :: forall m a.
      ( MonadThrow m
      )
-  => (forall p. (MTGParsing p) => p a)
+  => String -> (forall p. (MTGParsing p) => p a)
   -> (String -> m a)
 
-runParser p = go
+runParser e p = go
   where
 
   go :: String -> m a
@@ -100,24 +102,17 @@ runParser p = go
       p' :: ReadP a
       p' = p
     in
-      Read.readP_to_S p' > fmap fst > throwListM
+      Read.readP_to_S p' > fmap fst > throwListWithM (parseError e)
 
 -- readP_to_S :: ReadP a -> ReadS a
 -- readP_to_S :: ReadP a -> String -> [(a,String)]
 
 --------------------------------------------------
 
--- | Wraps 'renderString'.
-
-runPrinter :: Doc i -> String
-runPrinter = PP.layoutSmart PP.defaultLayoutOptions > PP.String.renderString
-  
---------------------------------------------------
-
 -- | Aliases 'renderText'
 
 renderText :: PP.SimpleDocStream i -> Text
-renderText = renderStrict
+renderText = PP.Text.renderStrict
 
 --------------------------------------------------
 -- EOF -------------------------------------------

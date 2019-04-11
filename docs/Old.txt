@@ -685,6 +685,126 @@ runParser p = go
 
 
 
+data ParseError = ParseError
+
+  { getParseErrors :: [String]
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+renderText :: PP.SimpleDocStream i -> Text
+renderText = PP.layoutSmart PP.defaultLayoutOptions > PP.Text.renderStrict
+
+
+
+
+
+
+
+
+
+
+
+>>> "prefix" <+> align (vsep ["text", "to", "lay", "out"])
+prefix text
+       to
+       lay
+       out
+
+
+
+
+
+
+
+data ParseError = ParseError
+
+  { getParseErrors :: [MTGDocument]
+  }
+
+  deriving stock    (Generic)
+  deriving stock    (Eq,Ord)
+  deriving anyclass (Semigroup,Monoid)
+  deriving anyclass (NFData,Hashable)
+
+
+
+
+
+
+
+
+
+
+
+{-| 
+
+== Signatures
+
+@
+'ParseError' :: ['MTGDocument'] -> 'ParseError'
+'parseError' :: String   ->   'SomeException'
+@
+
+-}
+
+parseError :: String -> SomeException
+parseError
+
+  = pretty
+  > (: [])
+  > ParseError
+  > toException
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+{-| Multiple errors
+
+== Signatures
+
+@
+'ParseError' :: ['MTGDocument'] -> 'ParseError'
+'parseErrors' :: [String]     -> 'ParseError'
+@
+
+-}
+
+parseErrors :: [String] -> ParseError
+parseErrors
+
+  = fmap pretty
+  > ParseError
+
+
+
+
+
+
+
+
+
+
 
 
 
