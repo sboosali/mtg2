@@ -426,6 +426,8 @@ library
 
  exposed-modules: MTG.Types
 
+                , MTG.Classes.Parse
+
                 , MTG.List.Colors
                 , MTG.List.ManaCost
 
@@ -493,9 +495,11 @@ library
              , prettyprinter-ansi-terminal ^>= 1.1
 
   --------------------
-  -- Parsing 0--------
+  -- Parsing ---------
   --------------------
 
+             , parsers    ^>= 0.12
+             , trifecta   ^>= 2
              , attoparsec ^>= 0.13
 
   --------------------
