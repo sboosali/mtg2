@@ -23,6 +23,7 @@ have @instance@s for:
 module MTG.Classes.Parse
 
   ( module MTG.Classes.Parse
+
   ) where
 
 --------------------------------------------------
@@ -35,11 +36,11 @@ import MTG.Classes.Prelude
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import qualified "parsers" Text.Parser.Combinators as P
+--import qualified "parsers" Text.Parser.Combinators as P
 import qualified "parsers" Text.Parser.Char        as P
-import qualified "parsers" Text.Parser.Token       as P
+--import qualified "parsers" Text.Parser.Token       as P
 
-import "parsers" Text.Parser.Combinators ( Parsing )
+--import "parsers" Text.Parser.Combinators ( Parsing )
 import "parsers" Text.Parser.Char        ( CharParsing )
 import "parsers" Text.Parser.Token       ( TokenParsing )
 
@@ -92,7 +93,10 @@ Fails via 'empty' or 'P.unexpected'.
 -}
 
 pAssoc
-  :: (CharParsing m)
+  :: forall a m.
+     ( CharParsing m
+     , Ord a
+     )
   => Assoc a
   -> m a
 

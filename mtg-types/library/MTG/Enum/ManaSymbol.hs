@@ -47,7 +47,7 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 
 import qualified "parsers" Text.Parser.Combinators as P
 import qualified "parsers" Text.Parser.Char        as P
-import qualified "parsers" Text.Parser.Tokens      as P
+import qualified "parsers" Text.Parser.Token       as P
 
 --------------------------------------------------
 -- Types -----------------------------------------

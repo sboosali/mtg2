@@ -17,6 +17,7 @@ The 'CharParsing' @class@ from the @parser@ package has @instance@s for:
 module MTG.Classes.Print
 
   ( module MTG.Classes.Print
+
   , Doc
   , Pretty(pretty)
   ) where
@@ -31,32 +32,32 @@ import MTG.Classes.Prelude
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc ( Doc, Pretty(..) )
-import           "prettyprinter" Data.Text.Prettyprint.Doc as PP
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc as PP
+import           "prettyprinter" Data.Text.Prettyprint.Doc ( Doc, Pretty(..) )
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import qualified "prettyprinter" Data.Map as Map
+import qualified "containers" Data.Map as Map
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-type MTGDoc = Doc Annotations
+type MTGDoc = Doc MTGAnnotations
 
 --------------------------------------------------
 
 {-| Annotation for pretty-printing @mtg-types@.
 
-Set of 'Annotation'(s).
+Set of 'MTGAnnotation'(s).
 
 -}
 
-newtype Annotations = Annotations
+newtype MTGAnnotations = MTGAnnotations
 
-  [Annotation]
+  [MTGAnnotation]
 
   deriving stock    (Show,Read,Lift,Generic)
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
@@ -64,8 +65,8 @@ newtype Annotations = Annotations
 
 --------------------------------------------------
 
-instance IsList Annotations where
-  type Item Annotations = Annotation
+instance IsList MTGAnnotations where
+  type Item MTGAnnotations = MTGAnnotation
   fromList = coerce
   toList   = coerce
 
@@ -76,7 +77,7 @@ instance IsList Annotations where
 
 -}
 
-data Annotation
+data MTGAnnotation
 
   = AnnOracleText
   | AnnReminderText
@@ -104,45 +105,45 @@ data Annotation
 -- Constants -------------------------------------
 --------------------------------------------------
 
-annOracleText :: Annotations
-annOracleText = Annotations [ AnnOracleText ]
+annOracleText :: MTGAnnotations
+annOracleText = MTGAnnotations [ AnnOracleText ]
 
-annReminderText :: Annotations
-annReminderText = Annotations [ AnnReminderText ]
+annReminderText :: MTGAnnotations
+annReminderText = MTGAnnotations [ AnnReminderText ]
 
-annFlavorText :: Annotations
-annFlavorText = Annotations [ AnnFlavorText ]
-
---------------------------------------------------
-
-annWhite :: Annotations
-annWhite = Annotations [ AnnWhite ]
-
-annBlue :: Annotations
-annBlue = Annotations [ AnnBlue ]
-
-annBlack :: Annotations
-annBlack = Annotations [ AnnBlack ]
-
-annRed :: Annotations
-annRed = Annotations [ AnnRed ]
-
-annGreen :: Annotations
-annGreen = Annotations [ AnnGreen ]
-
-annColorless :: Annotations
-annColorless = Annotations [ AnnColorless ]
+annFlavorText :: MTGAnnotations
+annFlavorText = MTGAnnotations [ AnnFlavorText ]
 
 --------------------------------------------------
 
-annKeyword :: Annotations
-annKeyword = Annotations [ AnnKeyword ]
+annWhite :: MTGAnnotations
+annWhite = MTGAnnotations [ AnnWhite ]
 
-annPerson :: Annotations
-annPerson = Annotations [ AnnPerson ]
+annBlue :: MTGAnnotations
+annBlue = MTGAnnotations [ AnnBlue ]
 
-annNamesake :: Annotations
-annNamesake = Annotations [ AnnNamesake ]
+annBlack :: MTGAnnotations
+annBlack = MTGAnnotations [ AnnBlack ]
+
+annRed :: MTGAnnotations
+annRed = MTGAnnotations [ AnnRed ]
+
+annGreen :: MTGAnnotations
+annGreen = MTGAnnotations [ AnnGreen ]
+
+annColorless :: MTGAnnotations
+annColorless = MTGAnnotations [ AnnColorless ]
+
+--------------------------------------------------
+
+annKeyword :: MTGAnnotations
+annKeyword = MTGAnnotations [ AnnKeyword ]
+
+annPerson :: MTGAnnotations
+annPerson = MTGAnnotations [ AnnPerson ]
+
+annNamesake :: MTGAnnotations
+annNamesake = MTGAnnotations [ AnnNamesake ]
 
 --------------------------------------------------
 -- Functions -------------------------------------
@@ -156,10 +157,12 @@ Fails via @Nothing@.
 
 ppAssoc
   :: forall a i.
-     Assoc a
+     ( Ord a
+     )
+  => Assoc a
   -> (a -> Maybe (Doc i))
 
-ppAssoc kvs = \x ->
+ppAssoc kvs = \v ->
 
   (Map.lookup v vks)
 
@@ -169,7 +172,7 @@ ppAssoc kvs = \x ->
   vks = go kvs
 
   go = fmap (bimap PP.pretty id)
-     > fmap swp
+     > fmap swap
      > Map.fromList
 
 {-# INLINEABLE ppAssoc #-}

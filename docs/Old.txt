@@ -632,6 +632,59 @@ ppAssoc kvs = \x ->
 
 
 
+runParser :: forall a. (forall m. (MTGParsing m) => m a) -> (String -> [a])
+runParser p = go
+  where
+
+  go :: String -> [a]
+  go = Read.readP_to_S p > fmap fst
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+runParser :: (MonadThrow m) => forall a. (forall m. (MTGParsing p) => p a) -> (String -> m a)
+runParser p = go
+  where
+
+  go :: String -> m a
+  go =
+
+    let
+      p' :: ReadP a
+      p' = p
+    in
+      Read.readP_to_S p' > fmap fst > throwListM
+
+-- readP_to_S :: ReadP a -> ReadS a
+-- readP_to_S :: ReadP a -> String -> [(a,String)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
