@@ -5,7 +5,8 @@
 --------------------------------------------------
 
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PackageImports    #-}
+
+{-# LANGUAGE PackageImports #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -229,7 +230,13 @@ module MTG.JSON.Schema.Card where
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "base" Prelude
+import MTG.JSON.Prelude
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "attoparsec" Data.Attoparsec.Text as P
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -238,17 +245,9 @@ import "base" Prelude
 {-| 
 
 -}
-
---------------------------------------------------
--- Functions -------------------------------------
---------------------------------------------------
-
-{-| 
-
--}
-
+{-
 data CardObject = CardObject 
- 
+
   { _id            :: Text 
   , _layout        :: Text 
   , _name          :: Text 
@@ -328,7 +327,7 @@ data CardObject = CardObject
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable,Binary)
-
+-}
 --------------------------------------------------
 -- Notes -----------------------------------------
 --------------------------------------------------

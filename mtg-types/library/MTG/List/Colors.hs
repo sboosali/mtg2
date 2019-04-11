@@ -17,7 +17,12 @@
 
 == Examples
 
-e.g. 'Simic':
+e.g. 'toColors':
+
+>>> toColors [ Blue, Green, Green, Blue ]
+Colors [Color "Green",Color "Blue"]
+
+e.g. 'prettyColors':
 
 >>> pretty Simic
 {G}{U}
@@ -68,7 +73,7 @@ import qualified "text" Data.Text as T
 
 == Constructors
 
-* 'sortColors'
+* 'toColors'
 
 -}
 
@@ -90,33 +95,6 @@ instance IsList Colors where
   type Item Colors = Color
   fromList = sortColors
   toList   = coerce
-
---------------------------------------------------
--- Definitions -----------------------------------
---------------------------------------------------
-
-sortColors :: [Color] -> Colors
-sortColors unsortedColors = Colors sortedColors
-  where
-
-  sortedColors = sort unsortedColors
-
---------------------------------------------------
-
-allGuilds :: [Colors]
-allGuilds =
-
-  [ Azorius
-  , Dimir
-  , Rakdos
-  , Gruul
-  , Selesnya
-  , Orzhov
-  , Izzet
-  , Golgari
-  , Boros
-  , Simic
-  ]
 
 --------------------------------------------------
 -- Patterns --------------------------------------
@@ -171,6 +149,36 @@ pattern Simic = Colors [Green, Blue]
 
 --------------------------------------------------
 -- Wedges...
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+allGuilds :: [Colors]
+allGuilds =
+
+  [ Azorius
+  , Dimir
+  , Rakdos
+  , Gruul
+  , Selesnya
+  , Orzhov
+  , Izzet
+  , Golgari
+  , Boros
+  , Simic
+  ]
+
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+toColors :: [Color] -> Colors
+toColors unsortedColors = Colors sortedColors
+  where
+
+  sortedColors = sort uniqueColors --TODO
+  uniqueColors = ordNub unsortedColors
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
