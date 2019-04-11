@@ -48,7 +48,6 @@ import Control.Lens (makePrisms)
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
 
 --------------------------------------------------
 
@@ -180,7 +179,7 @@ Inverts 'prettyColor'.
 
 -}
 
-pColor :: CharParsing m => m Color
+pColor :: MTGParsing m => m Color
 pColor = do
 
   pAssoc cs

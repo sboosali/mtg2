@@ -1,3 +1,8 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
+{-# LANGUAGE ConstraintKinds #-}
 
 --------------------------------------------------
 --------------------------------------------------
@@ -6,7 +11,8 @@
 
 == Implementation
 
-The 'CharParsing' @class@ from the @parser@ package has @instance@s for:
+The @*Parsing@ @class@es from the @parser@ package (i.e. 'Parsing', 'CharParsing', and 'TokenParsing')
+have @instance@s for:
 
 * @attoparsec@ — used by @mtg-json@ (via the @aeson@ package).
 * @trifecta@ — used for pretty-printed parse-errors (e.g. @ANSI@ color codes, “caret diagnostics”).
@@ -17,35 +23,36 @@ The 'CharParsing' @class@ from the @parser@ package has @instance@s for:
 module MTG.Classes.Parse
 
   ( module MTG.Classes.Parse
-
   , Parsing
   , CharParsing
+  , TokenParsing
   ) where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "spiros" Prelude.Spiros
+import MTG.Classes.Prelude
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "parsers" Text.Parser.Combinators ( Parsing )
-import "parsers" Text.Parser.Char        ( CharParsing )
---import "parsers" Text.Parser.Token       ( TokenParsing )
-
 --import qualified "parsers" Text.Parser.Combinators as P
 import qualified "parsers" Text.Parser.Char        as P
+import qualified "parsers" Text.Parser.Token       as P
+
+import "parsers" Text.Parser.Combinators ( Parsing )
+import "parsers" Text.Parser.Char        ( CharParsing )
+import "parsers" Text.Parser.Token       ( TokenParsing )
 
 --------------------------------------------------
--- Types -----------------------------------------
+-- Constraints -----------------------------------
 --------------------------------------------------
 
--- | Association List.
+-- | @-XConstraintKinds@
 
-type Assoc a = [( Text, a )]
+type MTGParsing m = (TokenParsing m)
 
 --------------------------------------------------
 -- Classes ---------------------------------------
@@ -55,8 +62,9 @@ type Assoc a = [( Text, a )]
 
 == Implementation
 
-These typeclasses' methods are available 'parser' implementations:
+These typeclasses' methods are available to 'parser' implementations:
 
+* 'TokenParsing'
 * 'CharParsing'
 * 'Parsing'
 * 'Alternative'
@@ -67,17 +75,13 @@ These typeclasses' methods are available 'parser' implementations:
 
 class Parse a where
 
-  parser :: CharParsing m => m a
-
---------------------------------------------------
--- Constants -------------------------------------
---------------------------------------------------
+  parser :: MTGParsing m => m a
 
 --------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
-{-| 
+{-| Parse an @Enum@ via an /association list/.
 
 -}
 

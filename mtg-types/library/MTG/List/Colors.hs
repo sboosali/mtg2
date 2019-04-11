@@ -5,9 +5,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLists   #-}
-
---------------------------------------------------
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -89,11 +86,11 @@ newtype Colors = Colors
 
 --------------------------------------------------
 
--- | @≡ 'sortColors'@
+-- | @≡ 'toColors'@
 
 instance IsList Colors where
   type Item Colors = Color
-  fromList = sortColors
+  fromList = toColors
   toList   = coerce
 
 --------------------------------------------------
@@ -184,7 +181,7 @@ toColors unsortedColors = Colors sortedColors
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'ppColor'@
+-- | @≡ 'ppColors'@
 
 instance Pretty Colors where
 
@@ -199,115 +196,32 @@ ppColors (Colors cs) = PP.hcat (pretty <$> cs)
 
 --------------------------------------------------
 
--- | 
+-- | @≡ 'ppColors'@
 
 prettyColors :: Colors -> PP.Doc i
 prettyColors (Colors cs) = PP.hcat (pretty <$> cs)
 
 --------------------------------------------------
--- Types -----------------------------------------
---------------------------------------------------
-
-{-|
-
--}
-
-newtype ManaCost = ManaCost
-
-  [ManaSymbol]
-
-  deriving stock    (Show,Read)
-  deriving stock    (Lift,Data,Generic)
-
-  deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (NFData,Hashable)
-
---------------------------------------------------
-
--- | @≡ 'toManaCost'@
-
-instance IsList ManaCost where
-
-  type Item ManaCost = ManaSymbol
-
-  fromList = toManaCost
-  toList   = coerce
-
---------------------------------------------------
-
--- | @≡ 'parseManaCost'@
-
-instance IsString ManaCost where
-
-  fromString = (coerce . fromString)
-
---------------------------------------------------
--- Constants -------------------------------------
---------------------------------------------------
-
-noManaCost :: ManaCost
-noManaCost = []
-
---------------------------------------------------
--- Functions -------------------------------------
---------------------------------------------------
-
-toManaCost :: [ManaSymbol] -> ManaCost
-toManaCost symbols = cost
-  where
-
-  cost = ManaCost symbols --TODO
-
---------------------------------------------------
-
-colorsToManaCost :: Colors -> ManaCost
-colorsToManaCost = _
-
---------------------------------------------------
--- Pretty ----------------------------------------
---------------------------------------------------
-
--- | @≡ 'prettyManaCost'@
-
-instance Pretty ManaCost where
-
-  pretty = prettyManaCost
-
---------------------------------------------------
-
-prettyManaCost :: ManaCost -> PP.Doc i
-prettyManaCost ManaCost = PP.braces docManaCost
-  where
-
-    
-  docManaCost    = PP.pretty stringManaCost
-  stringManaCost = (abbreviateManaCost ManaCost) & fromMaybe ""
-
---------------------------------------------------
-
-printManaCost :: ManaCost -> String
-printManaCost = (renderString . prettyManaCost)
-
---------------------------------------------------
 -- Parse -----------------------------------------
 --------------------------------------------------
 
-instance Parse ManaCost where
+-- | @≡ 'pColors'@
 
-  parser = pManaCost
+instance Parse Colors where
 
---------------------------------------------------
-
-pManaCost :: Parser ManaCost
-pManaCost = p
-  where
-
-  p = _
+  parser = pColors
 
 --------------------------------------------------
 
-parseManaCost :: (MonadThrow m) => String -> m ManaCost
-parseManaCost = runParser pManaCost 
+pColors :: (MTGParsing m) => m Colors
+pColors = _
+
+--------------------------------------------------
+
+-- | @≡ 'pColors'@
+
+parseColors :: (MonadThrow m) => String -> m Colors
+parseColors = runParser pColors 
 
 --------------------------------------------------
 -- Optics ----------------------------------------

@@ -14,30 +14,24 @@ The 'CharParsing' @class@ from the @parser@ package has @instance@s for:
 
 -}
 
-module MTG.Classes.Pretty
+module MTG.Classes.Print
 
-  ( module MTG.Classes.Pretty
-
-  , Parsing
-  , CharParsing
+  ( module MTG.Classes.Print
+  , Pretty(pretty)
   ) where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "spiros" Prelude.Spiros
+import MTG.Classes.Prelude
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "parsers" Text.Prettyr.Combinators ( Parsing )
-import "parsers" Text.Prettyr.Char        ( CharParsing )
---import "parsers" Text.Prettyr.Token       ( TokenParsing )
-
---import qualified "parsers" Text.Prettyr.Combinators as P
-import qualified "parsers" Text.Prettyr.Char        as P
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc ( Pretty(..) )
+import           "prettyprinter" Data.Text.Prettyprint.Doc as PP
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -97,41 +91,15 @@ data Annotation
   deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------
--- Classes ---------------------------------------
---------------------------------------------------
-
-{-| Canonical parsing for @mtg-types@.
-
-== Implementation
-
-These typeclasses' methods are available 'parser' implementations:
-
-* 'CharParsing'
-* 'Parsing'
-* 'Alternative'
-* 'Applicative'
-* 'Functor'
-
--}
-
-class Pretty a where
-
-  parser :: CharParsing m => m a
-
---------------------------------------------------
--- Constants -------------------------------------
---------------------------------------------------
-
---------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
-{-| 
+{-| Pretty-Print an @Enum@ via an /association list/.
 
 -}
 
-pAssoc :: (CharParsing m) => Assoc a -> m a
-pAssoc kvs = do
+ppAssoc :: Assoc a ->  a
+ppAssoc kvs = do
 
   let pKvs = (pPair <$> kvs)
 

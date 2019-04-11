@@ -123,16 +123,16 @@ colorsToManaCost = _
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'prettyManaCost'@
+-- | @≡ 'ppManaCost'@
 
 instance Pretty ManaCost where
 
-  pretty = prettyManaCost
+  pretty = ppManaCost
 
 --------------------------------------------------
 
-prettyManaCost :: ManaCost -> PP.Doc i
-prettyManaCost ManaCost = PP.braces docManaCost
+ppManaCost :: ManaCost -> PP.Doc i
+ppManaCost ManaCost = PP.braces docManaCost
   where
 
   docManaCost    = PP.pretty stringManaCost
@@ -140,12 +140,16 @@ prettyManaCost ManaCost = PP.braces docManaCost
 
 --------------------------------------------------
 
-printManaCost :: ManaCost -> String
-printManaCost = (renderString . prettyManaCost)
+-- | @≡ 'ppManaCost'@
+
+prettyManaCost :: ManaCost -> String
+prettyManaCost = (PP.String.renderString . ppManaCost)
 
 --------------------------------------------------
 -- Parse -----------------------------------------
 --------------------------------------------------
+
+-- | @≡ 'pManaCost'@
 
 instance Parse ManaCost where
 
@@ -153,13 +157,12 @@ instance Parse ManaCost where
 
 --------------------------------------------------
 
-pManaCost :: Parser ManaCost
-pManaCost = p
-  where
-
-  p = _
+pManaCost :: (MTGParsing m) => m ManaCost
+pManaCost = _
 
 --------------------------------------------------
+
+-- | @≡ 'pManaCost'@
 
 parseManaCost :: (MonadThrow m) => String -> m ManaCost
 parseManaCost = runParser pManaCost 

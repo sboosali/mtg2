@@ -6,7 +6,9 @@
 
 --------------------------------------------------
 
-{- | Re-export:
+{- | Custom @Prelude@, for the @mtg-types@ package.
+
+Re-exports:
 
 * the "Prelude.Spiros" @module@ — my custom prelude (from the @spiros@ package).
 * the 'Pretty' @class@ — Canonical, humanable-readable /printing/ for all @data@types in @mtg-types@ (from the @prettyprinter@ package).
@@ -18,8 +20,19 @@
 module MTG.Types.Prelude
 
   ( module EXPORT
+  , module MTG.Classes.Print
   , module MTG.Classes.Parse
+  , module MTG.Classes.Prelude
   ) where
+
+--------------------------------------------------
+-- Exports ---------------------------------------
+--------------------------------------------------
+
+import MTG.Classes.Print
+import MTG.Classes.Parse
+
+import MTG.Classes.Prelude (Assoc)
 
 --------------------------------------------------
 -- Exports ---------------------------------------
@@ -32,28 +45,12 @@ import "spiros" Prelude.Spiros as EXPORT
 import "enumerate" Enumerate as EXPORT
 
 --------------------------------------------------
-
-import MTG.Classes.Parse
-
---------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
-
---------------------------------------------------
-
---import "th-lift-instances" Instances.TH.Lift()
-
---------------------------------------------------
--- Imports ---------------------------------------
---------------------------------------------------
-
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc as PP
-
---------------------------------------------------
--- Functions -------------------------------------
---------------------------------------------------
+import "prettyprinter" Data.Text.Prettyprint.Doc               as EXPORT ( Pretty(..) )
+import "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as EXPORT ( renderString )
+import "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as EXPORT ( renderText )
 
 --------------------------------------------------
 -- EOF -------------------------------------------

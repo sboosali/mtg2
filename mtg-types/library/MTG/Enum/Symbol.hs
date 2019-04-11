@@ -125,7 +125,7 @@ prettySymbol Symbol = PP.braces docSymbol
 --------------------------------------------------
 
 printSymbol :: Symbol -> String
-printSymbol = (renderString . prettySymbol)
+printSymbol = (PP.String.renderString . prettySymbol)
 
 --------------------------------------------------
 -- Parse -----------------------------------------

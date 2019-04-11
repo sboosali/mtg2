@@ -45,7 +45,9 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 
 --------------------------------------------------
 
---import qualified "text" Data.Text as Text
+import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char        as P
+import qualified "parsers" Text.Parser.Tokens      as P
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -234,29 +236,35 @@ colorToManaSymbol = _
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'prettyManaSymbol'@
+-- | @≡ 'ppManaSymbol'@
 
 instance Pretty ManaSymbol where
 
-  pretty = prettyManaSymbol
+  pretty = ppManaSymbol
 
 --------------------------------------------------
 
-prettyManaSymbol :: ManaSymbol -> PP.Doc i
-prettyManaSymbol ManaSymbol = PP.braces docManaSymbol
+-- | @≡ 'ppManaSymbol'@
+
+prettyManaSymbol :: ManaSymbol -> String
+prettyManaSymbol (ManaSymbol cs) = PP.String.renderString ppManaSymbol
+
+--------------------------------------------------
+
+-- | 
+
+ppManaSymbol :: ManaSymbol -> PP.Doc i
+ppManaSymbol symbol = PP.braces docManaSymbol
   where
 
   docManaSymbol    = PP.pretty stringManaSymbol
-  stringManaSymbol = (abbreviateManaSymbol ManaSymbol) & fromMaybe ""
-
---------------------------------------------------
-
-printManaSymbol :: ManaSymbol -> String
-printManaSymbol = (renderString . prettyManaSymbol)
+  stringManaSymbol = (abbreviateManaSymbol symbol) & fromMaybe "?" -- TODO -- 
 
 --------------------------------------------------
 -- Parse -----------------------------------------
 --------------------------------------------------
+
+-- | @≡ 'pManaSymbol'@
 
 instance Parse ManaSymbol where
 
@@ -264,16 +272,20 @@ instance Parse ManaSymbol where
 
 --------------------------------------------------
 
-pManaSymbol :: Parser ManaSymbol
-pManaSymbol = p
-  where
-
-  p = _
-
---------------------------------------------------
+-- | @≡ 'pManaSymbol'@
 
 parseManaSymbol :: (MonadThrow m) => String -> m ManaSymbol
 parseManaSymbol = runParser pManaSymbol 
+
+--------------------------------------------------
+
+pManaSymbol :: (MTGParsing m) => m ManaSymbol
+pManaSymbol = P.braces (pAbbreviatedManaSymbol `P.sepBy1` P.spaces)
+ 
+--------------------------------------------------
+
+pAbbreviatedManaSymbol :: (MTGParsing m) => m ManaSymbol
+pAbbreviatedManaSymbol = _
 
 --------------------------------------------------
 -- Optics ----------------------------------------

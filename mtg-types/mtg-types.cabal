@@ -427,6 +427,7 @@ library
  exposed-modules: MTG.Types
 
                 , MTG.Classes.Parse
+                , MTG.Classes.Print
 
                 , MTG.List.Colors
                 , MTG.List.ManaCost
@@ -452,6 +453,7 @@ library
                 , MTG.Enum.Watermark
 
                 , MTG.Types.Prelude
+                , MTG.Classes.Prelude
 
  -----------------------------
 
