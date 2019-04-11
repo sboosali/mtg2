@@ -450,6 +450,106 @@ abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
 
 
 
+module MTG.Types.Parse
+
+  ( module MTG.Types.Parse
+
+  , Parsing(..)
+  , CharParsing(..)
+  ) where
+
+
+
+==============================================
+
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+white :: Color
+white = "White"
+
+blue :: Color
+blue = "Blue"
+
+black :: Color
+black = "Black"
+
+red :: Color
+red = "Red"
+
+green :: Color
+green = "Green"
+
+
+
+
+
+
+
+>>> parse "U" == Blue
+True
+>>> parse "blue" == Blue
+True
+
+
+
+
+
+pAssoc :: (CharParsing m) => Assoc a -> m a
+pAssoc kvs = asum (pPair <$> kvs)
+  where
+
+  pPair (k,v) = P. _
+
+
+
+
+
+
+
+
+
+
+
+-- | Association List.
+
+type Assoc a = [( Text, a )]
+
+
+
+
+
+
+
+
+pColor :: CharParsing m => m Color
+pColor = do
+
+  pAssoc cs
+
+  where
+
+  cs :: Assoc Color
+  cs = csLower <> csUpper
+
+  csLower = csUpper & bimap Text.toLower id
+
+  csUpper =
+
+    [ "W" -: White
+    , "U" -: Blue
+    , "B" -: Black
+    , "R" -: Red
+    , "G" -: Green
+
+    , "White" -: White
+    , "Blue"  -: Blue
+    , "Black" -: Black
+    , "Red"   -: Red
+    , "Green" -: Green
+    ]
 
 
 
@@ -465,3 +565,16 @@ abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+==============================================

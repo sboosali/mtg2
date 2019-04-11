@@ -1,15 +1,33 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
 {-# LANGUAGE TemplateHaskell #-}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+--------------------------------------------------
+--------------------------------------------------
 
 {-| 
 
 == Examples
 
->>> pretty blue
-{U}
+Printing (see 'pretty'):
+
+>>> pretty Blue
+U
+>>> Blue
+Color "Blue"
+
+Parsing (see 'parser'):
+
+>>> parse "U"
+Color "Blue"
+>>> parse "blue"
+Color "Blue"
 
 -}
 
@@ -34,7 +52,8 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 
 --------------------------------------------------
 
-import qualified "attoparsec" Data.Attoparsec.Text as P
+-- import qualified "parsers" Text.Parser.Combinators as P
+-- import qualified "parsers" Text.Parser.Char        as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -46,7 +65,7 @@ import qualified "text" Data.Text as Text
 -- Types -----------------------------------------
 --------------------------------------------------
 
-{-|
+{-| A /Magic: The Gathering/ color.
 
 -}
 
@@ -93,21 +112,6 @@ pattern Green = "Green"
 --------------------------------------------------
 -- Constants -------------------------------------
 --------------------------------------------------
-
-white :: Color
-white = "White"
-
-blue :: Color
-blue = "Blue"
-
-black :: Color
-black = "Black"
-
-red :: Color
-red = "Red"
-
-green :: Color
-green = "Green"
 
 --------------------------------------------------
 -- Functions -------------------------------------
@@ -158,6 +162,53 @@ abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
     "g"         -> Just "G"
 
     _           -> Nothing
+
+--------------------------------------------------
+-- Parse -----------------------------------------
+--------------------------------------------------
+
+-- | @≡ 'pColor'@
+instance Parse Color where
+  parser = pColor
+
+--------------------------------------------------
+
+{- | Parses:
+
+* color abbreviations
+* english color words
+* case-insensitively
+
+Inverts 'prettyColor'.
+
+-}
+
+pColor :: CharParsing m => m Color
+pColor = do
+
+  pAssoc cs
+
+  where
+
+  cs :: Assoc Color
+  cs = csLower <> csUpper
+
+  csLower = csUpper <&> (bimap Text.toLower id)
+
+  csUpper =
+
+    [ "W" -: White
+    , "U" -: Blue
+    , "B" -: Black
+    , "R" -: Red
+    , "G" -: Green
+
+    , "White" -: White
+    , "Blue"  -: Blue
+    , "Black" -: Black
+    , "Red"   -: Red
+    , "Green" -: Green
+    ]
 
 --------------------------------------------------
 -- Optics ----------------------------------------

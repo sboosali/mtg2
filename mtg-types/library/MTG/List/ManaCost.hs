@@ -25,10 +25,9 @@
 
 module MTG.List.ManaCost
 
-  ( ManaCost
+  ( module MTG.List.ManaCost
 
   , module MTG.Enum.ManaSymbol
-
   ) where
 
 --------------------------------------------------
@@ -53,7 +52,13 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 
 --------------------------------------------------
 
---import qualified "text" Data.Text as Text
+import qualified "attoparsec" Data.Attoparsec.Text as P
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------

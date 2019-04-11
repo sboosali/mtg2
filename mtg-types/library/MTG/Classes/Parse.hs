@@ -1,8 +1,3 @@
---------------------------------------------------
--- Extensions ------------------------------------
---------------------------------------------------
-
-
 
 --------------------------------------------------
 --------------------------------------------------
@@ -21,10 +16,10 @@ The 'CharParsing' @class@ from the @parser@ package has @instance@s for:
 
 module MTG.Classes.Parse
 
-  ( Parse(..)
+  ( module MTG.Classes.Parse
 
-  , Parsing(..)
-  , CharParsing(..)
+  , Parsing
+  , CharParsing
   ) where
 
 --------------------------------------------------
@@ -37,16 +32,20 @@ import "spiros" Prelude.Spiros
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "parser" Text.Parser.Combinators ( Parsing(..) )
-import "parser" Text.Parser.Char        ( CharParsing(..) )
+import "parsers" Text.Parser.Combinators ( Parsing )
+import "parsers" Text.Parser.Char        ( CharParsing )
+--import "parsers" Text.Parser.Token       ( TokenParsing )
+
+--import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char        as P
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-{-| 
+-- | Association List.
 
--}
+type Assoc a = [( Text, a )]
 
 --------------------------------------------------
 -- Classes ---------------------------------------
@@ -74,10 +73,6 @@ class Parse a where
 -- Constants -------------------------------------
 --------------------------------------------------
 
-{-| 
-
--}
-
 --------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
@@ -85,6 +80,17 @@ class Parse a where
 {-| 
 
 -}
+
+pAssoc :: (CharParsing m) => Assoc a -> m a
+pAssoc kvs = do
+
+  let pKvs = (pPair <$> kvs)
+
+  (foldr (<|>) empty) pKvs
+
+  where
+
+  pPair (k,v) = v <$ P.text k
 
 --------------------------------------------------
 -- EOF -------------------------------------------

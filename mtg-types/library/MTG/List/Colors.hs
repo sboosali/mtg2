@@ -26,10 +26,9 @@ e.g. 'Simic':
 
 module MTG.List.Colors
 
-  ( Colors
+  ( module MTG.List.Colors
 
   , module MTG.Enum.Color
-
   ) where
 
 --------------------------------------------------
@@ -39,7 +38,6 @@ module MTG.List.Colors
 import MTG.Types.Prelude
 
 import MTG.Enum.Color
-import MTG.List.Colors
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -51,6 +49,10 @@ import Control.Lens (makePrisms)
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
+
+--------------------------------------------------
+
+import qualified "attoparsec" Data.Attoparsec.Text as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -174,19 +176,25 @@ pattern Simic = Colors [Green, Blue]
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'prettyColor'@
+-- | @≡ 'ppColor'@
 
 instance Pretty Colors where
 
-  pretty = prettyColors
+  pretty = ppColors
 
 --------------------------------------------------
 
+-- | 
+
+ppColors :: Colors -> PP.Doc i
+ppColors (Colors cs) = PP.hcat (pretty <$> cs)
+
+--------------------------------------------------
+
+-- | 
+
 prettyColors :: Colors -> PP.Doc i
 prettyColors (Colors cs) = PP.hcat (pretty <$> cs)
-
-
-
 
 --------------------------------------------------
 -- Types -----------------------------------------
