@@ -191,14 +191,14 @@ instance Pretty Colors where
 
 -- | 
 
-ppColors :: Colors -> PP.Doc i
+ppColors :: Colors -> Doc i
 ppColors (Colors cs) = PP.hcat (pretty <$> cs)
 
 --------------------------------------------------
 
 -- | @≡ 'ppColors'@
 
-prettyColors :: Colors -> PP.Doc i
+prettyColors :: Colors -> Doc i
 prettyColors (Colors cs) = PP.hcat (pretty <$> cs)
 
 --------------------------------------------------

@@ -19,7 +19,8 @@ optional-packages: ../spiros/spiros
 -- Configuration ---------------------------------
 --------------------------------------------------
 
-haddock-hyperlink-source: True
+package *
+  haddock-hyperlink-source: True
 
 --------------------------------------------------
 -- Repositories ----------------------------------

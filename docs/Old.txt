@@ -559,6 +559,91 @@ pColor = do
 
 
 
+data Annotation
+
+  = AnnOracleText
+  | AnnReminderText
+  | AnnFlavorText
+
+  | AnnWhite
+  | AnnBlue
+  | AnnBlack
+  | AnnRed
+  | AnnGreen
+  | AnnColorless
+
+  | AnnKeyword
+  | AnnPerson
+  | AnnNamesake
+
+  | AnnUnicode Char
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-| Pretty-Print an @Enum@ via an /association list/.
+
+-}
+
+ppAssoc
+  :: Assoc a
+  -> (a -> Maybe (Doc i))
+
+ppAssoc kvs = \x ->
+
+  let
+    doc' = Map.lookup v kvs'
+    doc  = PP.pretty <$> doc'
+  in
+    doc
+
+  where
+
+  ppKVs = _
+
+  kvs' :: Map a Text
+  kvs' = kvs & 
+
+  (foldr (<|>) empty) pKvs
+
+{-# INLINEABLE ppAssoc #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

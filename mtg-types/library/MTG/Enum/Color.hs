@@ -128,7 +128,7 @@ instance Pretty Color where
 
 --------------------------------------------------
 
-prettyColor :: Color -> PP.Doc i
+prettyColor :: Color -> Doc i
 prettyColor color = PP.braces docColor
   where
 
@@ -182,7 +182,7 @@ Inverts 'prettyColor'.
 pColor :: MTGParsing m => m Color
 pColor = do
 
-  pAssoc cs
+  pAssoc cs <?> "Color"
 
   where
 

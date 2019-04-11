@@ -253,7 +253,7 @@ prettyManaSymbol (ManaSymbol cs) = PP.String.renderString ppManaSymbol
 
 -- | 
 
-ppManaSymbol :: ManaSymbol -> PP.Doc i
+ppManaSymbol :: ManaSymbol -> Doc i
 ppManaSymbol symbol = PP.braces docManaSymbol
   where
 

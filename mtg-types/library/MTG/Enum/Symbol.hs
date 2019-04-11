@@ -115,7 +115,7 @@ instance Pretty Symbol where
 
 --------------------------------------------------
 
-prettySymbol :: Symbol -> PP.Doc i
+prettySymbol :: Symbol -> Doc i
 prettySymbol Symbol = PP.braces docSymbol
   where
 

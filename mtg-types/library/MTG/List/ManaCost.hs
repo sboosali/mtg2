@@ -131,7 +131,7 @@ instance Pretty ManaCost where
 
 --------------------------------------------------
 
-ppManaCost :: ManaCost -> PP.Doc i
+ppManaCost :: ManaCost -> Doc i
 ppManaCost ManaCost = PP.braces docManaCost
   where
 

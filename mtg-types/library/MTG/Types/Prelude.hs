@@ -20,6 +20,7 @@ Re-exports:
 module MTG.Types.Prelude
 
   ( module EXPORT
+
   , module MTG.Classes.Print
   , module MTG.Classes.Parse
   , module MTG.Classes.Prelude
@@ -51,6 +52,12 @@ import "enumerate" Enumerate as EXPORT
 import "prettyprinter" Data.Text.Prettyprint.Doc               as EXPORT ( Pretty(..) )
 import "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as EXPORT ( renderString )
 import "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as EXPORT ( renderText )
+
+--------------------------------------------------
+
+import "parsers" Text.Parser.Combinators as EXPORT ( Parsing( (<?>) ))
+import "parsers" Text.Parser.Char        as EXPORT ( CharParsing )
+import "parsers" Text.Parser.Token       as EXPORT ( TokenParsing )
 
 --------------------------------------------------
 -- EOF -------------------------------------------

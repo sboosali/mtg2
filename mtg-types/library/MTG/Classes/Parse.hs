@@ -23,9 +23,6 @@ have @instance@s for:
 module MTG.Classes.Parse
 
   ( module MTG.Classes.Parse
-  , Parsing
-  , CharParsing
-  , TokenParsing
   ) where
 
 --------------------------------------------------
@@ -38,7 +35,7 @@ import MTG.Classes.Prelude
 -- Imports ---------------------------------------
 --------------------------------------------------
 
---import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Combinators as P
 import qualified "parsers" Text.Parser.Char        as P
 import qualified "parsers" Text.Parser.Token       as P
 
@@ -50,7 +47,9 @@ import "parsers" Text.Parser.Token       ( TokenParsing )
 -- Constraints -----------------------------------
 --------------------------------------------------
 
--- | @-XConstraintKinds@
+-- | a @ConstraintKind@.
+--
+-- (See <https://downloads.haskell.org/ghc/latest/docs/html/users_guide/glasgow_exts.html#extension-ConstraintKinds @-XConstraintKinds@>.)
 
 type MTGParsing m = (TokenParsing m)
 
@@ -62,7 +61,8 @@ type MTGParsing m = (TokenParsing m)
 
 == Implementation
 
-These typeclasses' methods are available to 'parser' implementations:
+These typeclasses' methods are available to 'parser' implementations
+(via 'MTGParsing'):
 
 * 'TokenParsing'
 * 'CharParsing'
@@ -81,20 +81,32 @@ class Parse a where
 -- Functions -------------------------------------
 --------------------------------------------------
 
-{-| Parse an @Enum@ via an /association list/.
+{-| Parse an @Enum@, given an /association list/.
+
+Fails via 'empty' or 'P.unexpected'.
+
+== Examples
+
+>>> (<?>) :: m a -> String -> m a
 
 -}
 
-pAssoc :: (CharParsing m) => Assoc a -> m a
+pAssoc
+  :: (CharParsing m)
+  => Assoc a
+  -> m a
+
 pAssoc kvs = do
 
-  let pKvs = (pPair <$> kvs)
+  let pKVs = (pPair <$> kvs)
 
-  (foldr (<|>) empty) pKvs
+  (foldr (<|>) empty) pKVs
 
   where
 
   pPair (k,v) = v <$ P.text k
+
+{-# INLINEABLE pAssoc #-}
 
 --------------------------------------------------
 -- EOF -------------------------------------------
