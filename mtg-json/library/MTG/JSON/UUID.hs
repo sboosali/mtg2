@@ -29,7 +29,7 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
 
 --------------------------------------------------
 
-import qualified "text" Data.Text as T
+--import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------

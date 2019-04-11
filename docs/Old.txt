@@ -361,3 +361,107 @@ instance Pretty UUID where
 
 
 
+
+flags :: [String]
+flags = concat
+
+  [ [ ":set -package mtg-types" ]
+  , extensions2flags extensions
+  , options
+  ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+newtype ManaCost = ManaCost Text
+ 
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (IsString)
+  deriving newtype  (NFData,Hashable)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- | @≡ "Colorless"@
+
+pattern Colorless :: Color
+pattern Colorless = "Colorless"
+
+colorless :: Color
+colorless = "Colorless"
+
+
+abbreviateColor :: Color -> Maybe Text
+abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
+  where
+
+  s1 = Text.toLower s0
+
+  go = \case
+
+    "white"     -> Just "W"
+    "blue"      -> Just "U"
+    "black"     -> Just "B"
+    "red"       -> Just "R"
+    "green"     -> Just "G"
+    "colorless" -> Just "C"
+
+    "w"         -> Just "W"
+    "u"         -> Just "U"
+    "b"         -> Just "B"
+    "r"         -> Just "R"
+    "g"         -> Just "G"
+    "c"         -> Just "C"
+
+    _           -> Nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

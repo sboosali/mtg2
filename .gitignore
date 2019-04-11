@@ -32,6 +32,8 @@ report.html
 *.log
 TAGS
 .projectile
+*_flymake.hs
+*.hs-e
 
 # Nix
 result/

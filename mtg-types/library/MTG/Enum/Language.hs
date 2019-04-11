@@ -21,41 +21,77 @@ Languages that are officially supported:
 * 'korean'
 
 -}
+
 module MTG.Enum.Language where
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import MTG.Types.Prelude
+
+--------------------------------------------------
 
 import Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc as PP
+import           "prettyprinter" Data.Text.Prettyprint.Doc ( (<+>) )
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
+
 newtype Language = Language Text
- 
-  deriving stock    (Show,Read,Generic)
+
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
 
 -- | @= 'english'@
 instance Default Language where def = english
 
 --------------------------------------------------
+--------------------------------------------------
 
 data LanguageInfo = LanguageInfo
- { _languageAbbreviation :: Text
- , _languageEndonym      :: Text
- } deriving (Show,Read,Eq,Ord,Generic)
 
-instance NFData   LanguageInfo
-instance Hashable LanguageInfo
+  { _languageAbbreviation :: Text
+  , _languageEndonym      :: Text
+  }
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
 
 -- | @= 'englishInfo'@
 instance Default LanguageInfo where def = englishInfo
 
 --------------------------------------------------
 
-knownLanguages :: Set Language
+{- |
+>>> pretty chineseInfo
+
+-}
+
+instance Pretty LanguageInfo where
+  pretty LanguageInfo{ _languageAbbreviation, _languageEndonym } = pretty _languageEndonym <+> PP.parens (pretty _languageAbbreviation )
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+knownLanguages :: [Language]
 knownLanguages =
+
   [ english
   , german
   , french
@@ -68,6 +104,12 @@ knownLanguages =
   , taiwanese
   , korean
   ]
+
+--------------------------------------------------
+
+-- | @≡ fmap 'languageInfo' 'knownLanguages'@
+knownLanguageInfo :: [LanguageInfo]
+knownLanguageInfo = languageInfo `concatMap` knownLanguages
 
 --------------------------------------------------
 
@@ -221,28 +263,51 @@ koreanEndonym :: Text
 koreanEndonym = "한국어"
 
 --------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
 
-{-
-languageInfo :: (MonadThrow m) => Language -> m LanguageInfo
-languageInfo = \case  
- Language "English"    -> return $ LanguageInfo "en" "English"
- Language "German"     -> return $ LanguageInfo "de" "Deutsch"
- Language "French"     -> return $ LanguageInfo "fr" "Français"
- Language "Italian"    -> return $ LanguageInfo "it" "Italiano"
- Language "Spanish"    -> return $ LanguageInfo "es" "Español"
- Language "Portuguese" -> return $ LanguageInfo "pt" "Português"
- Language "Japanese"   -> return $ LanguageInfo "jp" "日本語"
- Language "Chinese"    -> return $ LanguageInfo "cn" "简体中文"
- Language "Russian"    -> return $ LanguageInfo "ru" "Русский"
- Language "Taiwanese"  -> return $ LanguageInfo "tw" "繁體中文"
- Language "Korean"     -> return $ LanguageInfo "ko" "한국어"
- Language language     -> throwT $ "unknown language " <> language
+{- | 
+
+
+== Examples
+
+>>> :set -XOverloadedStrings
+>>> pretty (languageInfo "Russian" :: Maybe LanguageInfo)
+Русский (ru)
+
 -}
 
+
+languageInfo :: (MonadThrow m) => Language -> m LanguageInfo
+languageInfo = \case  
+
+  Language "English"    -> return englishInfo
+  Language "German"     -> return germanInfo
+  Language "French"     -> return frenchInfo
+  Language "Italian"    -> return italianInfo
+  Language "Spanish"    -> return spanishInfo
+  Language "Portuguese" -> return portugueseInfo
+  Language "Japanese"   -> return japaneseInfo
+  Language "Chinese"    -> return chineseInfo
+  Language "Russian"    -> return russianInfo
+  Language "Taiwanese"  -> return taiwaneseInfo
+  Language "Korean"     -> return koreanInfo
+  Language language     -> errorM ("<<< languageInfo _ >>> unknown language: " <> show language)
+
+--------------------------------------------------
+-- Optics ----------------------------------------
 --------------------------------------------------
 
 makePrisms ''Language
 
 makeLenses ''LanguageInfo
 
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
+{-
+
+-}
+--------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------

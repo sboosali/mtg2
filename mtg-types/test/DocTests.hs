@@ -30,12 +30,17 @@ main = do
 --------------------------------------------------
 
 sources = modules2filepaths "hs" "library" $
-  "MTG.Types MTG.Types.Prelude MTG.Colors \
-  \ MTG.Enum.Block MTG.Enum.Border MTG.Enum.Cardtype MTG.Enum.Color MTG.Enum.Edition MTG.Enum.Format MTG.Enum.Frame MTG.Enum.Keyword MTG.Enum.Language MTG.Enum.Layout MTG.Enum.Legality MTG.Enum.Mana MTG.Enum.Name MTG.Enum.Rarity MTG.Enum.Subtype MTG.Enum.Supertype MTG.Enum.Symbol MTG.Enum.Watermark"
+  "MTG.Types MTG.Types.Prelude MTG.List.Colors MTG.CMC \
+  \ MTG.Enum.Artist MTG.Enum.Block MTG.Enum.Border MTG.Enum.Cardtype MTG.Enum.Color MTG.Enum.Edition MTG.Enum.Format MTG.Enum.Frame MTG.Enum.Keyword MTG.Enum.Language MTG.Enum.Layout MTG.Enum.Legality MTG.Enum.ManaSymbol MTG.Enum.Name MTG.Enum.Rarity MTG.Enum.Subtype MTG.Enum.Supertype MTG.Enum.Symbol MTG.Enum.Watermark"
 
 --------------------------------------------------
 
-flags = (extensions2flags extensions) ++ options
+flags :: [String]
+flags = concat
+
+  [ extensions2flags extensions
+  , options
+  ]
 
 --------------------------------------------------
 

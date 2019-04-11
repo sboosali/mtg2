@@ -425,7 +425,9 @@ library
  -----------------------------
 
  exposed-modules: MTG.Types
-                , MTG.Colors
+
+                , MTG.List.Colors
+                , MTG.List.ManaCost
 
                 , MTG.Enum.Artist
                 , MTG.Enum.Block
@@ -439,7 +441,7 @@ library
                 , MTG.Enum.Language
                 , MTG.Enum.Layout
                 , MTG.Enum.Legality
-                , MTG.Enum.Mana
+                , MTG.Enum.ManaSymbol
                 , MTG.Enum.Name
                 , MTG.Enum.Rarity
                 , MTG.Enum.Subtype
@@ -489,6 +491,12 @@ library
 
              , prettyprinter               ^>= 1.2
              , prettyprinter-ansi-terminal ^>= 1.1
+
+  --------------------
+  -- Parsing 0--------
+  --------------------
+
+             , attoparsec ^>= 0.13
 
   --------------------
   -- (Miscellaneous) -

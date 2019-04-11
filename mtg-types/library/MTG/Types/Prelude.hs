@@ -19,8 +19,18 @@ import "spiros" Prelude.Spiros as EXPORT
 import "enumerate" Enumerate as EXPORT
 
 --------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
+
+--------------------------------------------------
+
+import "attoparsec" Data.Attoparsec.Text as EXPORT ( Parser(..) )
+
+--------------------------------------------------
+
+--import "th-lift-instances" Instances.TH.Lift()
 
 --------------------------------------------------
 -- Imports ---------------------------------------

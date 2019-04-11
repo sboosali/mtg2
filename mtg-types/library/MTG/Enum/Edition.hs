@@ -19,7 +19,9 @@ import Control.Lens (makeLenses, makePrisms)
 
 newtype EditionName = EditionName Text
  
-  deriving stock    (Show,Read,Generic)
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
@@ -28,7 +30,9 @@ makePrisms ''EditionName
 
 newtype EditionCode = EditionCode Text
  
-  deriving stock    (Show,Read,Generic)
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
@@ -37,7 +41,9 @@ makePrisms ''EditionCode
 
 newtype EditionType = EditionType Text
  
-  deriving stock    (Show,Read,Generic)
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
@@ -49,7 +55,7 @@ makePrisms ''EditionType
 data QualifiedEdition = QualifiedEdition
  { _editionEdition  :: EditionName
  , _editionLanguage :: Maybe Language
- } deriving (Show,Read,Eq,Ord,Generic)
+ } deriving (Show,Read,Eq,Ord,Data,Generic)
 
 instance NFData   QualifiedEdition
 instance Hashable QualifiedEdition
@@ -62,7 +68,7 @@ data EditionInfo = EditionInfo
  { _editionAbbreviation :: Text
  , _editionDescription  :: Text
  --, _editionLanguages    :: [Language] --NOTE a `Set` 
- } deriving (Show,Read,Eq,Ord,Generic)
+ } deriving (Show,Read,Eq,Ord,Data,Generic)
 
 instance NFData   EditionInfo
 instance Hashable EditionInfo

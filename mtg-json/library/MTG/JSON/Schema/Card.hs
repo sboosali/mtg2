@@ -321,7 +321,6 @@ data CardObject = CardObject
   , _text                   :: -- ^ e.g. @"Target player draws three cards."@
   , _type                   :: -- ^ e.g. @"Legendary Snow Artifact Creature — Goblin Construct"@
   , _types                  :: -- ^ e.g. @[ "Artifact", "Creature" ]@
-  , _uuidV421               :: -- ^ e.g. @"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"@
 
   }
   deriving stock    (Data,Generic)

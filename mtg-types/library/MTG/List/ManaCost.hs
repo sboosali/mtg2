@@ -17,12 +17,19 @@
 
 == Examples
 
->>> pretty tapSymbol
-{T}
+>>> pretty (toManaCost [ toManaSymbol "2", toManaSymbol "u", toManaSymbol "g" ])
+{2}{U}{G}
 
 -}
 
-module MTG.Enum.Symbol where
+
+module MTG.List.ManaCost
+
+  ( ManaCost
+
+  , module MTG.Enum.ManaSymbol
+
+  ) where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -30,8 +37,8 @@ module MTG.Enum.Symbol where
 
 import MTG.Types.Prelude
 
-import MTG.Enum.Color
 import MTG.Enum.ManaSymbol
+import MTG.List.Colors
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -52,24 +59,36 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 -- Types -----------------------------------------
 --------------------------------------------------
 
-{-| 
+{-|
 
 -}
 
-newtype Symbol = Symbol Text
- 
+newtype ManaCost = ManaCost
+
+  [ManaSymbol]
+
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
 
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
 
--- | @≡ 'parseSymbol'@
+-- | @≡ 'toManaCost'@
 
-instance IsString Symbol where
+instance IsList ManaCost where
+
+  type Item ManaCost = ManaSymbol
+
+  fromList = toManaCost
+  toList   = coerce
+
+--------------------------------------------------
+
+-- | @≡ 'parseManaCost'@
+
+instance IsString ManaCost where
 
   fromString = (coerce . fromString)
 
@@ -77,82 +96,74 @@ instance IsString Symbol where
 -- Constants -------------------------------------
 --------------------------------------------------
 
-tapSymbol :: Symbol
-tapSymbol = "T"
-
-untapSymbol :: Symbol
-untapSymbol = "Q"
+noManaCost :: ManaCost
+noManaCost = []
 
 --------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
-toSymbol :: [ManaSymbol] -> Symbol
-toSymbol symbols = cost
+toManaCost :: [ManaSymbol] -> ManaCost
+toManaCost symbols = cost
   where
 
-  cost = Symbol symbols --TODO
+  cost = ManaCost symbols --TODO
 
 --------------------------------------------------
 
-loyaltyActivationSymbol :: Integer -> Symbol
-loyaltyActivationSymbol i =
-  if i >= 0
-  then Symbol $ "+" <> s -- {+0}, {+1}, ...
-  else Symbol $ "-" <> s -- {-1}, ...
-  where
-  s = (fromString . show) (abs i)
+colorsToManaCost :: Colors -> ManaCost
+colorsToManaCost = _
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'prettySymbol'@
+-- | @≡ 'prettyManaCost'@
 
-instance Pretty Symbol where
+instance Pretty ManaCost where
 
-  pretty = prettySymbol
+  pretty = prettyManaCost
 
 --------------------------------------------------
 
-prettySymbol :: Symbol -> PP.Doc i
-prettySymbol Symbol = PP.braces docSymbol
+prettyManaCost :: ManaCost -> PP.Doc i
+prettyManaCost ManaCost = PP.braces docManaCost
   where
 
-  docSymbol    = PP.pretty stringSymbol
-  stringSymbol = (abbreviateSymbol Symbol) & fromMaybe ""
+  docManaCost    = PP.pretty stringManaCost
+  stringManaCost = (abbreviateManaCost ManaCost) & fromMaybe ""
 
 --------------------------------------------------
 
-printSymbol :: Symbol -> String
-printSymbol = (renderString . prettySymbol)
+printManaCost :: ManaCost -> String
+printManaCost = (renderString . prettyManaCost)
 
 --------------------------------------------------
 -- Parse -----------------------------------------
 --------------------------------------------------
 
-instance Parse Symbol where
+instance Parse ManaCost where
 
-  parser = pSymbol
+  parser = pManaCost
 
 --------------------------------------------------
 
-pSymbol :: Parser Symbol
-pSymbol = p
+pManaCost :: Parser ManaCost
+pManaCost = p
   where
 
   p = _
 
 --------------------------------------------------
 
-parseSymbol :: (MonadThrow m) => String -> m Symbol
-parseSymbol = runParser pSymbol 
+parseManaCost :: (MonadThrow m) => String -> m ManaCost
+parseManaCost = runParser pManaCost 
 
 --------------------------------------------------
 -- Optics ----------------------------------------
 --------------------------------------------------
 
-makePrisms ''Symbol
+makePrisms ''ManaCost
 
 --------------------------------------------------
 -- EOF -------------------------------------------

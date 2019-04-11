@@ -4,7 +4,7 @@
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-|
+{-| 
 
 These groups of watermarks have been printed:
 
@@ -19,21 +19,31 @@ These groups of watermarks have been printed:
 -}
 module MTG.Enum.Watermark where
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import MTG.Types.Prelude
+
+--------------------------------------------------
 
 import Control.Lens (makePrisms)
 
 --------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
 
 newtype Watermark = Watermark Text
  
-  deriving stock    (Show,Read,Generic)
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''Watermark
-
+--------------------------------------------------
+-- Definitions -----------------------------------
 --------------------------------------------------
 
 colorWatermarks :: Set Watermark
@@ -201,4 +211,12 @@ temurWatermark = "Temur"
 whiteWatermark :: Watermark
 whiteWatermark = "White"
 
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makePrisms ''Watermark
+
+--------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------

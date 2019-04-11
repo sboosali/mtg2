@@ -19,7 +19,9 @@ import Control.Lens (makeLenses, makePrisms)
 
 newtype BlockName = BlockName Text
  
-  deriving stock    (Show,Read,Generic)
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
@@ -33,7 +35,7 @@ data BlockInfo = BlockInfo
  , _blockDescription  :: Text
  , _blockBlocks        :: [EditionName]
  --, _blockLanguages    :: [Language] --NOTE a `Set` 
- } deriving (Show,Read,Eq,Ord,Generic)
+ } deriving (Show,Read,Eq,Ord,Data,Generic)
 
 instance NFData   BlockInfo
 instance Hashable BlockInfo

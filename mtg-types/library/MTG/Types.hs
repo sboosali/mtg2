@@ -7,7 +7,7 @@ module MTG.Types
 
   ( module MTG.Types
 
-  , module MTG.Colors
+  , module MTG.List.Colors
 
   -- * Enum types.
 
@@ -35,7 +35,7 @@ module MTG.Types
 
   , module MTG.Enum.Legality
 
-  , module MTG.Enum.Mana
+  , module MTG.Enum.ManaSymbol
 
   , module MTG.Enum.Name
 
@@ -55,7 +55,7 @@ module MTG.Types
 -- Exports ---------------------------------------
 --------------------------------------------------
 
-import MTG.Colors
+import MTG.List.Colors
 
 --------------------------------------------------
 
@@ -71,7 +71,7 @@ import MTG.Enum.Keyword
 import MTG.Enum.Language
 import MTG.Enum.Layout
 import MTG.Enum.Legality
-import MTG.Enum.Mana
+import MTG.Enum.ManaSymbol
 import MTG.Enum.Name
 import MTG.Enum.Rarity
 import MTG.Enum.Subtype

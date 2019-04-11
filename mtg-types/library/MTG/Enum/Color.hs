@@ -30,11 +30,17 @@ import Control.Lens (makePrisms)
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
---import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
+import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
 
 --------------------------------------------------
 
-import qualified "text" Data.Text as T
+import qualified "attoparsec" Data.Attoparsec.Text as P
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -48,41 +54,12 @@ newtype Color = Color
 
   Text
 
-  deriving stock    (Show,Read,Generic)
+  deriving stock    (Show,Read)
+  deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
-
---------------------------------------------------
-
-makePrisms ''Color
-
---------------------------------------------------
--- Definitions -----------------------------------
---------------------------------------------------
-
-toColors :: Maybe [Text] -> [Color]
-toColors = maybe [] (fmap Color)
-
---------------------------------------------------
-
-white :: Color
-white = "White"
-
-blue :: Color
-blue = "Blue"
-
-black :: Color
-black = "Black"
-
-red :: Color
-red = "Red"
-
-green :: Color
-green = "Green"
-
-colorless :: Color
-colorless = "Colorless"
 
 --------------------------------------------------
 -- Patterns --------------------------------------
@@ -113,10 +90,31 @@ pattern Red = "Red"
 pattern Green :: Color
 pattern Green = "Green"
 
--- | @≡ "Colorless"@
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
 
-pattern Colorless :: Color
-pattern Colorless = "Colorless"
+white :: Color
+white = "White"
+
+blue :: Color
+blue = "Blue"
+
+black :: Color
+black = "Black"
+
+red :: Color
+red = "Red"
+
+green :: Color
+green = "Green"
+
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+toColors :: Maybe [Text] -> [Color]
+toColors = maybe [] (fmap Color)
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -140,10 +138,10 @@ prettyColor color = PP.braces docColor
 --------------------------------------------------
 
 abbreviateColor :: Color -> Maybe Text
-abbreviateColor (Color s0) = T.toUpper <$> (go s1)
+abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
   where
 
-  s1 = T.toLower s0
+  s1 = Text.toLower s0
 
   go = \case
 
@@ -152,16 +150,20 @@ abbreviateColor (Color s0) = T.toUpper <$> (go s1)
     "black"     -> Just "B"
     "red"       -> Just "R"
     "green"     -> Just "G"
-    "colorless" -> Just "C"
 
     "w"         -> Just "W"
     "u"         -> Just "U"
     "b"         -> Just "B"
     "r"         -> Just "R"
     "g"         -> Just "G"
-    "c"         -> Just "C"
 
     _           -> Nothing
+
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makePrisms ''Color
 
 --------------------------------------------------
 -- EOF -------------------------------------------

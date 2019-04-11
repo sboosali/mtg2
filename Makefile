@@ -171,6 +171,26 @@ fetch:
 .PHONY: fetch
 
 #------------------------------------------------#
+# Tests...
+
+checkdocs:
+	@printf "\n%s\n" "========================================"
+
+	@printf "%s\n\n" "Testing Documentation..."
+
+	$(Cabal) new-test $(CabalOptions) --enable-tests $(CabalTargets)
+
+	@printf "\n%s\n" "========================================"
+
+	@printf "%s\n\n" "Generating Documentation..."
+
+	$(Cabal) new-haddock $(CabalTargets)
+
+	@printf "\n%s\n" "========================================"
+
+.PHONY: checkdocs
+
+#------------------------------------------------#
 # Cabal...
 
 docs:
