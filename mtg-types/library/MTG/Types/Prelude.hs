@@ -76,8 +76,16 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as PP.T
 
 --------------------------------------------------
 
+import "spiros" Prelude.Spiros.GUI
+
+--------------------------------------------------
+
 import qualified "base" Text.ParserCombinators.ReadP as Read
 import           "base" Text.ParserCombinators.ReadP ( ReadP )
+
+--------------------------------------------------
+
+import           "base" GHC.Stack.Types (HasCallStack)
 
 --------------------------------------------------
 -- Functions -------------------------------------
@@ -89,10 +97,10 @@ runParser
   :: forall m a.
      ( MonadThrow m
      )
-  => String -> (forall p. (MTGParsing p) => p a)
+  => Name -> (forall p. (MTGParsing p) => p a)
   -> (String -> m a)
 
-runParser e p = go
+runParser name p = go
   where
 
   go :: String -> m a
@@ -101,8 +109,12 @@ runParser e p = go
     let
       p' :: ReadP a
       p' = p
+
+      s = displayName name
+      e = parseError s
     in
-      Read.readP_to_S p' > fmap fst > throwListWithM (parseError e)
+
+      Read.readP_to_S p' > fmap fst > throwListM e
 
 -- readP_to_S :: ReadP a -> ReadS a
 -- readP_to_S :: ReadP a -> String -> [(a,String)]
@@ -110,9 +122,45 @@ runParser e p = go
 --------------------------------------------------
 
 -- | Aliases 'renderText'
-
 renderText :: PP.SimpleDocStream i -> Text
 renderText = PP.Text.renderStrict
+
+--------------------------------------------------
+
+{- | 
+
+@
+instance 'IsString' XYZ where
+  fromString = 'fromString_MonadThrow' parseXYZ
+@
+
+-}
+
+fromString_MonadThrow
+  :: forall a.
+
+     ( HasCallStack
+     )
+
+  => (forall m. (MonadThrow m) => String -> m a)
+
+  -> (String -> a)
+
+fromString_MonadThrow pM = pI
+  where
+
+  pI :: String -> a
+  pI = pE > either mkError id
+
+  pE :: String -> Either SomeException a
+  pE = pM
+
+  -- ⇑ instantiate « m » as « Either SomeException ».
+
+  mkError :: forall x. (HasCallStack) => SomeException -> x
+  mkError = displayException > error
+
+  -- ⇑ « error :: forall (r :: RuntimeRep). forall (a :: TYPE r). HasCallStack => [Char] -> a ».
 
 --------------------------------------------------
 -- EOF -------------------------------------------

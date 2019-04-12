@@ -1,13 +1,23 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-|
+--------------------------------------------------
+
+{-| 'Artist' is the name of an artist.
 
 -}
+
 module MTG.Enum.Artist where
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import MTG.Types.Prelude
 
@@ -28,31 +38,45 @@ newtype Artist = Artist Text
 
 --------------------------------------------------
 
-makePrisms ''Artist
-
---------------------------------------------------
-
--- | @≡ 'unknownArtist'@
+-- | @≡ 'noArtist'@
 instance Default Artist where def = Artist ""
 
 --------------------------------------------------
--- Definitions -----------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+knownArtists :: [Artist]
+knownArtists =
+
+  [ QuintonHoover
+  , RebeccaGuay
+  , TereseNielsen
+  ] 
+
+--------------------------------------------------
+-- Patterns --------------------------------------
 --------------------------------------------------
 
 -- | @≡ ""@
-unknownArtist :: Artist
-unknownArtist = Artist ""
+pattern NoArtist :: Artist
+pattern NoArtist = Artist ""
 
 --------------------------------------------------
 
-_Quinton_Hoover :: Artist
-_Quinton_Hoover = "Quinton Hoover"
+pattern QuintonHoover :: Artist
+pattern QuintonHoover = "Quinton Hoover"
 
-_Rebecca_Guay :: Artist
-_Rebecca_Guay = "Rebecca Guay"
+pattern RebeccaGuay :: Artist
+pattern RebeccaGuay = "Rebecca Guay"
 
-_Terese_Nielsen :: Artist
-_Terese_Nielsen = "Terese Nielsen"
+pattern TereseNielsen :: Artist
+pattern TereseNielsen = "Terese Nielsen"
+
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makePrisms ''Artist
 
 --------------------------------------------------
 -- EOF -------------------------------------------

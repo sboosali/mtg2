@@ -2,9 +2,14 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
+--------------------------------------------------
 
 {-# LANGUAGE OverloadedStrings #-}
+
+--------------------------------------------------
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -174,8 +179,11 @@ toColors :: [Color] -> Colors
 toColors unsortedColors = Colors sortedColors
   where
 
-  sortedColors = sort uniqueColors --TODO
+  sortedColors = sortColors uniqueColors --TODO
   uniqueColors = ordNub unsortedColors
+
+sortColors :: [Color] -> [Color]
+sortColors = id
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -221,7 +229,7 @@ pColors = _
 -- | @≡ 'pColors'@
 
 parseColors :: (MonadThrow m) => String -> m Colors
-parseColors = runParser pColors 
+parseColors = runParser 'Colors pColors 
 
 --------------------------------------------------
 -- Optics ----------------------------------------

@@ -271,20 +271,20 @@ instance Parse ManaSymbol where
 
 --------------------------------------------------
 
--- | @≡ 'pManaSymbol'@
-
-parseManaSymbol :: (MonadThrow m) => String -> m ManaSymbol
-parseManaSymbol = runParser pManaSymbol 
-
---------------------------------------------------
-
 pManaSymbol :: (MTGParsing m) => m ManaSymbol
 pManaSymbol = P.braces (pAbbreviatedManaSymbol `P.sepBy1` P.spaces)
- 
+
 --------------------------------------------------
 
 pAbbreviatedManaSymbol :: (MTGParsing m) => m ManaSymbol
 pAbbreviatedManaSymbol = _
+
+--------------------------------------------------
+
+-- | @≡ 'pManaSymbol'@
+
+parseManaSymbol :: (MonadThrow m) => String -> m ManaSymbol
+parseManaSymbol = runParser 'ManaSymbol pManaSymbol
 
 --------------------------------------------------
 -- Optics ----------------------------------------

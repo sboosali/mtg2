@@ -1,18 +1,29 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+--------------------------------------------------
 
 {-|
 
 -}
 module MTG.Enum.Legality where
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import MTG.Types.Prelude
 
 import Control.Lens (makePrisms)
 
+--------------------------------------------------
+-- Types -----------------------------------------
 --------------------------------------------------
 
 newtype Legality = Legality Text
@@ -24,20 +35,30 @@ newtype Legality = Legality Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''Legality
-
--- | @= 'legal'@
-instance Default Legality where def = legal
-
 --------------------------------------------------
 
-legal :: Legality
-legal = "legal"
+-- | @= 'Legal'@
+instance Default Legality where def = Legal
 
-restricted :: Legality
-restricted = "restricted"
+--------------------------------------------------
+-- Patterns --------------------------------------
+--------------------------------------------------
 
-banned :: Legality
-banned = "banned"
+pattern Legal :: Legality
+pattern Legal = "legal"
 
+pattern Restricted :: Legality
+pattern Restricted = "restricted"
+
+pattern Banned :: Legality
+pattern Banned = "banned"
+
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makePrisms ''Legality
+
+--------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------

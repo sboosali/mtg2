@@ -805,6 +805,80 @@ parseErrors
 
 
 
+runParser
+  :: forall m a.
+     ( MonadThrow m
+     )
+  => String -> (forall p. (MTGParsing p) => p a)
+  -> (String -> m a)
+
+runParser e p = go
+  where
+
+  go :: String -> m a
+  go =
+
+    let
+      p' :: ReadP a
+      p' = p
+    in
+      Read.readP_to_S p' > fmap fst > throwListM (parseError e)
+
+
+
+
+
+
+
+{- | 
+
+@
+instance 'IsString' XYZ where
+  fromString = 'fromString_MonadThrow' parseXYZ
+@
+
+-}
+
+fromString_MonadThrow
+  :: forall a.
+     (forall m. (MonadThrow m) => String -> m a)
+  -> (String -> a)
+fromString_MonadThrow pM = pI
+  where
+
+  pI = pM
+
+
+
+
+
+
+
+
+
+
+import           "base" GHC.Stack.Types (HasCallStack)
+import           "base" GHC.Stack       (CallStack,callStack,prettyCallStack)--,getCallStack
+
+
+
+
+
+
+
+
+
+
+instance ( HasCallStack ) => IsString Color where
+
+
+
+
+
+
+
+
+
 
 
 

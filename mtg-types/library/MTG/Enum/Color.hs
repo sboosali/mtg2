@@ -76,8 +76,14 @@ newtype Color = Color
   deriving stock    (Lift,Data,Generic)
 
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+instance IsString Color where
+  fromString = fromString_MonadThrow parseColor
+
+  --fromString = (Color . fromString)
 
 --------------------------------------------------
 -- Patterns --------------------------------------
@@ -109,14 +115,6 @@ pattern Green :: Color
 pattern Green = "Green"
 
 --------------------------------------------------
--- Constants -------------------------------------
---------------------------------------------------
-
---------------------------------------------------
--- Functions -------------------------------------
---------------------------------------------------
-
---------------------------------------------------
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
@@ -124,12 +122,12 @@ pattern Green = "Green"
 
 instance Pretty Color where
 
-  pretty = prettyColor
+  pretty = ppColor
 
 --------------------------------------------------
 
-prettyColor :: Color -> Doc i
-prettyColor color = PP.braces docColor
+ppColor :: Color -> Doc i
+ppColor color = PP.braces docColor
   where
 
   docColor    = PP.pretty stringColor
@@ -175,7 +173,7 @@ instance Parse Color where
 * english color words
 * case-insensitively
 
-Inverts 'prettyColor'.
+Inverts 'ppColor'.
 
 -}
 
@@ -205,6 +203,13 @@ pColor = do
     , "Red"   -: Red
     , "Green" -: Green
     ]
+
+--------------------------------------------------
+
+-- | @≡ 'pColor'@
+
+parseColor :: (MonadThrow m) => String -> m Color
+parseColor = runParser 'Color pColor 
 
 --------------------------------------------------
 -- Optics ----------------------------------------
