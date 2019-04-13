@@ -6,3 +6,5 @@ $ find ./mtg-types/library/MTG/Enum/ -type f '(' -name '*.hs' -o -name '*.cabal'
 
 $ find ./mtg-types/library/MTG/Enum/ -type f '(' -name '*.hs' -o -name '*.cabal' ')' -exec sed -i -e 's:  deriving stock    (Show,Read,Generic):  deriving stock    (Show,Read)\n  deriving stock    (Lift,Generic)\n:g' '{}' ';'
 
+$ gzip --best Vintage.json 
+

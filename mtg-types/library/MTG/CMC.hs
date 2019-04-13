@@ -63,33 +63,14 @@ instance Monoid    CMC where mempty = coerce 0
 instance Default CMC where def = defaultCMC
 
 --------------------------------------------------
--- Definitions -----------------------------------
+-- Patterns --------------------------------------
 --------------------------------------------------
 
+pattern ZeroCMC :: CMC
+pattern ZeroCMC = CMC 0
 
-{- | @= '(+)'@
-
-Mana costs, when combined, are (almost always) /added/ together.
-c.f. /double-face cards/, /split cards/
-
-e.g.:
-
-* >708.4. In every zone except the stack, the characteristics of a split card are those of its two halves combined. This is a change from previous rules.
-    * >708.4a Each split card has two names. If an effect instructs a player to choose a card name and the player wants to choose a split card's name, the player must choose one of those names and not both. An object has the chosen name if one of its names is the chosen name.
-    * >708.4b The mana cost of a split card is the combined mana costs of its two halves. A split card's colors and converted mana cost are determined from its combined mana cost.
-
-        >Example: Assault/Battery's mana cost is {3}{R}{G}. It's a red and green card with a converted mana cost of 5. If you cast Assault, the resulting spell is a red spell with a converted mana cost of 1.
-
-    * >708.4c A split card has each card type specified on either of its halves and each ability in the text box of each half.
-    * >708.4d The characteristics of a fused split spell on the stack are also those of its two halves combined (see rule 702.101, "Fuse").
-    * >708.4b The mana cost of a split card is the combined mana costs of its two halves. A split card's colors and converted mana cost are determined from its combined mana cost. Example: Assault/Battery's mana cost is {3}{R}{G}. It's a red and green card with a converted mana cost of 5.
-
-
--}
-
-addCMCs :: CMC -> CMC -> CMC 
-addCMCs = coerce (+)
-
+--------------------------------------------------
+-- Constants -------------------------------------
 --------------------------------------------------
 
 {- | @= 0@
@@ -102,8 +83,31 @@ defaultCMC :: CMC
 defaultCMC = mempty
 
 --------------------------------------------------
--- Patterns --------------------------------------
+-- Functions -------------------------------------
 --------------------------------------------------
+
+{- | @= ('+')@
+
+Mana costs, when combined, are (almost always) /added/ together.
+c.f. /double-face cards/, /split cards/
+
+e.g.:
+
+* >708.4. In every zone except the stack, the characteristics of a split card are those of its two halves combined. This is a change from previous rules.
+
+    * >708.4a Each split card has two names. If an effect instructs a player to choose a card name and the player wants to choose a split card's name, the player must choose one of those names and not both. An object has the chosen name if one of its names is the chosen name.
+    * >708.4b The mana cost of a split card is the combined mana costs of its two halves. A split card's colors and converted mana cost are determined from its combined mana cost.
+
+        >Example: Assault/Battery's mana cost is {3}{R}{G}. It's a red and green card with a converted mana cost of 5. If you cast Assault, the resulting spell is a red spell with a converted mana cost of 1.
+
+    * >708.4c A split card has each card type specified on either of its halves and each ability in the text box of each half.
+    * >708.4d The characteristics of a fused split spell on the stack are also those of its two halves combined (see rule 702.101, "Fuse").
+    * >708.4b The mana cost of a split card is the combined mana costs of its two halves. A split card's colors and converted mana cost are determined from its combined mana cost. Example: Assault/Battery's mana cost is {3}{R}{G}. It's a red and green card with a converted mana cost of 5.
+
+-}
+
+addCMCs :: CMC -> CMC -> CMC 
+addCMCs = coerce (+)
 
 --------------------------------------------------
 -- Optics ----------------------------------------

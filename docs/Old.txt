@@ -939,6 +939,87 @@ pAbbreviatedManaSymbol = ManaSymbol <$> P.braces p
 
 
 
+abbreviateManaSymbol :: ManaSymbol -> Maybe Text
+abbreviateManaSymbol (ManaSymbol s0) = Text.toUpper <$> (go s1)
+  where
+
+  s1 = Text.toLower s0
+
+  go = \case
+
+    "white"     -> Just "W"
+    "blue"      -> Just "U"
+    "black"     -> Just "B"
+    "red"       -> Just "R"
+    "green"     -> Just "G"
+
+    "w"         -> Just "W"
+    "u"         -> Just "U"
+    "b"         -> Just "B"
+    "r"         -> Just "R"
+    "g"         -> Just "G"
+
+    _           -> Nothing
+
+
+
+
+
+
+
+
+
+abbreviationsManaSymbol :: Assoc ManaSymbol
+abbreviationsManaSymbol =
+
+    [ "W" -: WhiteManaSymbol
+    , "U" -: BlueManaSymbol
+    , "B" -: BlackManaSymbol
+    , "R" -: RedManaSymbol
+    , "G" -: GreenManaSymbol
+    ]
+
+
+
+
+
+
+
+
+abbreviatedManaSymbols :: Assoc ManaSymbol
+abbreviatedManaSymbols =
+
+    [ "W" -: WhiteManaSymbol
+    , "U" -: BlueManaSymbol
+    , "B" -: BlackManaSymbol
+    , "R" -: RedManaSymbol
+    , "G" -: GreenManaSymbol
+    ]
+
+
+
+
+
+
+
+
+------------------
+
+phyrexian :: ManaSymbol -> ManaSymbol
+phyrexian (ManaSymbol s) = ManaSymbol ("{P" <> s <> "}")
+
+--------------------------------------------------
+
+monohybrid :: ManaSymbol -> ManaSymbol
+monohybrid (ManaSymbol s) = ManaSymbol ("{2/" <> s <> "}")
+
+
+
+
+
+
+
+
 
 
 

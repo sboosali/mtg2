@@ -17,8 +17,24 @@
 
 == Examples
 
+Printing...
+
+>>> pretty BlueManaSymbol
+{U}
 >>> pretty (colorToManaSymbol Blue)
 {U}
+
+Parsing...
+
+>>> parseManaSymbol "{U}"
+>>> parseManaSymbol "{1}"
+
+>>> parseManaSymbol "{G/U}"
+>>> parseManaSymbol "{U/R}"
+
+>>> parseManaSymbol "{P/U}"
+
+>>> parseManaSymbol "{2/U}"
 
 -}
 
@@ -119,6 +135,43 @@ pattern VariableManaSymbol = "X"
 
 --------------------------------------------------
 -- Constants -------------------------------------
+--------------------------------------------------
+
+knownManaSymbols :: [ManaSymbol]
+knownManaSymbols =
+
+    [ WhiteManaSymbol
+    , BlueManaSymbol
+    , BlackManaSymbol
+    , RedManaSymbol
+    , GreenManaSymbol
+
+    , ColorlessManaSymbol
+    , SnowManaSymbol
+    , EnergyManaSymbol
+    , VariableManaSymbol
+
+    ]
+
+--------------------------------------------------
+
+namedManaSymbols :: Assoc ManaSymbol
+namedManaSymbols =
+
+    [ "white" -: WhiteManaSymbol
+    , "blue"  -: BlueManaSymbol
+    , "black" -: BlackManaSymbol
+    , "red"   -: RedManaSymbol
+    , "green" -: GreenManaSymbol
+
+
+    , "colorless" -: ColorlessManaSymbol
+    , "snow"      -: SnowManaSymbol
+    , "energy"    -: EnergyManaSymbol    
+    , "variable"  -: VariableManaSymbol
+
+    ]
+
 --------------------------------------------------
 
 phyrexianWhite :: ManaSymbol
@@ -243,36 +296,12 @@ genericSymbol n = ManaSymbol $ (fromString . show) n
 --------------------------------------------------
 
 phyrexian :: ManaSymbol -> ManaSymbol
-phyrexian (ManaSymbol s) = ManaSymbol ("{P" <> s <> "}")
+phyrexian (ManaSymbol s) = ManaSymbol ("P" <> s)
 
 --------------------------------------------------
 
 monohybrid :: ManaSymbol -> ManaSymbol
-monohybrid (ManaSymbol s) = ManaSymbol ("{2/" <> s <> "}")
-
---------------------------------------------------
-
-abbreviateManaSymbol :: ManaSymbol -> Maybe Text
-abbreviateManaSymbol (ManaSymbol s0) = Text.toUpper <$> (go s1)
-  where
-
-  s1 = Text.toLower s0
-
-  go = \case
-
-    "white"     -> Just "W"
-    "blue"      -> Just "U"
-    "black"     -> Just "B"
-    "red"       -> Just "R"
-    "green"     -> Just "G"
-
-    "w"         -> Just "W"
-    "u"         -> Just "U"
-    "b"         -> Just "B"
-    "r"         -> Just "R"
-    "g"         -> Just "G"
-
-    _           -> Nothing
+monohybrid (ManaSymbol s) = ManaSymbol ("2/" <> s)
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -280,27 +309,27 @@ abbreviateManaSymbol (ManaSymbol s0) = Text.toUpper <$> (go s1)
 
 -- | @≡ 'ppManaSymbol'@
 
-instance Pretty ManaSymbol where
+-- instance Pretty ManaSymbol where
 
-  pretty = ppManaSymbol
+--   pretty = ppManaSymbol
 
---------------------------------------------------
+-- --------------------------------------------------
 
--- | @≡ 'ppManaSymbol'@
+-- -- | @≡ 'ppManaSymbol'@
 
-prettyManaSymbol :: ManaSymbol -> String
-prettyManaSymbol = ppManaSymbol > runPrinter
+-- prettyManaSymbol :: ManaSymbol -> String
+-- prettyManaSymbol = ppManaSymbol > runPrinter
 
---------------------------------------------------
+-- --------------------------------------------------
 
--- | 
+-- -- | 
 
-ppManaSymbol :: ManaSymbol -> Doc i
-ppManaSymbol symbol = PP.braces docManaSymbol
-  where
+-- ppManaSymbol :: ManaSymbol -> Doc i
+-- ppManaSymbol symbol = PP.braces docManaSymbol
+--   where
 
-  docManaSymbol    = PP.pretty stringManaSymbol
-  stringManaSymbol = (abbreviateManaSymbol symbol) & fromMaybe "?" -- TODO -- 
+--   docManaSymbol    = PP.pretty stringManaSymbol
+--   stringManaSymbol = (abbreviateManaSymbol symbol) & fromMaybe "?" -- TODO -- 
 
 --------------------------------------------------
 -- Parse -----------------------------------------
@@ -326,14 +355,7 @@ pManaSymbol = do
 
   csLower = csUpper <&> (bimap Text.toLower id)
 
-  csUpper =
-
-    [ "W" -: WhiteManaSymbol
-    , "U" -: BlueManaSymbol
-    , "B" -: BlackManaSymbol
-    , "R" -: RedManaSymbol
-    , "G" -: GreenManaSymbol
-    ]
+  csUpper = namedManaSymbols
 
 --------------------------------------------------
 
@@ -360,9 +382,27 @@ makePrisms ''ManaSymbol
 -- Notes -----------------------------------------
 --------------------------------------------------
 {-
+--------------------------------------------------
 
- ManaSymbol Char
+ManaSymbol Char
 
+--------------------------------------------------
+
+e.g. « Mental Misstep »:
+
+    {
+                "name": "Mental Misstep",
+                "manaCost": "{U/P}",
+                "text": "({U/P} can be paid with either {U} or 2 life.)\nCounter target spell with converted mana cost 1.",
+                "originalText": "({PU} can be paid with either {U} or 2 life.)\nCounter target spell with converted mana cost 1.",
+                ...
+    }
+
+--------------------------------------------------
+
+
+
+--------------------------------------------------
 -}
 --------------------------------------------------
 -- EOF -------------------------------------------
