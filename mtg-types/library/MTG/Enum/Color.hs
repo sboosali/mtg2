@@ -24,9 +24,9 @@ Color "Blue"
 
 Parsing (see 'parser'):
 
->>> parse "U"
+>>> parseColor "U"
 Color "Blue"
->>> parse "blue"
+>>> parseColor "blue"
 Color "Blue"
 
 -}
@@ -70,11 +70,12 @@ import qualified "text" Data.Text as Text
 
 newtype Color = Color
 
-  Text
+  { getColor :: Text
+  }
 
-  deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
 
+  deriving newtype  (Show,Read)
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
   deriving newtype  (NFData,Hashable)
 
@@ -115,24 +116,7 @@ pattern Green :: Color
 pattern Green = "Green"
 
 --------------------------------------------------
--- Pretty ----------------------------------------
---------------------------------------------------
-
--- | @≡ 'PP.braces' . 'abbreviateColor'@
-
-instance Pretty Color where
-
-  pretty = ppColor
-
---------------------------------------------------
-
-ppColor :: Color -> Doc i
-ppColor color = PP.braces docColor
-  where
-
-  docColor    = PP.pretty stringColor
-  stringColor = (abbreviateColor color) & fromMaybe ""
-
+-- Functions -------------------------------------
 --------------------------------------------------
 
 abbreviateColor :: Color -> Maybe Text
@@ -156,6 +140,25 @@ abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
     "g"         -> Just "G"
 
     _           -> Nothing
+
+--------------------------------------------------
+-- Pretty ----------------------------------------
+--------------------------------------------------
+
+-- | @≡ 'PP.braces' . 'abbreviateColor'@
+
+instance Pretty Color where
+
+  pretty = ppColor
+
+--------------------------------------------------
+
+ppColor :: Color -> Doc i
+ppColor color = PP.braces docColor
+  where
+
+  docColor    = PP.pretty stringColor
+  stringColor = (abbreviateColor color) & fromMaybe ""
 
 --------------------------------------------------
 -- Parse -----------------------------------------

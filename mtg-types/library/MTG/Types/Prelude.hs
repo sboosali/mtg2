@@ -42,7 +42,7 @@ import MTG.Types.Errors
 import MTG.Classes.Print
 import MTG.Classes.Parse
 
-import MTG.Classes.Prelude (Assoc)
+import MTG.Classes.Prelude
 
 --------------------------------------------------
 -- Exports ---------------------------------------

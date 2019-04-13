@@ -880,6 +880,66 @@ instance ( HasCallStack ) => IsString Color where
 
 
 
+pManaSymbol :: (MTGParsing m) => m ManaSymbol
+pManaSymbol = P.braces (pAbbreviatedManaSymbol `P.sepBy1` P.spaces)
+
+--------------------------------------------------
+
+pAbbreviatedManaSymbol :: (MTGParsing m) => m ManaSymbol
+pAbbreviatedManaSymbol = _
+
+
+
+
+
+
+
+
+
+
+prettyManaSymbol :: ManaSymbol -> String
+prettyManaSymbol (ManaSymbol cs) = ppManaSymbol > runPrinter
+
+
+
+
+
+
+
+
+
+
+pManaSymbol :: (MTGParsing m) => m ManaSymbol
+pManaSymbol = toManaSymbol (P.braces pAbbreviatedManaSymbol) `P.sepBy1` P.spaces
+
+
+
+
+
+
+
+
+
+pManaSymbol :: (MTGParsing m) => m ManaSymbol
+pManaSymbol = pAbbreviatedManaSymbol -- TODO pKnown pUnknown
+
+--------------------------------------------------
+
+pAbbreviatedManaSymbol :: (MTGParsing m) => m ManaSymbol
+pAbbreviatedManaSymbol = ManaSymbol <$> P.braces p
+  where
+
+  p = empty
+
+
+
+
+
+
+
+
+
+
 
 
 

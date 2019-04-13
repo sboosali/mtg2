@@ -19,15 +19,29 @@
 
 == Examples
 
+Construction:
+
 e.g. 'toColors':
 
 >>> toColors [ Blue, Green, Green, Blue ]
 Colors [Color "Green",Color "Blue"]
 
+>>> toColors simic == toColors (reverse simic)
+True
+
+Printing (see 'pretty'):
+
 e.g. 'prettyColors':
 
 >>> pretty Simic
 {G}{U}
+
+Parsing (see 'parser'):
+
+e.g. 'parseColors':
+
+>>> parseColors "UG"
+Colors [Color "Green",Color "Blue"]
 
 -}
 
@@ -172,6 +186,24 @@ allGuilds =
   ]
 
 --------------------------------------------------
+{-
+knownTrichromes :: Colors
+knownTrichromes =
+
+  [ 
+  , 
+  ]
+
+--------------------------------------------------
+
+knownTetrachromes :: Colors
+knownTetrachromes =
+
+  [ 
+  , 
+  ]
+-}
+--------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
@@ -222,7 +254,10 @@ instance Parse Colors where
 --------------------------------------------------
 
 pColors :: (MTGParsing m) => m Colors
-pColors = _
+pColors = toColors <$> p
+  where
+
+  p = many pColor
 
 --------------------------------------------------
 

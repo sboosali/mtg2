@@ -50,6 +50,12 @@ import qualified "parsers" Text.Parser.Char        as P
 import qualified "parsers" Text.Parser.Token       as P
 
 --------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "text" Data.Text as Text
+
+--------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
@@ -71,90 +77,83 @@ newtype ManaSymbol = ManaSymbol Text
 
 instance IsString ManaSymbol where
 
-  fromString = parseManaSymbol
+  fromString = fromString_MonadThrow parseManaSymbol
+
+--------------------------------------------------
+-- Patterns --------------------------------------
+--------------------------------------------------
+
+pattern NoManaSymbol :: ManaSymbol
+pattern NoManaSymbol = ""
+
+--------------------------------------------------
+
+pattern WhiteManaSymbol :: ManaSymbol
+pattern WhiteManaSymbol = "W"
+
+pattern BlueManaSymbol :: ManaSymbol
+pattern BlueManaSymbol = "U"
+
+pattern BlackManaSymbol :: ManaSymbol
+pattern BlackManaSymbol = "B"
+
+pattern RedManaSymbol :: ManaSymbol
+pattern RedManaSymbol = "R"
+
+pattern GreenManaSymbol :: ManaSymbol
+pattern GreenManaSymbol = "G"
+
+--------------------------------------------------
+
+pattern ColorlessManaSymbol :: ManaSymbol
+pattern ColorlessManaSymbol = "C"
+
+pattern SnowManaSymbol :: ManaSymbol
+pattern SnowManaSymbol = "S"
+
+pattern EnergyManaSymbol :: ManaSymbol
+pattern EnergyManaSymbol = "E"
+
+pattern VariableManaSymbol :: ManaSymbol
+pattern VariableManaSymbol = "X"
 
 --------------------------------------------------
 -- Constants -------------------------------------
 --------------------------------------------------
 
-noManaSymbol :: ManaSymbol
-noManaSymbol = ""
-
---------------------------------------------------
-
-whiteSymbol :: ManaSymbol
-whiteSymbol = "W"
-
-blueSymbol :: ManaSymbol
-blueSymbol = "U"
-
-blackSymbol :: ManaSymbol
-blackSymbol = "B"
-
-redSymbol :: ManaSymbol
-redSymbol = "R"
-
-greenSymbol :: ManaSymbol
-greenSymbol = "G"
-
---------------------------------------------------
-
-colorlessSymbol :: ManaSymbol
-colorlessSymbol = "C"
-
-snowSymbol :: ManaSymbol
-snowSymbol = "S"
-
-energySymbol :: ManaSymbol
-energySymbol = "E"
-
-variableSymbol :: ManaSymbol
-variableSymbol = "X"
-
---------------------------------------------------
-
-phyrexian :: ManaSymbol -> ManaSymbol
-phyrexian (ManaSymbol s) = ManaSymbol ("{P" <> s <> "}")
-
 phyrexianWhite :: ManaSymbol
-phyrexianWhite = phyrexian whiteSymbol
+phyrexianWhite = phyrexian WhiteManaSymbol
 
 phyrexianBlue :: ManaSymbol
-phyrexianBlue = phyrexian blueSymbol
+phyrexianBlue = phyrexian BlueManaSymbol
 
 phyrexianBlack :: ManaSymbol
-phyrexianBlack = phyrexian blackSymbol
+phyrexianBlack = phyrexian BlackManaSymbol
 
 phyrexianRed :: ManaSymbol
-phyrexianRed = phyrexian redSymbol
+phyrexianRed = phyrexian RedManaSymbol
 
 phyrexianGreen :: ManaSymbol
-phyrexianGreen = phyrexian greenSymbol
+phyrexianGreen = phyrexian GreenManaSymbol
 
 --------------------------------------------------
-
-monohybrid :: ManaSymbol -> ManaSymbol
-monohybrid (ManaSymbol s) = ManaSymbol ("{2/" <> s <> "}")
 
 monohybridWhite :: ManaSymbol
-monohybridWhite = monohybrid whiteSymbol
+monohybridWhite = monohybrid WhiteManaSymbol
 
 monohybridBlue :: ManaSymbol
-monohybridBlue = monohybrid blueSymbol
+monohybridBlue = monohybrid BlueManaSymbol
 
 monohybridBlack :: ManaSymbol
-monohybridBlack = monohybrid blackSymbol
+monohybridBlack = monohybrid BlackManaSymbol
 
 monohybridRed :: ManaSymbol
-monohybridRed = monohybrid redSymbol
+monohybridRed = monohybrid RedManaSymbol
 
 monohybridGreen :: ManaSymbol
-monohybridGreen = monohybrid greenSymbol
+monohybridGreen = monohybrid GreenManaSymbol
 
 --------------------------------------------------
-
-genericSymbol :: Natural -> ManaSymbol
-genericSymbol n = ManaSymbol $ (fromString . show) n
 
 zeroSymbol :: ManaSymbol
 zeroSymbol = genericSymbol 0
@@ -223,13 +222,57 @@ twentySymbol = genericSymbol 20
 -- Functions -------------------------------------
 --------------------------------------------------
 
-toManaSymbol :: Maybe Text -> ManaSymbol
-toManaSymbol = maybe noManaSymbol ManaSymbol
+toManaSymbol :: Text -> ManaSymbol
+toManaSymbol = ManaSymbol
 
 --------------------------------------------------
 
 colorToManaSymbol :: Color -> ManaSymbol
-colorToManaSymbol = _
+colorToManaSymbol c = go c
+  where
+
+  go
+    = abbreviateColor
+    > maybe (toManaSymbol (getColor c)) toManaSymbol
+
+--------------------------------------------------
+
+genericSymbol :: Natural -> ManaSymbol
+genericSymbol n = ManaSymbol $ (fromString . show) n
+
+--------------------------------------------------
+
+phyrexian :: ManaSymbol -> ManaSymbol
+phyrexian (ManaSymbol s) = ManaSymbol ("{P" <> s <> "}")
+
+--------------------------------------------------
+
+monohybrid :: ManaSymbol -> ManaSymbol
+monohybrid (ManaSymbol s) = ManaSymbol ("{2/" <> s <> "}")
+
+--------------------------------------------------
+
+abbreviateManaSymbol :: ManaSymbol -> Maybe Text
+abbreviateManaSymbol (ManaSymbol s0) = Text.toUpper <$> (go s1)
+  where
+
+  s1 = Text.toLower s0
+
+  go = \case
+
+    "white"     -> Just "W"
+    "blue"      -> Just "U"
+    "black"     -> Just "B"
+    "red"       -> Just "R"
+    "green"     -> Just "G"
+
+    "w"         -> Just "W"
+    "u"         -> Just "U"
+    "b"         -> Just "B"
+    "r"         -> Just "R"
+    "g"         -> Just "G"
+
+    _           -> Nothing
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -246,7 +289,7 @@ instance Pretty ManaSymbol where
 -- | @≡ 'ppManaSymbol'@
 
 prettyManaSymbol :: ManaSymbol -> String
-prettyManaSymbol (ManaSymbol cs) = PP.String.renderString ppManaSymbol
+prettyManaSymbol = ppManaSymbol > runPrinter
 
 --------------------------------------------------
 
@@ -272,12 +315,33 @@ instance Parse ManaSymbol where
 --------------------------------------------------
 
 pManaSymbol :: (MTGParsing m) => m ManaSymbol
-pManaSymbol = P.braces (pAbbreviatedManaSymbol `P.sepBy1` P.spaces)
+pManaSymbol = do
+
+  pAssoc cs <?> "ManaSymbol"
+
+  where
+
+  cs :: Assoc ManaSymbol
+  cs = csLower <> csUpper
+
+  csLower = csUpper <&> (bimap Text.toLower id)
+
+  csUpper =
+
+    [ "W" -: WhiteManaSymbol
+    , "U" -: BlueManaSymbol
+    , "B" -: BlackManaSymbol
+    , "R" -: RedManaSymbol
+    , "G" -: GreenManaSymbol
+    ]
 
 --------------------------------------------------
 
 pAbbreviatedManaSymbol :: (MTGParsing m) => m ManaSymbol
-pAbbreviatedManaSymbol = _
+pAbbreviatedManaSymbol = ManaSymbol <$> P.braces p
+  where
+
+  p = empty
 
 --------------------------------------------------
 
