@@ -39,6 +39,9 @@ TAGS
 result/
 result-*/
 
+# PostgreSQL
+logfile
+
 # Nano
 *.swp 
 

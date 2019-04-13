@@ -52,3 +52,8 @@ STATEMENT:  CREATE TABLE cards
 	, variations            TEXT
 	, watermark             TEXT
 	);
+LOG:  received smart shutdown request
+LOG:  autovacuum launcher shutting down
+LOG:  received SIGHUP, reloading configuration files
+LOG:  shutting down
+LOG:  database system is shut down
