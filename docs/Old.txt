@@ -1162,6 +1162,103 @@ toGuild Green Green = throwM e
 
 
 
+toNephilim White Blue Black Red = return Artifice
+toNephilim Black Red Green Blue = return Chaos
+toNephilim Red Green White Black = return Aggression
+toNephilim Green White Blue Red = return Altruism
+toNephilim White Blue Black Green = return Growth
+
+
+
+toNephilim :: (MonadThrow m) => Color -> Color -> Color -> Color -> m Nephilim
+
+toNephilim White Blue  Black Red   = return Artifice
+toNephilim White Black Red   Blue  = return Artifice
+toNephilim White Red   Blue  Black = return Artifice
+toNephilim White Blue  Red   Black = return Artifice
+toNephilim White Black Blue  Red   = return Artifice
+toNephilim White Red   Black Blue  = return Artifice
+
+
+
+
+toNephilim w x y z = case sort [ w, x, y, z ] of
+
+   ArtificeColors -> return Artifice
+   ChaosColors -> return Chaos
+   AggressionColors -> return Aggression
+   AltruismColors -> return Altruism
+   GrowthColors -> return Growth
+
+
+
+
+
+
+
+
+
+
+
+toColorsM :: (MonadThrow m) => [Color] -> m Colors
+toColorsM cs = cs & (ordNub > sort > go)
+  where
+
+  go = \case
+
+      []                                 -> return ZeroColors
+      [a]                                -> return $ OneColor a
+      [a,b]                              -> TwoColors   <$> (toGuild        a b)
+      [a,b,c]                            -> ThreeColors <$> (toShardOrWedge a b c)
+      [a,b,c,d]                          -> FourColors  <$> (toNephilim     a b c d)
+      [ White, Blue, Black, Red, Green ] -> return FiveColors
+
+      _                                  -> throwM e -- (NOTE: this case should never be reached.)
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toColors " % Format.string % " }}} ")
+                        (displayName 'toColors)
+                        (showsPrec applicationPrecedence cs "")
+                       )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

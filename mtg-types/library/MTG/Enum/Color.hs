@@ -241,7 +241,7 @@ pattern BantColors :: [Color]
 pattern BantColors = [ Green, White, Blue ]
 
 pattern EsperColors :: [Color]
-pattern EsperColors = [ White, Blue, White ]
+pattern EsperColors = [ White, Blue, Black ]
 
 pattern GrixisColors :: [Color]
 pattern GrixisColors = [ Blue, Black, Red ]
@@ -250,7 +250,7 @@ pattern JundColors :: [Color]
 pattern JundColors = [ Black, Red, Green ]
 
 pattern NayaColors :: [Color]
-pattern NayaColors =  [ Red, Green, White ]
+pattern NayaColors = [ Red, Green, White ]
 
 pattern MarduColors :: [Color]
 pattern MarduColors = [ Red, White, Black ]
@@ -346,9 +346,9 @@ toColorsM cs = cs & (ordNub > sort > go)
 
       []                                 -> return ZeroColors
       [a]                                -> return $ OneColor a
-      [a,b]                              -> TwoColors   <$> (toGuild        a b)
-      [a,b,c]                            -> ThreeColors <$> (toShardOrWedge a b c)
-      [a,b,c,d]                          -> FourColors  <$> (toNephilim     a b c d)
+      [a,b]                              -> (toGuild        a b)     & maybe (throwM e) (return . TwoColors)
+      [a,b,c]                            -> (toShardOrWedge a b c)   & maybe (throwM e) (return . ThreeColors)
+      [a,b,c,d]                          -> (toNephilim     a b c d) & maybe (throwM e) (return . FourColors)
       [ White, Blue, Black, Red, Green ] -> return FiveColors
 
       _                                  -> throwM e -- (NOTE: this case should never be reached.)
@@ -447,7 +447,87 @@ toGuild x y = throwM e
 -}
 
 toShardOrWedge :: (MonadThrow m) => Color -> Color -> Color -> m ShardOrWedge
-toShardOrWedge = \case
+
+toShardOrWedge Green White Blue  = return Bant
+toShardOrWedge White Blue  Green = return Bant
+toShardOrWedge Blue  Green White = return Bant
+toShardOrWedge Green Blue  White = return Bant
+toShardOrWedge White Green Blue  = return Bant
+toShardOrWedge Blue  White Green = return Bant
+
+toShardOrWedge White Blue  Black = return Esper
+toShardOrWedge Blue  Black White = return Esper
+toShardOrWedge Black White Blue  = return Esper
+toShardOrWedge White Black Blue  = return Esper
+toShardOrWedge Blue  White Black = return Esper
+toShardOrWedge Black Blue  White = return Esper
+
+toShardOrWedge Blue  Black Red   = return Grixis
+toShardOrWedge Black Red   Blue  = return Grixis
+toShardOrWedge Red   Blue  Black = return Grixis
+toShardOrWedge Blue  Red   Black = return Grixis
+toShardOrWedge Black Blue  Red   = return Grixis
+toShardOrWedge Red   Black Blue  = return Grixis
+
+toShardOrWedge Black Red   Green = return Jund
+toShardOrWedge Red   Green Black = return Jund
+toShardOrWedge Green Black Red   = return Jund
+toShardOrWedge Black Green Red   = return Jund
+toShardOrWedge Red   Black Green = return Jund
+toShardOrWedge Green Red   Black = return Jund
+
+toShardOrWedge Red   Green White = return Naya
+toShardOrWedge Green White Red   = return Naya
+toShardOrWedge White Red   Green = return Naya
+toShardOrWedge Red   White Green = return Naya
+toShardOrWedge Green Red   White = return Naya
+toShardOrWedge White Green Red   = return Naya
+
+toShardOrWedge Red   White Black = return Mardu
+toShardOrWedge White Black Red   = return Mardu
+toShardOrWedge Black Red   White = return Mardu
+toShardOrWedge Red   Black White = return Mardu
+toShardOrWedge White Red   Black = return Mardu
+toShardOrWedge Black White Red   = return Mardu
+
+toShardOrWedge Green Blue  Red   = return Temur
+toShardOrWedge Blue  Red   Green = return Temur
+toShardOrWedge Red   Green Blue  = return Temur
+toShardOrWedge Green Red   Blue  = return Temur
+toShardOrWedge Blue  Green Red   = return Temur
+toShardOrWedge Red   Blue  Green = return Temur
+
+toShardOrWedge White Black Green = return Abzan
+toShardOrWedge Black Green White = return Abzan
+toShardOrWedge Green White Black = return Abzan
+toShardOrWedge White Green Black = return Abzan
+toShardOrWedge Black White Green = return Abzan
+toShardOrWedge Green Black White = return Abzan
+
+toShardOrWedge Blue  Red   White = return Jeskai
+toShardOrWedge Red   White Blue  = return Jeskai
+toShardOrWedge White Blue  Red   = return Jeskai
+toShardOrWedge Blue  White Red   = return Jeskai
+toShardOrWedge Red   Blue  White = return Jeskai
+toShardOrWedge White Red   Blue  = return Jeskai
+
+toShardOrWedge Black Green Blue  = return Sultai
+toShardOrWedge Green Blue  Black = return Sultai
+toShardOrWedge Blue  Black Green = return Sultai
+toShardOrWedge Black Blue  Green = return Sultai
+toShardOrWedge Green Black Blue  = return Sultai
+toShardOrWedge Blue  Green Black = return Sultai
+
+toShardOrWedge x y z = throwM e
+  where
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toShardOrWedge " % Format.string % " " % Format.string % " " % Format.string % " }}} ")
+                        (displayName 'toShardOrWedge)
+                        (showWithApplicationPrecedence x)
+                        (showWithApplicationPrecedence y)
+                        (showWithApplicationPrecedence z)
+                       )
 
 {-# INLINEABLE toShardOrWedge #-}
 
@@ -458,7 +538,27 @@ toShardOrWedge = \case
 -}
 
 toNephilim :: (MonadThrow m) => Color -> Color -> Color -> Color -> m Nephilim
-toNephilim = \case
+
+toNephilim w x y z = case sort [ w, x, y, z ] of
+
+  [ White, Blue,  Black, Red   ] -> return Artifice
+  [ Blue,  Black, Red,   Green ] -> return Chaos
+  [ White, Black, Red,   Green ] -> return Aggression
+  [ White, Blue,  Red,   Green ] -> return Altruism
+  [ White, Blue,  Black, Green ] -> return Growth
+
+  _ -> throwM e
+
+  where
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toNephilim " % Format.string % " " % Format.string % " " % Format.string % " " % Format.string % " }}} ")
+                        (displayName 'toNephilim)
+                        (showWithApplicationPrecedence w)
+                        (showWithApplicationPrecedence x)
+                        (showWithApplicationPrecedence y)
+                        (showWithApplicationPrecedence z)
+                       )
 
 {-# INLINEABLE toNephilim #-}
 
