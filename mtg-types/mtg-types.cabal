@@ -422,18 +422,28 @@ library
 
  hs-source-dirs: library
   
- -----------------------------
+ ------------------------------
 
  exposed-modules: MTG.Types
                 , MTG.Types.Errors
 
+                ---------------
+
                 , MTG.Classes.Parse
                 , MTG.Classes.Print
 
+                ---------------
+
                 , MTG.Enum.Color
 
-                , MTG.List.Colors
-                , MTG.List.ManaCost
+                ---------------
+
+                , MTG.Number.CMC
+
+                ---------------
+
+                , MTG.Text.List.Colors
+                , MTG.Text.List.ManaCost
 
                 , MTG.Text.Artist
                 , MTG.Text.Block
@@ -455,6 +465,8 @@ library
                 , MTG.Text.Symbol
                 , MTG.Text.Watermark
 
+                ---------------
+
                 , MTG.Types.Prelude
                 , MTG.Classes.Prelude
 
@@ -467,7 +479,7 @@ library
   --------------------
 
                spiros    ^>= 0.4
-             , enumerate ^>= 0.3
+--           , enumerate ^>= 0.3
 
   --------------------
   -- Standard Library
@@ -507,12 +519,11 @@ library
              , parsers    ^>= 0.12
              , trifecta   ^>= 2
              , attoparsec ^>= 0.13
+             , charset    ^>= 0.3
 
   --------------------
   -- (Miscellaneous) -
   --------------------
-
- -----------------------------
 
 --------------------------------------------------
 -- Tests -----------------------------------------

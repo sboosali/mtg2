@@ -1,3 +1,4 @@
+--------------------------------------------------
 
 {- | Types for /Magic: The Gathering/.
 
@@ -7,12 +8,18 @@ module MTG.Types
 
   ( module MTG.Types
 
-  -- * List types.
-
-  , module MTG.List.Colors
-  , module MTG.List.ManaCost
-
   -- * Enum types.
+
+  -- * Number types.
+
+  , module MTG.Number.CMC
+
+  -- * List-of-String types.
+
+  , module MTG.Text.List.Colors
+  , module MTG.Text.List.ManaCost
+
+  -- * String types.
 
   , module MTG.Text.Artist
 
@@ -58,10 +65,12 @@ module MTG.Types
 -- Exports ---------------------------------------
 --------------------------------------------------
 
-import MTG.List.Colors
-import MTG.List.ManaCost
+import MTG.Number.CMC
 
 --------------------------------------------------
+
+import MTG.Text.List.Colors
+import MTG.Text.List.ManaCost
 
 import MTG.Text.Artist
 import MTG.Text.Block

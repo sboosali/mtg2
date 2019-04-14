@@ -25,9 +25,9 @@ Color "Blue"
 Parsing (see 'parser'):
 
 >>> parseColor "U"
-Color "Blue"
+"Blue"
 >>> parseColor "blue"
-Color "Blue"
+"Blue"
 
 -}
 
@@ -91,27 +91,27 @@ instance IsString Color where
 -- | @≡ "White"@
 
 pattern White :: Color
-pattern White = "White"
+pattern White = Color "White"
 
 -- | @≡ "Blue"@
 
 pattern Blue :: Color
-pattern Blue = "Blue"
+pattern Blue = Color "Blue"
 
 -- | @≡ "Black"@
 
 pattern Black :: Color
-pattern Black = "Black"
+pattern Black = Color "Black"
 
 -- | @≡ "Red"@
 
 pattern Red :: Color
-pattern Red = "Red"
+pattern Red = Color "Red"
 
 -- | @≡ "Green"@
 
 pattern Green :: Color
-pattern Green = "Green"
+pattern Green = Color "Green"
 
 --------------------------------------------------
 -- Functions -------------------------------------

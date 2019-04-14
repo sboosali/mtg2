@@ -1,14 +1,20 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
 {-# LANGUAGE TemplateHaskell #-}
 
+--------------------------------------------------
+
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-| 
+--------------------------------------------------
+
+{-| 'CMC' abbreviates /converted mana cost/.
 
 -}
 
-module MTG.CMC where
+module MTG.Number.CMC where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -45,17 +51,18 @@ newtype CMC = CMC
 
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
+
   deriving newtype  (Num)
   deriving newtype  (Eq,Ord)
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
 
--- | @= 'addCMCs'@
-instance Semigroup CMC where (<>)   = addCMCs
+-- | @= 'cmcAdd'@
+instance Semigroup CMC where (<>)   = cmcAdd
 
--- | @= 0@
-instance Monoid    CMC where mempty = coerce 0
+-- | @= 'CMC0'@
+instance Monoid    CMC where mempty = CMC0
 
 --------------------------------------------------
 
@@ -66,8 +73,9 @@ instance Default CMC where def = defaultCMC
 -- Patterns --------------------------------------
 --------------------------------------------------
 
-pattern ZeroCMC :: CMC
-pattern ZeroCMC = CMC 0
+-- | @= 0@
+pattern CMC0 :: CMC
+pattern CMC0 = CMC 0
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -75,12 +83,12 @@ pattern ZeroCMC = CMC 0
 
 {- | @= 0@
 
-By default, cards with no mana cost (like lands) have zero /converted/ mana cost.
+By default, cards with no mana cost (like lands) have zero /converted mana cost/.
 
 -}
 
 defaultCMC :: CMC
-defaultCMC = mempty
+defaultCMC = CMC0
 
 --------------------------------------------------
 -- Functions -------------------------------------
@@ -89,9 +97,15 @@ defaultCMC = mempty
 {- | @= ('+')@
 
 Mana costs, when combined, are (almost always) /added/ together.
-c.f. /double-face cards/, /split cards/
+c.f. /split cards/ like:
 
-e.g.:
+* the @Fire \/\/ Ice@ card.
+* the @Fuse@ mechanic.
+* the @Aftermath@ mechanic.
+
+== Notes
+
+From the /Comprehensive Rules/:
 
 * >708.4. In every zone except the stack, the characteristics of a split card are those of its two halves combined. This is a change from previous rules.
 
@@ -106,8 +120,8 @@ e.g.:
 
 -}
 
-addCMCs :: CMC -> CMC -> CMC 
-addCMCs = coerce (+)
+cmcAdd :: CMC -> CMC -> CMC 
+cmcAdd = coerce ((+) :: Natural -> Natural -> Natural)
 
 --------------------------------------------------
 -- Optics ----------------------------------------

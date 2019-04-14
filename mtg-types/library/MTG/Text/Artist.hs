@@ -9,7 +9,7 @@
 
 --------------------------------------------------
 
-{-| 'Artist' is the name of an artist.
+{-| 'Artist' is the name of an artist who has illustrated a /Magic: The Gathering/ card.
 
 -}
 
@@ -21,13 +21,24 @@ module MTG.Text.Artist where
 
 import MTG.Types.Prelude
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import "lens" Control.Lens (makePrisms)
+
+--------------------------------------------------
+
+import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char        as P
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-newtype Artist = Artist Text
+newtype Artist = Artist
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -64,13 +75,49 @@ pattern NoArtist = Artist ""
 --------------------------------------------------
 
 pattern QuintonHoover :: Artist
-pattern QuintonHoover = "Quinton Hoover"
+pattern QuintonHoover = Artist "Quinton Hoover"
 
 pattern RebeccaGuay :: Artist
-pattern RebeccaGuay = "Rebecca Guay"
+pattern RebeccaGuay = Artist "Rebecca Guay"
 
 pattern TereseNielsen :: Artist
-pattern TereseNielsen = "Terese Nielsen"
+pattern TereseNielsen = Artist "Terese Nielsen"
+
+--------------------------------------------------
+-- Pretty ----------------------------------------
+--------------------------------------------------
+
+-- | @≡ 'ppArtist'@
+
+instance Pretty Artist where
+
+  pretty = ppArtist
+
+--------------------------------------------------
+
+{- | -}
+
+ppArtist :: Artist -> Doc i
+ppArtist (Artist t) =
+
+  pretty t
+
+--------------------------------------------------
+-- Parse -----------------------------------------
+--------------------------------------------------
+
+-- | @≡ 'pArtist'@
+
+instance Parse Artist where
+
+  parser = pArtist
+
+--------------------------------------------------
+
+{- | -}
+
+pArtist :: (MTGParsing m) => m Artist
+pArtist = Artist <$> pFreeText <?> "Artist"
 
 --------------------------------------------------
 -- Optics ----------------------------------------

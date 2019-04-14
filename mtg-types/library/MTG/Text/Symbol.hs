@@ -17,6 +17,8 @@
 
 == Examples
 
+>>> pretty (Symbol "U")
+{U}
 >>> pretty tapSymbol
 {T}
 
@@ -30,7 +32,7 @@ module MTG.Text.Symbol where
 
 import MTG.Types.Prelude
 
-import MTG.Text.Color
+--import MTG.Text.Color
 import MTG.Text.ManaSymbol
 
 --------------------------------------------------
@@ -42,8 +44,9 @@ import "lens" Control.Lens (makePrisms)
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
 
+--------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 --import qualified "text" Data.Text as Text
@@ -88,8 +91,17 @@ untapSymbol = "Q"
 -- Functions -------------------------------------
 --------------------------------------------------
 
-toSymbol :: ManaSymbol -> Symbol
-toSymbol (ManaSymbol symbol) = (Symbol symbol)
+-- | Accessor for 'Symbol'.
+
+getSymbolText :: Symbol -> Text
+getSymbolText (Symbol t) = t
+
+--------------------------------------------------
+
+-- | Each 'ManaSymbol' is a 'Symbol'.
+
+fromManaSymbol :: ManaSymbol -> Symbol
+fromManaSymbol (ManaSymbol t) = (Symbol t)
 
 --------------------------------------------------
 
@@ -101,7 +113,6 @@ loyaltyActivationSymbol i =
   where
   s = (fromString . show) (abs i)
 
-{-
 --------------------------------------------------
 -- Pretty ----------------------------------------
 --------------------------------------------------
@@ -119,18 +130,20 @@ prettySymbol symbol = PP.braces docSymbol
   where
 
   docSymbol    = PP.pretty stringSymbol
-  stringSymbol = case symbol of Symbol t -> t
+  stringSymbol = getSymbolText symbol
 
 --stringSymbol = (abbreviateSymbol symbol) & fromMaybe ""
 
 --------------------------------------------------
 
 printSymbol :: Symbol -> String
-printSymbol = (PP.String.renderString . prettySymbol)
+printSymbol = runPrinter prettySymbol
 
 --------------------------------------------------
 -- Parse -----------------------------------------
 --------------------------------------------------
+
+-- | @≡ 'pSymbol'@
 
 instance Parse Symbol where
 
@@ -139,16 +152,14 @@ instance Parse Symbol where
 --------------------------------------------------
 
 pSymbol :: MTGParsing m => m Symbol
-pSymbol = p
-  where
-
-  p = _
+pSymbol = Symbol <$> pSymbolText <?> "Symbol"
 
 --------------------------------------------------
 
+-- | @≡ 'pSymbol'@
+
 parseSymbol :: (MonadThrow m) => String -> m Symbol
 parseSymbol = runParser 'Symbol pSymbol 
--}
 
 --------------------------------------------------
 -- Optics ----------------------------------------

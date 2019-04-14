@@ -1514,6 +1514,49 @@ pLanguageInfo = p <?> "LanguageInfo"
 
 
 
+addCMCs :: CMC -> CMC -> CMC 
+addCMCs = coerce (+)
+
+
+
+
+
+
+
+
+
+-- | @= 'cmcAdd'@
+instance Semigroup CMC where (<>)   = cmcAdd
+
+-- | @= 0@
+instance Monoid    CMC where mempty = coerce (0 :: Natural)
+
+--------------------------------------------------
+
+-- | @= 'defaultCMC'@
+instance Default CMC where def = defaultCMC
+
+--------------------------------------------------
+-- Patterns --------------------------------------
+--------------------------------------------------
+
+pattern ZeroCMC :: CMC
+pattern ZeroCMC = CMC 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

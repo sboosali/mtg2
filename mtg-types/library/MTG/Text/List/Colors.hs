@@ -45,11 +45,9 @@ Colors [Color "Green",Color "Blue"]
 
 -}
 
-module MTG.List.Colors
+module MTG.Text.List.Colors
 
-  ( module MTG.List.Colors
-
-  , module MTG.Text.Color
+  ( module MTG.Text.List.Colors
   ) where
 
 --------------------------------------------------
@@ -69,11 +67,6 @@ import "lens" Control.Lens (makePrisms)
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
---import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
-
---------------------------------------------------
-
---import qualified "attoparsec" Data.Attoparsec.Text as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -208,8 +201,16 @@ knownTetrachromes =
   , 
   ]
 -}
+
 --------------------------------------------------
 -- Functions -------------------------------------
+--------------------------------------------------
+
+-- | Accessor for 'Colors'.
+
+getColors :: Colors -> [Color]
+getColors (Colors cs) = cs
+
 --------------------------------------------------
 
 toColors :: [Color] -> Colors
@@ -218,6 +219,8 @@ toColors unsortedColors = Colors sortedColors
 
   sortedColors = sortColors uniqueColors --TODO
   uniqueColors = ordNub unsortedColors
+
+--------------------------------------------------
 
 sortColors :: [Color] -> [Color]
 sortColors = id

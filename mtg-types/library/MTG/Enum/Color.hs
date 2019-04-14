@@ -356,7 +356,7 @@ toColorsM cs = cs & (ordNub > sort > go)
   e :: PatternMatchFail
   e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toColors " % Format.string % " }}} ")
                         (displayName 'toColors)
-                        (showsPrec applicationPrecedence cs "")
+                        (showWithApplicationPrecedence cs)
                        )
 
 --------------------------------------------------
@@ -630,11 +630,58 @@ fromNephilim = \case
 -- Functions -------------------------------------
 --------------------------------------------------
 
-sortColors :: [Color] -> [Color]
-sortColors cs = cs'
+{- | Sort canonically (by /Magic: The Gathering/'s conventions).
+
+== Laws
+
+`sortMTGColors` is:
+
+[/idempotent/]
+
+     @(`sortMTGColors` . `sortMTGColors`) ≡ `sortMTGColors`@
+
+== Notes
+
+/NOTE/ @Color@s in @Wedge@s are sorted not as @Shard@s. In particular:
+
+>>> TemurColors
+[Green,Blue,Red]
+>>> sortMTGColors TemurColors
+[Green,Blue,Red]
+>>> sort TemurColors
+[Blue,Red,Green]
+
+i.e. `sort` (whose comparison relation follows `Ord`) differs from `sortMTGColors`.
+
+/NOTE/ Furthermore, the relation
+implied by this sorting (i.e. by `sortMTGColors`) is **not** transitive,
+and thus would be invalid as a standalone comparison. In particular:
+
+>>> sortMTGColors OrzhovColors
+[White,Black]
+>>> sortMTGColors SelesnyaColors
+[Green,White]
+>>> sortMTGColors GolgariColors
+[Black,Green]
+
+i.e.:
+
+* `White` precedes `Black` (when paired)
+* `Black` precedes `Green` (when paired)
+* but `White` /doesn't/ precede `Green` (when paired), which it would by **transitivity**,
+  and which it does via @(>=)@.
+
+(where a “relation” here means “a value of type @"Data.Functor.Contravariant.Comparison" 'Color'@”.)
+
+-}
+
+sortMTGColors :: [Color] -> [Color]
+sortMTGColors colorsList = colorsSorted
+  
   where
 
-  cs' = cs
+  colorsSorted = colorsSet & maybe colorsList fromColors
+  colorsSet    = toColorsM colorsList
 
 --------------------------------------------------
 -- Optics ----------------------------------------

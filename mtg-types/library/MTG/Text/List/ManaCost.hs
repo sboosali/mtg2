@@ -22,12 +22,9 @@
 
 -}
 
+module MTG.Text.List.ManaCost
 
-module MTG.List.ManaCost
-
-  ( module MTG.List.ManaCost
-
-  , module MTG.Text.ManaSymbol
+  ( module MTG.Text.List.ManaCost
   ) where
 
 --------------------------------------------------
@@ -37,7 +34,7 @@ module MTG.List.ManaCost
 import MTG.Types.Prelude
 
 import MTG.Text.ManaSymbol
-import MTG.List.Colors
+import MTG.Text.List.Colors
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -48,17 +45,12 @@ import "lens" Control.Lens (makePrisms)
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
-
---------------------------------------------------
-
-import qualified "attoparsec" Data.Attoparsec.Text as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import qualified "text" Data.Text as Text
+-- import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -108,6 +100,13 @@ noManaCost = []
 -- Functions -------------------------------------
 --------------------------------------------------
 
+-- | Accessor for 'ManaCost'.
+
+getManaCost :: ManaCost -> [ManaSymbol]
+getManaCost (ManaCost ss) = ss
+
+--------------------------------------------------
+
 toManaCost :: [ManaSymbol] -> ManaCost
 toManaCost symbols = cost
   where
@@ -117,7 +116,11 @@ toManaCost symbols = cost
 --------------------------------------------------
 
 colorsToManaCost :: Colors -> ManaCost
-colorsToManaCost = _
+colorsToManaCost
+
+  = getColors
+  > fmap colorToManaSymbol
+  > ManaCost
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -154,7 +157,10 @@ instance Parse ManaCost where
 --------------------------------------------------
 
 pManaCost :: (MTGParsing m) => m ManaCost
-pManaCost = _
+pManaCost = toManaCost <$> p
+  where
+
+  p = many pManaSymbol
 
 --------------------------------------------------
 

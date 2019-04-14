@@ -19,7 +19,7 @@
 
 Printing...
 
->>> pretty BlueManaSymbol
+>>> pretty (ManaSymbol "U")
 {U}
 >>> pretty (colorToManaSymbol Blue)
 {U}
@@ -62,13 +62,11 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
 
 -- import qualified "parsers" Text.Parser.Combinators as P
 -- import qualified "parsers" Text.Parser.Char        as P
-import qualified "parsers" Text.Parser.Token       as P
+--import qualified "parsers" Text.Parser.Token       as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
-
-import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -78,7 +76,9 @@ import qualified "text" Data.Text as Text
 
 -}
 
-newtype ManaSymbol = ManaSymbol Text
+newtype ManaSymbol = ManaSymbol
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -129,8 +129,16 @@ pattern SnowManaSymbol = "S"
 pattern EnergyManaSymbol :: ManaSymbol
 pattern EnergyManaSymbol = "E"
 
-pattern VariableManaSymbol :: ManaSymbol
-pattern VariableManaSymbol = "X"
+--------------------------------------------------
+
+pattern VariableXManaSymbol :: ManaSymbol
+pattern VariableXManaSymbol = "X"
+
+pattern VariableYManaSymbol :: ManaSymbol
+pattern VariableYManaSymbol = "Y"
+
+pattern VariableZManaSymbol :: ManaSymbol
+pattern VariableZManaSymbol = "Z"
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -148,8 +156,10 @@ knownManaSymbols =
     , ColorlessManaSymbol
     , SnowManaSymbol
     , EnergyManaSymbol
-    , VariableManaSymbol
 
+    , VariableXManaSymbol
+    , VariableYManaSymbol
+    , VariableZManaSymbol
     ]
 
 --------------------------------------------------
@@ -166,9 +176,29 @@ namedManaSymbols =
 
     , "colorless" -: ColorlessManaSymbol
     , "snow"      -: SnowManaSymbol
-    , "energy"    -: EnergyManaSymbol    
-    , "variable"  -: VariableManaSymbol
+    , "energy"    -: EnergyManaSymbol
 
+    , "variable"  -: VariableXManaSymbol
+    ]
+
+--------------------------------------------------
+
+abbreviatedManaSymbols :: Assoc ManaSymbol
+abbreviatedManaSymbols =
+
+    [ "W" -: WhiteManaSymbol
+    , "U" -: BlueManaSymbol
+    , "B" -: BlackManaSymbol
+    , "R" -: RedManaSymbol
+    , "G" -: GreenManaSymbol
+
+    , "C" -: ColorlessManaSymbol
+    , "S" -: SnowManaSymbol
+    , "E" -: EnergyManaSymbol
+
+    , "X" -: ManaSymbol "X"
+    , "Y" -: ManaSymbol "Y"
+    , "Z" -: ManaSymbol "Z"
     ]
 
 --------------------------------------------------
@@ -274,6 +304,13 @@ twentySymbol = genericSymbol 20
 -- Functions -------------------------------------
 --------------------------------------------------
 
+-- | Accessor for 'ManaSymbol'.
+
+getManaSymbolText :: ManaSymbol -> Text
+getManaSymbolText (ManaSymbol t) = t
+
+--------------------------------------------------
+
 toManaSymbol :: Text -> ManaSymbol
 toManaSymbol = ManaSymbol
 
@@ -324,11 +361,11 @@ prettyManaSymbol = runPrinter ppManaSymbol
 -- | 
 
 ppManaSymbol :: ManaSymbol -> Doc i
-ppManaSymbol (ManaSymbol s) = PP.braces docManaSymbol
+ppManaSymbol (ManaSymbol t) = PP.braces doc
   where
 
-  docManaSymbol    = PP.pretty stringManaSymbol
-  stringManaSymbol = s
+  doc = PP.pretty txt
+  txt = t
 
 --------------------------------------------------
 -- Parse -----------------------------------------
@@ -343,20 +380,10 @@ instance Parse ManaSymbol where
 --------------------------------------------------
 
 pManaSymbol :: (MTGParsing m) => m ManaSymbol
-pManaSymbol = do
-
-  pAssoc cs <?> "ManaSymbol"
-
-  where
-
-  cs :: Assoc ManaSymbol
-  cs = csLower <> csUpper
-
-  csLower = csUpper <&> (bimap Text.toLower id)
-
-  csUpper = namedManaSymbols
+pManaSymbol = ManaSymbol <$> pSymbolText <?> "ManaSymbol"
 
 --------------------------------------------------
+{-
 
 pAbbreviatedManaSymbol :: (MTGParsing m) => m ManaSymbol
 pAbbreviatedManaSymbol = ManaSymbol <$> P.braces p
@@ -364,6 +391,7 @@ pAbbreviatedManaSymbol = ManaSymbol <$> P.braces p
 
   p = empty
 
+-}
 --------------------------------------------------
 
 -- | @≡ 'pManaSymbol'@
