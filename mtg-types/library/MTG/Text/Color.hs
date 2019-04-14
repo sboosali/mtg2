@@ -2,9 +2,10 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE OverloadedStrings #-}
+
+--------------------------------------------------
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -15,14 +16,7 @@
 
 == Examples
 
-Printing (see 'pretty'):
-
->>> pretty Blue
-U
->>> Blue
-Color "Blue"
-
-Parsing (see 'parser'):
+Parsing (see 'pColor'):
 
 >>> parseColor "U"
 "Blue"
@@ -80,6 +74,8 @@ newtype Color = Color
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
+
+-- | @≡ 'parseColor'@
 
 instance IsString Color where
   fromString = fromString_MonadThrow parseColor
@@ -143,7 +139,7 @@ abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'PP.braces' . 'abbreviateColor'@
+-- | @≡ 'ppColor'@
 
 instance Pretty Color where
 
@@ -152,11 +148,11 @@ instance Pretty Color where
 --------------------------------------------------
 
 ppColor :: Color -> Doc i
-ppColor color = PP.braces docColor
+ppColor color = doc
   where
 
-  docColor    = PP.pretty stringColor
-  stringColor = (abbreviateColor color) & fromMaybe ""
+  doc = PP.pretty str
+  str = (abbreviateColor color) & fromMaybe ""
 
 --------------------------------------------------
 -- Parse -----------------------------------------

@@ -2,12 +2,20 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
+{-# LANGUAGE RankNTypes #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE ConstraintKinds #-}
 
 --------------------------------------------------
 --------------------------------------------------
 
-{-| 
+{-|
+
+== Types
+
+* the 'Parse' @class@
 
 == Implementation
 
@@ -30,17 +38,22 @@ module MTG.Classes.Parse
 -- Imports ---------------------------------------
 --------------------------------------------------
 
+import MTG.Types.Errors
+
 import MTG.Classes.Prelude
+
+--------------------------------------------------
+
+import "spiros" Prelude.Spiros.GUI
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
---import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Combinators as P
 import qualified "parsers" Text.Parser.Char        as P
 import qualified "parsers" Text.Parser.Token       as P
 
-import "parsers" Text.Parser.Combinators ( Parsing( (<?>) ))
 import "parsers" Text.Parser.Char        ( CharParsing )
 import "parsers" Text.Parser.Token       ( TokenParsing )
 
@@ -56,6 +69,9 @@ import           "charset" Data.CharSet ( CharSet )
 import qualified "text" Data.Text as Text
 
 --------------------------------------------------
+
+import qualified "base" Text.ParserCombinators.ReadP as Read
+import           "base" Text.ParserCombinators.ReadP ( ReadP )
 
 import qualified "base" Data.Char as Char
 
@@ -99,6 +115,83 @@ class Parse a where
 --------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
+
+{- | Aliases `runParserCompletely`. -}
+
+runParser
+  :: forall m a.
+     ( MonadThrow m
+     )
+  => Name -> (forall p. (MTGParsing p) => p a)
+  -> (String -> m a)
+
+runParser = runParserCompletely
+
+--------------------------------------------------
+
+{- | Run an 'MTGParsing' parser, to completion.
+
+== Definition
+
+@
+runParserCompletely name p ≡ `runParserPartially` name (p <* `P.eof`)
+@
+
+== Implementation
+
+Wraps 'readP_to_S'.
+
+-}
+
+runParserCompletely
+  :: forall m a.
+     ( MonadThrow m
+     )
+  => Name -> (forall p. (MTGParsing p) => p a)
+  -> (String -> m a)
+
+runParserCompletely name p = runParserPartially name q
+  where
+
+  q = (p <* P.eof)
+
+--------------------------------------------------
+
+{- | Run an 'MTGParsing' parser, accepting a partial match.
+
+== Implementation
+
+Wraps 'readP_to_S'.
+
+-}
+
+runParserPartially
+  :: forall m a.
+     ( MonadThrow m
+     )
+  => Name -> (forall p. (MTGParsing p) => p a)
+  -> (String -> m a)
+
+runParserPartially name p = go
+  where
+
+  go :: String -> m a
+  go =
+
+    let
+      p' :: ReadP a
+      p' = p
+
+      s = displayName name
+      e = parseError s
+    in
+
+      Read.readP_to_S p' > fmap fst > throwListM e
+
+      -- readP_to_S :: ReadP a -> ReadS a
+      -- readP_to_S :: ReadP a -> String -> [(a,String)]
+
+--------------------------------------------------
 -- Text parsers...
 
 {-| Parse a symbol token.
@@ -107,7 +200,8 @@ See 'pText'.
 
 == Examples
 
->>> runParser 'pSymbol pSymbol "{αàéñ①∞∅↑•✔✘❓}"
+>>> :set -XTemplateHaskellQuotes
+>>> let Nothing = runParser 'pSymbolText pSymbolText "{αàéñ①∞∅↑•✔✘❓}"
 
 == Definition
 
@@ -162,7 +256,7 @@ In particular,`pText` accepts many Unicode characters, like:
 
 == Examples
 
->>> 
+
 
 -}
 
@@ -188,10 +282,9 @@ See 'pFreeChar'.
 
 Parses whitespace and Unicode:
 
->>> (runParser 'pFreeText pFreeText "日本語")
-"日本語"
->>> (runParser 'pFreeText pFreeText "Quinton Hoover")
-"Quinton Hoover"
+>>> :set -XTemplateHaskellQuotes
+>>> Just "日本語" = (runParser ''Text pFreeText "日本語")
+>>> Just "Quinton Hoover" = (runParser ''Text pFreeText "Quinton Hoover")
 
 (i.e. including non-ASCII characters.)
 
@@ -224,9 +317,10 @@ See 'pUnfreeChar'.
 
 == Examples
 
->>> Nothing <- runParser 'pUnfreeText (pUnfreeText " _") "free_text")
->>> Nothing <- runParser 'pUnfreeText (pUnfreeText " _") "free text")
->>> runParser 'pUnfreeText (pUnfreeText "-_") "free text")
+>>> runParser 'pUnfreeText (pUnfreeText " _") "free_text"
+>>> runParser 'pUnfreeText (pUnfreeText " _") "free text"
+Nothing
+>>> runParser 'pUnfreeText (pUnfreeText "-_") "free text"
 "free text"
 
 == Definition
@@ -314,54 +408,56 @@ i.e.:
 
 c.f. `Char.generalCategory`:
 
->>> Char.generalCategory ' '
+@
+> Char.generalCategory ' '
 Space
->>> --
->>> Char.generalCategory '{'
+
+> Char.generalCategory '{'
 OpenPunctuation
->>> Char.generalCategory '}'
+> Char.generalCategory '}'
 ClosePunctuation
->>> Char.generalCategory '"'
+> Char.generalCategory '"'
 OtherPunctuation
->>> Char.generalCategory '\''
+> Char.generalCategory '\''
 OtherPunctuation
->>> --
->>> Char.generalCategory '+'
+
+> Char.generalCategory '+'
 MathSymbol
->>> Char.generalCategory '='
+> Char.generalCategory '='
 MathSymbol
->>> Char.generalCategory '<'
+> Char.generalCategory '<'
 MathSymbol
->>> Char.generalCategory '>'
+> Char.generalCategory '>'
 MathSymbol
->>> Char.generalCategory '-'
+> Char.generalCategory '-'
 DashPunctuation
->>> Char.generalCategory '^'
+> Char.generalCategory '^'
 ModifierSymbol
->>> --
->>> Char.generalCategory '_'
+
+> Char.generalCategory '_'
 ConnectorPunctuation
->>> Char.generalCategory '`'
+> Char.generalCategory '`'
 ModifierSymbol
->>> Char.generalCategory '/'
+> Char.generalCategory '/'
 OtherPunctuation
->>> Char.generalCategory '.'
+> Char.generalCategory '.'
 OtherPunctuation
->>> Char.generalCategory ':'
+> Char.generalCategory ':'
 OtherPunctuation
->>> Char.generalCategory ';'
+> Char.generalCategory ';'
 OtherPunctuation
->>> Char.generalCategory ','
+> Char.generalCategory ','
 OtherPunctuation
->>> Char.generalCategory '|'
+> Char.generalCategory '|'
 MathSymbol
->>> --
->>> Char.generalCategor '0'
+
+> Char.generalCategory '0'
 DecimalNumber
->>> Char.generalCategory 'a'
+> Char.generalCategory 'a'
 LowercaseLetter
->>> Char.generalCategory 'A'
+> Char.generalCategory 'A'
 UppercaseLetter
+@
 
 -}
 
@@ -399,12 +495,13 @@ Fails via 'empty' or 'P.unexpected'.
 
 == Examples
 
+>>> :set -XTemplateHaskellQuotes
 >>> namedBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
 >>> pBool = pAssoc namedBools <?> "Bool"
 >>> parseBool = runParser 'pBool pBool
 >>> parseBool "on"
 True
->>> parseBool "xxx"
+>>> let Nothing = parseBool "xyz"
 
 -}
 
@@ -427,6 +524,17 @@ pAssoc kvs = do
   pPair (k,v) = v <$ P.text k
 
 {-# INLINEABLE pAssoc #-}
+
+--------------------------------------------------
+-- Doctest ---------------------------------------
+--------------------------------------------------
+
+{-$setup
+
+>>> :set -XPackageImports
+>>> import "parsers" Text.Parser.Combinators ( Parsing( (<?>) ))
+
+-}
 
 --------------------------------------------------
 -- Notes -----------------------------------------

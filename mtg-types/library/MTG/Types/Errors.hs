@@ -7,7 +7,9 @@
 --------------------------------------------------
 --------------------------------------------------
 
-{-| Custom @Exception@s:
+{-| Custom @Exception@s for @mtg-types@
+
+== Types
 
 * 'ParseError' — for syntax errors while parsing "MTG.Classes.Parse.Parse" instances.
 
@@ -55,13 +57,7 @@ instance Exception ParseError where
 
 --------------------------------------------------
 
-{-|
-
->>> :set -XOverloadedStrings
->>> Prelude.putStrLn (Prelude.show ("unparseable" :: ParseError))
-[ParseError] Can't parse <<< "unparseable" >>>.
-
--}
+{-| @≡ 'displayParseError' @ -}
 
 instance Show ParseError where
 
@@ -153,8 +149,9 @@ parseErrors
 
 == Examples
 
->>> displayParseError (ParseError '')
-
+>>> Prelude.putStrLn $ displayParseError (ParseError ["doesn't parse", "doesn't validate"])
+doesn't parse
+doesn't validate
 
 -}
 
@@ -165,6 +162,31 @@ displayParseError
   > PP.vsep
   > renderString_MTGDocument
 
+--------------------------------------------------
+-- Doctest ---------------------------------------
+--------------------------------------------------
+
+{-$setup
+
+>>> :set -XPackageImports
+>>> :set -XOverloadedStrings
+
+-}
+
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
+{-
+
+TODO:
+
+ >>> :set -XOverloadedStrings
+ >>> Prelude.putStrLn (Prelude.show ("unparseable" :: ParseError))
+ [ParseError] Can't parse <<< "unparseable" >>>.
+
+>>> Prelude.putStrLn $ displayParseError (ParseError [])
+
+-}
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------

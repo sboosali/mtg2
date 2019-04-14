@@ -35,10 +35,10 @@ Languages that are officially supported:
 == Examples
 
 >>> greekInfo <- parseLanguageInfo "Ελληνικά (gr)"
->>> greekInfo
-LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
->>> prettyLanguageInfo greekInfo
-Ελληνικά (gr)
+>>> greekInfo == LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
+True
+>>> prettyLanguageInfo greekInfo == "Ελληνικά (gr)"
+True
 
 -}
 
@@ -300,10 +300,8 @@ koreanEndonym = "한국어"
 == Examples
 
 >>> :set -XOverloadedStrings
->>> pretty (languageInfo "Russian" :: Maybe LanguageInfo)
-Русский (ru)
->>> (languageInfo "Greek" :: Maybe LanguageInfo)
-Nothing
+>>> let Nothing = (languageInfo "Greek" :: Maybe LanguageInfo)
+>>> let (Just "Русский (ru)") = prettyLanguageInfo <$> (languageInfo "Russian" :: Maybe LanguageInfo)
 
 -}
 
@@ -342,11 +340,6 @@ prettyLanguageInfo = runPrinter ppLanguageInfo
 
 {- | @≡ 'pLanguageInfo'
 
-== Example
-
->>> parseLanguageInfo "Ελληνικά (gr)"
-LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
-
 -}
 
 parseLanguageInfo :: (MonadThrow m) => String -> m LanguageInfo
@@ -368,8 +361,7 @@ instance Pretty LanguageInfo where
 
 == Example
 
->>> pretty chineseInfo
-简体中文 (cn)
+>>> let "简体中文 (cn)" = show (pretty chineseInfo)
 
 -}
 
@@ -394,10 +386,8 @@ instance Parse LanguageInfo where
 
 Inverts 'ppLanguageInfo'.
 
-== Example
-
->>> parseLanguageInfo "Ελληνικά (gr)"
-LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
+>>> parseLanguageInfo "English (en)"
+LanguageInfo {abbreviation = "en", endonym = "English"}
 
 -}
 
@@ -419,13 +409,17 @@ pLanguageInfo = p <?> "LanguageInfo"
 
 == Example
 
->>> runParser 'pLanguageEndonym "words before ( words after"
+>>> :set -XTemplateHaskellQuotes
+>>> runParser 'pLanguageEndonym pLanguageEndonym "words before ( words after"
 "words before"
 
 -}
 
 pLanguageEndonym :: (MTGParsing m) => m Text
-pLanguageEndonym = pUnfreeText "("
+pLanguageEndonym = go <$> pUnfreeText "("
+  where
+
+  go = Text.strip
 
 --------------------------------------------------
 
@@ -433,7 +427,8 @@ pLanguageEndonym = pUnfreeText "("
 
 == Example
 
->>> runParser 'pLanguageAbbreviation " GR "
+>>> :set -XTemplateHaskellQuotes
+>>> runParser 'pLanguageAbbreviation pLanguageAbbreviation " GR "
 "gr"
 
 -}
@@ -453,6 +448,16 @@ pLanguageAbbreviation = go <$> p <?> "Abbreviation"
 makePrisms ''Language
 
 makeLenses ''LanguageInfo
+
+--------------------------------------------------
+-- Doctest ---------------------------------------
+--------------------------------------------------
+
+{-$setup
+
+>>> :set -XPackageImports
+
+-}
 
 --------------------------------------------------
 -- Notes -----------------------------------------

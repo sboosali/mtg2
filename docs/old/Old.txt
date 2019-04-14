@@ -1557,6 +1557,179 @@ pattern ZeroCMC = CMC 0
 
 
 
+\917\955\955\951\957\953\954\940
+
+
+
+
+
+
+
+
+
+
+
+
+sortColors :: [Color] -> [Color]
+sortColors
+
+  = fmap getColor
+  > fmap isColorKnown
+  > partitionEithers
+  > go
+
+  where
+
+  go ( unknownColors, knownColors )
+    = sortKnownColors knownColors
+   ++ sortUnknownColors unknownColors
+
+  sortKnownColors :: [Color.Color] -> [Color]
+  sortKnownColors
+    = Color.sortMTGColors
+    > fmap show
+    > fmap Color
+
+  sortUnknownColors :: [Color] -> [Color]
+  sortUnknownColors = sort
+
+
+
+
+
+isColorKnown :: Color -> Either Text Color.Color
+isColorKnown (Color t) = Left t
+
+
+
+
+
+
+
+
+
+
+
+== Examples
+
+>>> :set -XOverloadedStrings
+>>> pretty (languageInfo "Russian" :: Maybe LanguageInfo) == "Русский (ru)"
+True
+>>> pretty (languageInfo "Greek" :: Maybe LanguageInfo) == ""
+True
+
+
+
+
+
+
+
+
+>>> :set -XOverloadedStrings
+>>> Just "Русский (ru)" <- pretty (languageInfo "Russian" :: Maybe LanguageInfo)
+>>> Nothing <- (languageInfo "Greek" :: Maybe LanguageInfo)
+
+
+
+
+
+
+
+
+
+{-| 
+
+== Examples
+
+Printing...
+
+>>> pretty (ManaSymbol "U")
+{U}
+>>> pretty (colorToManaSymbol Blue)
+{U}
+
+Parsing...
+
+>>> parseManaSymbol "{U}"
+ManaSymbol "U"
+>>> parseManaSymbol "{1}"
+ManaSymbol "1"
+
+>>> parseManaSymbol "{G/U}"
+ManaSymbol "G/U"
+>>> parseManaSymbol "{U/R}"
+ManaSymbol "G/U"
+
+>>> parseManaSymbol "{P/U}"
+
+>>> parseManaSymbol "{2/U}"
+
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+toColors :: [Color] -> Colors
+toColors unsortedColors = Colors sortedColors
+  where
+
+  sortedColors = sortColors uniqueColors --TODO
+  uniqueColors = ordNub unsortedColors
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+isColorKnown :: Color -> Either Text Color.Color
+isColorKnown (Color t) = Left t
+
+{-# INLINEABLE isColorKnown #-}
+
+
+
+
+
+
+
+
+
+>>> :set -XOverloadedStrings
+>>> Prelude.putStrLn (Prelude.show ("unparseable" :: ParseError))
+[ParseError] Can't parse <<< "unparseable" >>>.
+
+
+
+
+>>> toColors Simic == toColors (reverse Simic)
+True
+
+
+
+
+
+
+
 
 
 

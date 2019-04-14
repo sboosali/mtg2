@@ -27,14 +27,7 @@ Printing...
 Parsing...
 
 >>> parseManaSymbol "{U}"
->>> parseManaSymbol "{1}"
-
->>> parseManaSymbol "{G/U}"
->>> parseManaSymbol "{U/R}"
-
->>> parseManaSymbol "{P/U}"
-
->>> parseManaSymbol "{2/U}"
+ManaSymbol "U"
 
 -}
 
@@ -67,6 +60,8 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
+
+import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -304,15 +299,20 @@ twentySymbol = genericSymbol 20
 -- Functions -------------------------------------
 --------------------------------------------------
 
+-- | Smart Constructor for 'ManaSymbol'.
+
+toManaSymbol :: Text -> ManaSymbol
+toManaSymbol = capitalize > ManaSymbol
+  where
+
+  capitalize = Text.toTitle
+
+--------------------------------------------------
+
 -- | Accessor for 'ManaSymbol'.
 
 getManaSymbolText :: ManaSymbol -> Text
 getManaSymbolText (ManaSymbol t) = t
-
---------------------------------------------------
-
-toManaSymbol :: Text -> ManaSymbol
-toManaSymbol = ManaSymbol
 
 --------------------------------------------------
 
@@ -404,6 +404,16 @@ parseManaSymbol = runParser 'ManaSymbol pManaSymbol
 --------------------------------------------------
 
 makePrisms ''ManaSymbol
+
+--------------------------------------------------
+-- Doctest ---------------------------------------
+--------------------------------------------------
+
+{-$setup
+
+>>> :set -XOverloadedStrings
+
+-}
 
 --------------------------------------------------
 -- Notes -----------------------------------------

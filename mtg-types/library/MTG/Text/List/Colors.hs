@@ -24,9 +24,8 @@ Construction:
 e.g. 'toColors':
 
 >>> toColors [ Blue, Green, Green, Blue ]
-Colors [Color "Green",Color "Blue"]
-
->>> toColors simic == toColors (reverse simic)
+Colors ["Green","Blue"]
+>>> toColors ["Green","Blue"] == toColors ["Blue","Green"]
 True
 
 Printing (see 'pretty'):
@@ -34,7 +33,7 @@ Printing (see 'pretty'):
 e.g. 'prettyColors':
 
 >>> pretty Simic
-{G}{U}
+GU
 
 Parsing (see 'parser'):
 
@@ -56,7 +55,8 @@ module MTG.Text.List.Colors
 
 import MTG.Types.Prelude
 
-import MTG.Text.Color
+import qualified MTG.Enum.Color as Color
+import           MTG.Text.Color
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -72,7 +72,7 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
 -- Imports ---------------------------------------
 --------------------------------------------------
 
---import qualified "text" Data.Text as T
+import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -106,6 +106,8 @@ instance IsList Colors where
   toList   = coerce
 
 --------------------------------------------------
+
+-- | @≡ 'parseColors'@
 
 instance IsString Colors where
   fromString = fromString_MonadThrow parseColors
@@ -213,17 +215,65 @@ getColors (Colors cs) = cs
 
 --------------------------------------------------
 
+-- | Smart Constructor for 'Colors'.
+
 toColors :: [Color] -> Colors
 toColors unsortedColors = Colors sortedColors
   where
 
-  sortedColors = sortColors uniqueColors --TODO
+  sortedColors = sortColors uniqueColors
   uniqueColors = ordNub unsortedColors
 
 --------------------------------------------------
 
+{- | Wraps `Color.sortMTGColors`.
+
+Outputs:
+
+* an /idiomatically sorted/ prefix of known colors.
+* an “unsorted” (i.e. sorted by 'Ord') suffix of unknown colors.
+
+-}
+
 sortColors :: [Color] -> [Color]
-sortColors = id
+sortColors
+
+  = fmap isColorKnown
+  > partitionEithers
+  > go
+
+  where
+
+  go ( unknownColors, knownColors )
+    = sortKnownColors knownColors
+   ++ sortUnknownColors unknownColors
+
+  sortKnownColors :: [Color.Color] -> [Color]
+  sortKnownColors
+    = Color.sortMTGColors
+    > fmap (show > Text.pack > Color)
+
+  sortUnknownColors :: [Text] -> [Color] 
+  sortUnknownColors
+    = sort
+    > fmap Color
+
+{-# INLINEABLE sortColors #-}
+
+--------------------------------------------------
+
+isColorKnown :: Color -> Either Text Color.Color
+isColorKnown = \case
+
+  White -> Right Color.White
+  Blue  -> Right Color.Blue
+  Black -> Right Color.Black
+  Red   -> Right Color.Red
+  Green -> Right Color.Green
+
+  Color t -> Left t
+
+{-# INLINEABLE isColorKnown #-}
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -279,6 +329,17 @@ parseColors = runParser 'Colors pColors
 --------------------------------------------------
 
 makePrisms ''Colors
+
+--------------------------------------------------
+-- Doctest ---------------------------------------
+--------------------------------------------------
+
+{-$setup
+
+>>> :set -XPackageImports
+>>> :set -XOverloadedStrings
+
+-}
 
 --------------------------------------------------
 -- Elisp -----------------------------------------

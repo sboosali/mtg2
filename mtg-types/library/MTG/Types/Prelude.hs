@@ -2,11 +2,11 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RankNTypes #-}
 
 --------------------------------------------------
 
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE PackageImports #-}
 
 --------------------------------------------------
 
@@ -82,55 +82,10 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as PP.T
 
 --------------------------------------------------
 
-import "spiros" Prelude.Spiros.GUI
-
---------------------------------------------------
-
-import qualified "base" Text.ParserCombinators.ReadP as Read
-import           "base" Text.ParserCombinators.ReadP ( ReadP )
-
---------------------------------------------------
-
 import           "base" GHC.Stack.Types (HasCallStack)
 
 --------------------------------------------------
 -- Functions -------------------------------------
---------------------------------------------------
-
-{- | Run an 'MTGParsing' parser.
-
-== Implementation
-
-Wraps 'readP_to_S'.
-
--}
-
-runParser
-  :: forall m a.
-     ( MonadThrow m
-     )
-  => Name -> (forall p. (MTGParsing p) => p a)
-  -> (String -> m a)
-
-runParser name p = go
-  where
-
-  go :: String -> m a
-  go =
-
-    let
-      p' :: ReadP a
-      p' = p
-
-      s = displayName name
-      e = parseError s
-    in
-
-      Read.readP_to_S p' > fmap fst > throwListM e
-
--- readP_to_S :: ReadP a -> ReadS a
--- readP_to_S :: ReadP a -> String -> [(a,String)]
-
 --------------------------------------------------
 
 -- | Aliases 'renderText'

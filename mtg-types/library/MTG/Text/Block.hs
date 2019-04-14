@@ -35,11 +35,6 @@ import MTG.Text.Edition
 import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
-
--- import qualified "parsers" Text.Parser.Combinators as P
--- import qualified "parsers" Text.Parser.Char        as P
-
---------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
