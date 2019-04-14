@@ -1,23 +1,55 @@
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
-
-{-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-|
+--------------------------------------------------
+
+{-| 'EditionName' is the name of a /Magic: The Gathering/ edition.
+
+== Types
+
+* `EditionName`
+* `EditionInfo`
 
 -}
+
 module MTG.Text.Edition where
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import MTG.Types.Prelude
+
 import MTG.Text.Language
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 
-newtype EditionName = EditionName Text
+import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char        as P
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
+
+newtype EditionName = EditionName
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -26,9 +58,12 @@ newtype EditionName = EditionName Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''EditionName
+--------------------------------------------------
+--------------------------------------------------
 
-newtype EditionCode = EditionCode Text
+newtype EditionCode = EditionCode
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -37,9 +72,12 @@ newtype EditionCode = EditionCode Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''EditionCode
+--------------------------------------------------
+--------------------------------------------------
 
-newtype EditionType = EditionType Text
+newtype EditionType = EditionType
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -48,33 +86,37 @@ newtype EditionType = EditionType Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''EditionType
-
+--------------------------------------------------
 --------------------------------------------------
 
 data QualifiedEdition = QualifiedEdition
- { _editionEdition  :: EditionName
- , _editionLanguage :: Maybe Language
- } deriving (Show,Read,Eq,Ord,Data,Generic)
 
-instance NFData   QualifiedEdition
-instance Hashable QualifiedEdition
+  { _editionEdition  :: EditionName
+  , _editionLanguage :: Maybe Language
+  }
 
-makeLenses ''QualifiedEdition
-  
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
+
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
 --------------------------------------------------
 
 data EditionInfo = EditionInfo
- { _editionAbbreviation :: Text
- , _editionDescription  :: Text
- --, _editionLanguages    :: [Language] --NOTE a `Set` 
- } deriving (Show,Read,Eq,Ord,Data,Generic)
 
-instance NFData   EditionInfo
-instance Hashable EditionInfo
+  { _editionAbbreviation :: Text
+  , _editionDescription  :: Text
+--, _editionLanguages    :: [Language] --NOTE a `Set` 
+  }
 
-makeLenses ''EditionInfo
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
 
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+-- Constants -------------------------------------
 --------------------------------------------------
 
 coreEdition :: EditionType
@@ -129,7 +171,6 @@ masterpieceEdition :: EditionType
 masterpieceEdition = "masterpiece"
 
 --------------------------------------------------
-
 --------------------------------------------------
 
 eAL :: EditionCode
@@ -423,4 +464,23 @@ eXLN = "XLN"
 eRIX :: EditionCode
 eRIX = "RIX"
 
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makePrisms ''EditionName
+makePrisms ''EditionCode
+makePrisms ''EditionType
+
+makeLenses ''QualifiedEdition
+makeLenses ''EditionInfo
+
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
+{-
+
+-}
+--------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------

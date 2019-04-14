@@ -53,7 +53,7 @@ import "spiros" Prelude.Spiros.GUI as EXPORT (displayName)
 
 --------------------------------------------------
 
-import "enumerate" Enumerate as EXPORT
+--import "enumerate" Enumerate as EXPORT
 
 --------------------------------------------------
 -- Exports ---------------------------------------

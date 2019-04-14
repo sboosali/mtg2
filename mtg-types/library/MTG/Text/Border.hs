@@ -9,7 +9,7 @@
 
 --------------------------------------------------
 
-{-|
+{-| 'Border' is the color (unrelated to "MTG.Text.Color") of a /Magic: The Gathering/ card's border.
 
 -}
 
@@ -21,19 +21,19 @@ module MTG.Text.Border where
 
 import MTG.Types.Prelude
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-import MTG.Types.Prelude
+newtype Border = Border
 
-import "lens" Control.Lens (makePrisms)
-
---------------------------------------------------
-
-newtype Border = Border Text
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)

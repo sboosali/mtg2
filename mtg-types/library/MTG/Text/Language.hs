@@ -1,24 +1,44 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ApplicativeDo              #-}
+{-# LANGUAGE PatternSynonyms            #-}
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-|
+--------------------------------------------------
+
+{-| 'Language' is a natural language in which /Magic: The Gathering/ cards have been printed.
 
 Languages that are officially supported:
 
-* 'english'
-* 'german'
-* 'french'
-* 'italian'
-* 'spanish'
-* 'portuguese'
-* 'japanese'
-* 'chinese'
-* 'russian'
-* 'taiwanese'
-* 'korean'
+* 'English'
+* 'German'
+* 'French'
+* 'Italian'
+* 'Spanish'
+* 'Portuguese'
+* 'Japanese'
+* 'Chinese'
+* 'Russian'
+* 'Taiwanese'
+* 'Korean'
+
+== Types
+
+* `Language`
+* `LanguageInfo`
+
+== Examples
+
+>>> greekInfo <- parseLanguageInfo "Ελληνικά (gr)"
+>>> greekInfo
+LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
+>>> prettyLanguageInfo greekInfo
+Ελληνικά (gr)
 
 -}
 
@@ -36,11 +56,47 @@ import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 
+--import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char        as P
+import qualified "parsers" Text.Parser.Token       as P
+
+--------------------------------------------------
+
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc as PP
 import           "prettyprinter" Data.Text.Prettyprint.Doc ( (<+>) )
 
 --------------------------------------------------
+
+import qualified "formatting" Formatting as Format
+import           "formatting" Formatting ((%))
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "text" Data.Text as Text
+
+--------------------------------------------------
 -- Types -----------------------------------------
+--------------------------------------------------
+
+data LanguageInfo = LanguageInfo
+
+  { abbreviation :: Text
+  , endonym      :: Text
+  }
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
+
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'englishInfo'@
+instance Default LanguageInfo where def = englishInfo
+
+--------------------------------------------------
 --------------------------------------------------
 
 newtype Language = Language Text
@@ -54,36 +110,8 @@ newtype Language = Language Text
 
 --------------------------------------------------
 
--- | @= 'english'@
-instance Default Language where def = english
-
---------------------------------------------------
---------------------------------------------------
-
-data LanguageInfo = LanguageInfo
-
-  { _languageAbbreviation :: Text
-  , _languageEndonym      :: Text
-  }
-
-  deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
-  deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
-
--- | @= 'englishInfo'@
-instance Default LanguageInfo where def = englishInfo
-
---------------------------------------------------
-
-{- |
->>> pretty chineseInfo
-
--}
-
-instance Pretty LanguageInfo where
-  pretty LanguageInfo{ _languageAbbreviation, _languageEndonym } = pretty _languageEndonym <+> PP.parens (pretty _languageAbbreviation )
+-- | @= 'English'@
+instance Default Language where def = English
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -92,22 +120,23 @@ instance Pretty LanguageInfo where
 knownLanguages :: [Language]
 knownLanguages =
 
-  [ english
-  , german
-  , french
-  , italian
-  , spanish
-  , portuguese
-  , japanese
-  , chinese
-  , russian
-  , taiwanese
-  , korean
+  [ English
+  , German
+  , French
+  , Italian
+  , Spanish
+  , Portuguese
+  , Japanese
+  , Chinese
+  , Russian
+  , Taiwanese
+  , Korean
   ]
 
 --------------------------------------------------
 
--- | @≡ fmap 'languageInfo' 'knownLanguages'@
+-- | @≡ 'languageInfo' ... 'knownLanguages'@
+
 knownLanguageInfo :: [LanguageInfo]
 knownLanguageInfo = languageInfo `concatMap` knownLanguages
 
@@ -159,38 +188,38 @@ koreanInfo = LanguageInfo koreanAbbreviation koreanEndonym
 
 --------------------------------------------------
 
-english :: Language
-english = "English"
+pattern English :: Language
+pattern English = Language "English"
 
-german :: Language
-german = "German"
+pattern German :: Language
+pattern German = Language "German"
 
-french :: Language
-french = "French"
+pattern French :: Language
+pattern French = Language "French"
 
-italian :: Language
-italian = "Italian"
+pattern Italian :: Language
+pattern Italian = Language "Italian"
 
-spanish :: Language
-spanish = "Spanish"
+pattern Spanish :: Language
+pattern Spanish = Language "Spanish"
 
-portuguese :: Language
-portuguese = "Portuguese"
+pattern Portuguese :: Language
+pattern Portuguese = Language "Portuguese"
 
-japanese :: Language
-japanese = "Japanese"
+pattern Japanese :: Language
+pattern Japanese = Language "Japanese"
 
-chinese :: Language
-chinese = "Chinese"
+pattern Chinese :: Language
+pattern Chinese = Language "Chinese"
 
-russian :: Language
-russian = "Russian"
+pattern Russian :: Language
+pattern Russian = Language "Russian"
 
-taiwanese :: Language
-taiwanese = "Taiwanese"
+pattern Taiwanese :: Language
+pattern Taiwanese = Language "Taiwanese"
 
-korean :: Language
-korean = "Korean"
+pattern Korean :: Language
+pattern Korean = Language "Korean"
 
 --------------------------------------------------
 
@@ -266,14 +295,15 @@ koreanEndonym = "한국어"
 -- Functions -------------------------------------
 --------------------------------------------------
 
-{- | 
-
+{- | Information about the given language.
 
 == Examples
 
 >>> :set -XOverloadedStrings
 >>> pretty (languageInfo "Russian" :: Maybe LanguageInfo)
 Русский (ru)
+>>> (languageInfo "Greek" :: Maybe LanguageInfo)
+Nothing
 
 -}
 
@@ -292,7 +322,129 @@ languageInfo = \case
   Language "Russian"    -> return russianInfo
   Language "Taiwanese"  -> return taiwaneseInfo
   Language "Korean"     -> return koreanInfo
-  Language language     -> errorM ("<<< languageInfo _ >>> unknown language: " <> show language)
+
+  Language language     ->
+
+    let s = (runFormat ("``` " % Format.string % " ```: unknown language: {{{ languageInfo " % Format.string % " }}}: ")
+             (displayName 'languageInfo)
+             (showWithApplicationPrecedence language)
+            )
+    in errorM s
+
+--------------------------------------------------
+
+{- | @≡ 'ppLanguageInfo' -}
+
+prettyLanguageInfo :: LanguageInfo -> String 
+prettyLanguageInfo = runPrinter ppLanguageInfo
+
+--------------------------------------------------
+
+{- | @≡ 'pLanguageInfo'
+
+== Example
+
+>>> parseLanguageInfo "Ελληνικά (gr)"
+LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
+
+-}
+
+parseLanguageInfo :: (MonadThrow m) => String -> m LanguageInfo
+parseLanguageInfo = runParser 'pLanguageInfo pLanguageInfo
+
+--------------------------------------------------
+-- Pretty ----------------------------------------
+--------------------------------------------------
+
+-- | @≡ 'ppLanguageInfo'@
+
+instance Pretty LanguageInfo where
+
+  pretty = ppLanguageInfo
+
+--------------------------------------------------
+
+{- | Pretty-Print 'LanguageInfo'.
+
+== Example
+
+>>> pretty chineseInfo
+简体中文 (cn)
+
+-}
+
+ppLanguageInfo :: LanguageInfo -> Doc i
+ppLanguageInfo LanguageInfo{ abbreviation, endonym } =
+
+  pretty endonym <+> PP.parens (pretty abbreviation)
+
+--------------------------------------------------
+-- Parse -----------------------------------------
+--------------------------------------------------
+
+-- | @≡ 'pLanguageInfo'@
+
+instance Parse LanguageInfo where
+
+  parser = pLanguageInfo
+
+--------------------------------------------------
+
+{- | Parse 'LanguageInfo'.
+
+Inverts 'ppLanguageInfo'.
+
+== Example
+
+>>> parseLanguageInfo "Ελληνικά (gr)"
+LanguageInfo {abbreviation = "gr", endonym = "Ελληνικά"}
+
+-}
+
+pLanguageInfo :: (MTGParsing m) => m LanguageInfo
+pLanguageInfo = p <?> "LanguageInfo"
+  where
+
+  p = do
+
+      endonym <- pLanguageEndonym
+      P.spaces
+      abbreviation <- P.parens pLanguageAbbreviation
+
+      return LanguageInfo{..}
+
+--------------------------------------------------
+
+{- | Parse an 'endonym'.
+
+== Example
+
+>>> runParser 'pLanguageEndonym "words before ( words after"
+"words before"
+
+-}
+
+pLanguageEndonym :: (MTGParsing m) => m Text
+pLanguageEndonym = pUnfreeText "("
+
+--------------------------------------------------
+
+{- | Parse an 'abbreviation'.
+
+== Example
+
+>>> runParser 'pLanguageAbbreviation " GR "
+"gr"
+
+-}
+
+pLanguageAbbreviation :: (MTGParsing m) => m Text
+pLanguageAbbreviation = go <$> p <?> "Abbreviation"
+  where
+
+  go = Text.pack > Text.toLower > Text.strip
+
+  p = some P.alphaNum
 
 --------------------------------------------------
 -- Optics ----------------------------------------

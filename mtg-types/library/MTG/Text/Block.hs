@@ -1,23 +1,55 @@
-{-# LANGUAGE OverloadedStrings, OverloadedLists #-}
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-|
+--------------------------------------------------
+
+{-| 'BlockName' is the name of a /Magic: The Gathering/ block.
+
+== Types
+
+* `BlockName`
+* `BlockInfo`
 
 -}
+
 module MTG.Text.Block where
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
 
 import MTG.Types.Prelude
 
 import MTG.Text.Edition
 
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
 import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 
-newtype BlockName = BlockName Text
+import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char        as P
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
+
+newtype BlockName = BlockName
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -26,111 +58,128 @@ newtype BlockName = BlockName Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''BlockName
-
 --------------------------------------------------
 
 data BlockInfo = BlockInfo
- { _blockAbbreviation :: Text
- , _blockDescription  :: Text
- , _blockBlocks        :: [EditionName]
- --, _blockLanguages    :: [Language] --NOTE a `Set` 
- } deriving (Show,Read,Eq,Ord,Data,Generic)
 
-instance NFData   BlockInfo
-instance Hashable BlockInfo
+  { _blockAbbreviation :: Text
+  , _blockDescription  :: Text
+  , _blockBlocks        :: [EditionName]
+--, _blockLanguages    :: [Language] --NOTE a `Set`
+  }
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
+
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+-- Patterns --------------------------------------
+--------------------------------------------------
+
+pattern MirageBlock :: BlockName
+pattern MirageBlock = BlockName "Mirage"
+
+pattern RathBlock :: BlockName
+pattern RathBlock = BlockName "Rath"
+
+pattern UrzaBlock :: BlockName
+pattern UrzaBlock = BlockName "Urza"
+
+pattern MasquesBlock :: BlockName
+pattern MasquesBlock = BlockName "Masques"
+
+pattern InvasionBlock :: BlockName
+pattern InvasionBlock = BlockName "Invasion"
+
+pattern OdysseyBlock :: BlockName
+pattern OdysseyBlock = BlockName "Odyssey"
+
+pattern OnslaughtBlock :: BlockName
+pattern OnslaughtBlock = BlockName "Onslaught"
+
+pattern MirrodinBlock :: BlockName
+pattern MirrodinBlock = BlockName "Mirrodin"
+
+pattern KamigawaBlock :: BlockName
+pattern KamigawaBlock = BlockName "Kamigawa"
+
+pattern RavnicaBlock :: BlockName
+pattern RavnicaBlock = BlockName "Ravnica"
+
+pattern IceageBlock :: BlockName
+pattern IceageBlock = BlockName "Ice Age"
+
+pattern TimespiralBlock :: BlockName
+pattern TimespiralBlock = BlockName "Time Spiral"
+
+pattern LorwynBlock :: BlockName
+pattern LorwynBlock = BlockName "Lorwyn"
+
+pattern ShadowmoorBlock :: BlockName
+pattern ShadowmoorBlock = BlockName "Shadowmoor"
+
+pattern AlaraBlock :: BlockName
+pattern AlaraBlock = BlockName "Shards Of Alara"
+
+pattern ZendikarBlock :: BlockName
+pattern ZendikarBlock = BlockName "Zendikar"
+
+pattern ScarsBlock :: BlockName
+pattern ScarsBlock = BlockName "Scars Of Mirrodin"
+
+pattern InnistradBlock :: BlockName
+pattern InnistradBlock = BlockName "Innistrad"
+
+pattern RavnicaReturnBlock :: BlockName
+pattern RavnicaReturnBlock = BlockName "Return To Ravnica"
+
+pattern TherosBlock :: BlockName
+pattern TherosBlock = BlockName "Theros"
+
+pattern KhansBlock :: BlockName
+pattern KhansBlock = BlockName "Khans Of Tarkir"
+
+pattern ZendikarReturnBlock :: BlockName
+pattern ZendikarReturnBlock = BlockName "Battle For Zendikar"
+
+pattern ShadowsBlock :: BlockName
+pattern ShadowsBlock = BlockName "Shadows Over Innistrad"
+
+pattern KaladeshBlock :: BlockName
+pattern KaladeshBlock = BlockName "Kaladesh"
+
+pattern AmonkhetBlock :: BlockName
+pattern AmonkhetBlock = BlockName "Amonkhet"
+
+pattern IxalanBlock :: BlockName
+pattern IxalanBlock = BlockName "Ixalan"
+
+--------------------------------------------------
+
+pattern AntediluvianPseudoBlock :: BlockName
+pattern AntediluvianPseudoBlock = BlockName "Antediluvian Sets"
+
+pattern OrdinalPseudoBlock :: BlockName
+pattern OrdinalPseudoBlock = BlockName "Ordinal Core Sets"
+
+pattern CardinalPseudoBlock :: BlockName
+pattern CardinalPseudoBlock = BlockName "Cardinal Core Sets"
+
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makePrisms ''BlockName
 
 makeLenses ''BlockInfo
 
 --------------------------------------------------
-
-mirageBlock :: BlockName
-mirageBlock = "Mirage"
-
-rathBlock :: BlockName
-rathBlock = "Rath"
-
-urzaBlock :: BlockName
-urzaBlock = "Urza"
-
-masquesBlock :: BlockName
-masquesBlock = "Masques"
-
-invasionBlock :: BlockName
-invasionBlock = "Invasion"
-
-odysseyBlock :: BlockName
-odysseyBlock = "Odyssey"
-
-onslaughtBlock :: BlockName
-onslaughtBlock = "Onslaught"
-
-mirrodinBlock :: BlockName
-mirrodinBlock = "Mirrodin"
-
-kamigawaBlock :: BlockName
-kamigawaBlock = "Kamigawa"
-
-ravnicaBlock :: BlockName
-ravnicaBlock = "Ravnica"
-
-iceageBlock :: BlockName
-iceageBlock = "Ice Age"
-
-timespiralBlock :: BlockName
-timespiralBlock = "Time Spiral"
-
-lorwynBlock :: BlockName
-lorwynBlock = "Lorwyn"
-
-shadowmoorBlock :: BlockName
-shadowmoorBlock = "Shadowmoor"
-
-alaraBlock :: BlockName
-alaraBlock = "Shards Of Alara"
-
-zendikarBlock :: BlockName
-zendikarBlock = "Zendikar"
-
-scarsBlock :: BlockName
-scarsBlock = "Scars Of Mirrodin"
-
-innistradBlock :: BlockName
-innistradBlock = "Innistrad"
-
-ravnicaReturnBlock :: BlockName
-ravnicaReturnBlock = "Return To Ravnica"
-
-therosBlock :: BlockName
-therosBlock = "Theros"
-
-khansBlock :: BlockName
-khansBlock = "Khans Of Tarkir"
-
-zendikarReturnBlock :: BlockName
-zendikarReturnBlock = "Battle For Zendikar"
-
-shadowsBlock :: BlockName
-shadowsBlock = "Shadows Over Innistrad"
-
-kaladeshBlock :: BlockName
-kaladeshBlock = "Kaladesh"
-
-amonkhetBlock :: BlockName
-amonkhetBlock = "Amonkhet"
-
-ixalanBlock :: BlockName
-ixalanBlock = "Ixalan"
-
+-- Notes -----------------------------------------
 --------------------------------------------------
+{-
 
-antediluvianPseudoBlock :: BlockName
-antediluvianPseudoBlock = "Antediluvian Sets"
-
-ordinalPseudoBlock :: BlockName
-ordinalPseudoBlock = "Ordinal Core Sets"
-
-cardinalPseudoBlock :: BlockName
-cardinalPseudoBlock = "Cardinal Core Sets"
-
+-}
+--------------------------------------------------
+-- EOF -------------------------------------------
 --------------------------------------------------
