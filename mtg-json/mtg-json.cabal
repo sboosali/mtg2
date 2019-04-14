@@ -542,7 +542,7 @@ library
   --------------------
 
                spiros    ^>= 0.4
-             , enumerate ^>= 0.3
+--           , enumerate ^>= 0.3
 
   --------------------
   -- Project Libraries
@@ -583,6 +583,20 @@ library
 
              , aeson
              , lens-aeson
+
+  --------------------
+  -- Parsing ---------
+  --------------------
+
+             , parsers    ^>= 0.12
+             , attoparsec ^>= 0.13
+
+  --------------------
+  -- Records ---------
+  --------------------
+
+             , lens         ^>= 4.17
+             , generic-lens ^>= 1.1
 
   --------------------
   -- (Miscellaneous) -

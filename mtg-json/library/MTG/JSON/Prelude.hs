@@ -9,36 +9,21 @@
 {- | Re-export:
 
 * the "Prelude.Spiros" @module@ — my custom prelude (from the @spiros@ package).
-* the 'Parse' @class@ — Canonical, humanable-readable /parsing/ for all @data@types in @mtg-types@ (defined in @mtg-types@ itself).
+* the "MTG.Types.Prelude" @module@ — the @mtg-types@ package's custom prelude.
 
 -}
-
-module MTG.Types.Prelude
-
-  ( module EXPORT
-  , module MTG.Types.Parse
-  ) where
-
-
-
-
-
-
-
-
---------------------------------------------------
 
 module MTG.JSON.Prelude
 
   ( module EXPORT
---, module MTG.Types.Prelude
+  , module MTG.Types.Prelude
   ) where
 
 --------------------------------------------------
 -- Exports ---------------------------------------
 --------------------------------------------------
 
-import "mtg-types" MTG.Types.Prelude as EXPORT
+import "mtg-types" MTG.Types.Prelude
 
 --------------------------------------------------
 
@@ -46,7 +31,7 @@ import "spiros" Prelude.Spiros as EXPORT
 
 --------------------------------------------------
 
-import "enumerate" Enumerate as EXPORT
+--import "enumerate" Enumerate as EXPORT
 
 --------------------------------------------------
 -- Imports ---------------------------------------

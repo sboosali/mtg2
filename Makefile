@@ -178,7 +178,10 @@ checkdocs:
 
 	@printf "%s\n\n" "Testing Documentation..."
 
-	$(Cabal) new-test $(CabalOptions) --enable-tests $(CabalTargets)
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-types:test:doc"
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-json:test:doc"
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-csv:test:doc"
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-sql:test:doc"
 
 	@printf "\n%s\n" "========================================"
 

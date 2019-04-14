@@ -1232,6 +1232,284 @@ toColorsM cs = cs & (ordNub > sort > go)
 
 
 
+>>> sortColors AzoriusColors
+[White,Blue]
+>>> sortColors SelesnyaColors
+[Green,White]
+
+
+
+
+
+
+
+
+
+
+sortColors :: [Color] -> [Color]
+sortColors colorsList = sortedColors
+  
+  where
+
+  sortedColors = colorsSet & maybe colorsList toColors
+  colorsSet    = toColorsM colorsList
+
+
+
+
+
+
+
+
+
+
+prettySymbol :: Symbol -> Doc i
+prettySymbol symbol = PP.braces docSymbol
+  where
+
+  docSymbol    = PP.pretty stringSymbol
+  stringSymbol = getSymbolText symbol
+
+
+
+
+
+
+
+
+
+mainParser  = sum <$ whiteSpace <*> many (token digit) <* eof
+
+
+
+
+
+
+
+{-| Parse a symbol token.
+
+== Examples
+
+>>> runParser 'pSymbol pSymbol "{αàéñ①∞∅↑•✔✘❓}"
+
+-}
+
+pSymbol
+  :: forall m.
+     ( TokenParsing m
+     )
+  => m a
+  -> m a
+
+pSymbol p = P.braces p
+
+
+
+
+
+
+
+pTextChar
+  :: forall m.
+     ( TokenParsing m
+     )
+  => m Char
+
+pTextChar = P.satisfy predicate
+  where
+
+  predicate c
+    = Char.isPrint c
+   && not (Char.isSpace c)
+   && not (Char.isPunctuation c)
+   && not (isQuote c)
+
+  isQuote c
+    = c == '"'
+   || c == '\''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pManaSymbol :: (MTGParsing m) => m ManaSymbol
+pManaSymbol = do
+
+  pAssoc cs
+
+  where
+
+  cs :: Assoc ManaSymbol
+  cs = csLower <> csUpper
+
+  csLower = csUpper <&> (bimap Text.toLower id)
+
+  csUpper = namedManaSymbols
+
+
+
+
+
+
+
+
+
+
+ keywordLet  = try $ string "let" <* notFollowedBy alphaNum
+
+
+
+
+
+
+
+
+
+
+
+
+
+ simpleComment   = do{ string "<!--"
+                     ; manyTill anyChar (try (string "-->"))
+                     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+{-| Parse any (printable) text except the given text.
+
+i.e. @pFreeTextExcept p@ parses:
+
+* yes printable.
+* not @p@
+
+See 'pFreeTextChar'.
+
+== Examples
+
+>>> runParser 'pFreeTextExcept (pFreeTextExcept (P.char ' ')) "free text")
+>>> runParser 'pFreeTextExcept (pFreeTextExcept empty) "free text")
+"free text"
+
+-}
+
+pFreeTextExcept
+  :: forall m.
+     ( TokenParsing m
+     )
+  => m Text
+  -> m Text
+
+pFreeTextExcept p = Text.pack <$> q
+  where
+
+  q = pFreeTextChar `P.manyTill` (P.try p) 
+
+
+
+
+
+
+
+
+
+
+pFreeTextExcept
+  :: forall m.
+     ( TokenParsing m
+     )
+  => [Char]
+  -> m Text
+
+pFreeTextExcept "" = Text.pack <$> pFreeTextChar
+
+pFreeTextExcept cs = Text.pack <$> q
+  where
+
+  q = pFreeTextChar `P.manyTill` P.try pNotChar
+
+  pNotChar = P.noneOf cs
+
+
+
+
+
+
+
+
+oneOfSet (CharSet True _ is)  = satisfy (\c -> IntSet.member (fromEnum c) is)
+oneOfSet (CharSet False _ is) = satisfy (\c -> not (IntSet.member (fromEnum c) is))
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+
+pLanguageEndonym :: (MTGParsing m) => m Text
+pLanguageEndonym = pUnfreeText pOpenParen
+  where
+
+  pOpenParen = P.char '('
+
+
+
+
+
+
+
+
+
+
+
+
+pLanguageInfo :: (MTGParsing m) => m LanguageInfo
+pLanguageInfo = p <?> "LanguageInfo"
+  where
+
+  p = do
+
+      endonym <- pLanguageEndonym
+      P.spaces
+      abbreviation <- P.parens pLanguageAbbreviation
+
+      pure LanguageInfo{..}
+
+------------------------------------
+
+
+
+
+
+
+
+
+
 
 
 
