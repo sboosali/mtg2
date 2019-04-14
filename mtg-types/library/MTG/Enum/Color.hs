@@ -2,32 +2,15 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE PatternSynonyms       #-}
 
-{-# LANGUAGE OverloadedStrings #-}
-
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
---------------------------------------------------
 --------------------------------------------------
 
 {-| 
 
 == Examples
-
-Printing (see 'pretty'):
-
->>> pretty Blue
-U
->>> Blue
-Color "Blue"
-
-Parsing (see 'parser'):
-
->>> parseColor "U"
-Color "Blue"
->>> parseColor "blue"
-Color "Blue"
 
 -}
 
@@ -43,183 +26,561 @@ import MTG.Types.Prelude
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+--import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-
---------------------------------------------------
-
--- import qualified "parsers" Text.Parser.Combinators as P
--- import qualified "parsers" Text.Parser.Char        as P
+import qualified "formatting" Formatting as Format
+import           "formatting" Formatting ((%))
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import qualified "text" Data.Text as Text
+import qualified "base" Control.Exception as E
+import           "base" Control.Exception (PatternMatchFail(..))
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
+-- Zero-or-more Colors...
 
-{-| A /Magic: The Gathering/ color.
+{-| @0-5@ Colors.
+
+A set of /known/ colors (in /Magic: The Gathering/).
 
 -}
 
-newtype Color = Color
+data Colors
 
-  { getColor :: Text
-  }
+  = ZeroColors
+  | OneColor    Color
+  | TwoColors   Guild
+  | ThreeColors ShardOrWedge
+  | FourColors  Nephilim
+  | FiveColors
 
-  deriving stock    (Lift,Data,Generic)
-
-  deriving newtype  (Show,Read)
-  deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (NFData,Hashable)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------
+--------------------------------------------------
+-- One Color...
 
-instance IsString Color where
-  fromString = fromString_MonadThrow parseColor
+{-| One color.
 
-  --fromString = (Color . fromString)
+A /known/ color.
+
+-}
+
+data Color
+
+  = White
+  | Blue
+  | Black
+  | Red
+  | Green
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+--------------------------------------------------
+-- Two (/Guild) Colors...
+
+{- | Two colors.
+
+Like an unordered pair of 'Color's.
+
+Named after the /Ravnica/ guilds.
+
+-}
+
+data Guild
+
+  = Azorius
+  | Dimir
+  | Rakdos
+  | Gruul
+  | Selesnya
+
+  | Orzhov
+  | Izzet
+  | Golgari
+  | Boros
+  | Simic
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+--------------------------------------------------
+-- Three (/Shard/Wedge) Colors...
+
+{- | Three colors.
+
+Like an unordered triplet of 'Color'.
+
+Named after the /Khans/ clans. Either a wedge or a shard (a "slice of the color pie").
+
+-}
+
+data ShardOrWedge
+
+  = Bant
+  | Esper
+  | Grixis
+  | Jund
+  | Naya
+
+  | Mardu
+  | Temur
+  | Abzan
+  | Jeskai
+  | Sultai
+         
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+--------------------------------------------------
+-- Four (/Nephilim) Colors...
+
+{- | Four colors.
+
+Like an unordered quadruple of 'Color's.
+
+Named after the @Nephilim@.
+
+The /Nephilim/ from /Guildpact/ were the first four-colored cards. /Commander 2016/ introduced a second cycle of four-colored cards.
+
+-}
+
+data Nephilim
+
+  = Artifice
+  | Chaos
+  | Aggression
+  | Altruism
+  | Growth
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+--------------------------------------------------
+-- Five (/all) Colors...
+
+{- | Five colors.
+
+Like a quintuple of 'Color's.
+
+-}
+
+data WUBRG
+
+  = WUBRG
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
 
--- | @≡ "White"@
+pattern AzoriusColors :: [Color]
+pattern AzoriusColors = [ White, Blue]
 
-pattern White :: Color
-pattern White = "White"
+pattern DimirColors :: [Color]
+pattern DimirColors = [ Blue, Black ]
 
--- | @≡ "Blue"@
+pattern RakdosColors :: [Color]
+pattern RakdosColors = [ Black, Red ]
 
-pattern Blue :: Color
-pattern Blue = "Blue"
+pattern GruulColors :: [Color]
+pattern GruulColors = [ Red, Green ]
 
--- | @≡ "Black"@
+pattern SelesnyaColors :: [Color]
+pattern SelesnyaColors = [ Green, White ]
 
-pattern Black :: Color
-pattern Black = "Black"
+pattern OrzhovColors :: [Color]
+pattern OrzhovColors = [ White, Black ]
 
--- | @≡ "Red"@
+pattern IzzetColors :: [Color]
+pattern IzzetColors = [ Blue, Red ]
 
-pattern Red :: Color
-pattern Red = "Red"
+pattern GolgariColors :: [Color]
+pattern GolgariColors = [ Black, Green ]
 
--- | @≡ "Green"@
+pattern BorosColors :: [Color]
+pattern BorosColors = [ White, Red ]
 
-pattern Green :: Color
-pattern Green = "Green"
+pattern SimicColors :: [Color]
+pattern SimicColors = [ Green, Blue ]
+
+--------------------------------------------------
+
+pattern BantColors :: [Color]
+pattern BantColors = [ Green, White, Blue ]
+
+pattern EsperColors :: [Color]
+pattern EsperColors = [ White, Blue, White ]
+
+pattern GrixisColors :: [Color]
+pattern GrixisColors = [ Blue, Black, Red ]
+
+pattern JundColors :: [Color]
+pattern JundColors = [ Black, Red, Green ]
+
+pattern NayaColors :: [Color]
+pattern NayaColors =  [ Red, Green, White ]
+
+pattern MarduColors :: [Color]
+pattern MarduColors = [ Red, White, Black ]
+
+pattern TemurColors :: [Color]
+pattern TemurColors = [ Green, Blue, Red ]
+
+pattern AbzanColors :: [Color]
+pattern AbzanColors = [ White, Black, Green ]
+
+pattern JeskaiColors :: [Color]
+pattern JeskaiColors = [ Blue, Red, White ]
+
+pattern SultaiColors :: [Color]
+pattern SultaiColors = [ Black, Green, Blue ]
+
+--------------------------------------------------
+
+pattern ArtificeColors :: [Color]
+pattern ArtificeColors = [ White, Blue, Black, Red ]
+
+pattern ChaosColors :: [Color]
+pattern ChaosColors = [ Blue, Black, Red, Green ]
+
+pattern AggressionColors :: [Color]
+pattern AggressionColors = [ Black, Red, Green, White ]
+
+pattern AltruismColors :: [Color]
+pattern AltruismColors = [ Red, Green, White, Blue ]
+
+pattern GrowthColors :: [Color]
+pattern GrowthColors = [ Green, White, Blue, Black ]
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+-- | @≡ [ 'White', 'Blue', 'Black', 'Red', 'Green' ]@
+allColors :: [Color]
+allColors = [ White, Blue, Black, Red, Green ]
+
+--------------------------------------------------
+-- Functions: Constructors -----------------------
+--------------------------------------------------
+
+{- | Refine a 'Color' list into a total 'Color' set.
+
+`toColors`:
+
+* removes duplicates
+* sorts canonically
+* represents inductively
+
+== Definition
+
+@
+≡ 'toColorsM' > either 'E.throw' 'return'
+@
+
+== Safety
+
+**NOTE** `toColors` /should always/ be total (i.e. as total as `toColorsM`).
+
+-}
+
+toColors :: [Color] -> Colors
+toColors cs = toColorsM_Either & (either E.throw id)
+  where
+
+  toColorsM_Either :: Either SomeException Colors
+  toColorsM_Either = toColorsM cs
+
+--------------------------------------------------
+
+{- | Like `toColors`.
+
+== Exceptions
+
+May throw 'PatternMatchFail'.
+
+== Safety
+
+**NOTE** `toColorsM` /should never/ throw
+(if it does, file an issue; <https://github.com/sboosali/mtg/issues/new>).
+
+-}
+
+toColorsM :: (MonadThrow m) => [Color] -> m Colors
+toColorsM cs = cs & (ordNub > sort > go)
+  where
+
+  go = \case
+
+      []                                 -> return ZeroColors
+      [a]                                -> return $ OneColor a
+      [a,b]                              -> TwoColors   <$> (toGuild        a b)
+      [a,b,c]                            -> ThreeColors <$> (toShardOrWedge a b c)
+      [a,b,c,d]                          -> FourColors  <$> (toNephilim     a b c d)
+      [ White, Blue, Black, Red, Green ] -> return FiveColors
+
+      _                                  -> throwM e -- (NOTE: this case should never be reached.)
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toColors " % Format.string % " }}} ")
+                        (displayName 'toColors)
+                        (showsPrec applicationPrecedence cs "")
+                       )
+
+--------------------------------------------------
+
+{- | Construct a `Guild` from two /distinct/ colors.
+
+== Examples
+
+>>> toGuild Blue Green
+Simic
+
+== Laws
+
+`toGuild` is **symmetric**.
+
+i.e.:
+
+@∀ x y. toGuild x y ≡ toGuild y x@
+
+e.g.:
+
+>>> (toGuild Blue Green :: Maybe Guild) == (toGuild Green Blue :: Maybe Guild)
+True
+
+`toGuild` is **non-reflexive** (?).
+
+i.e.:
+
+@∀ x. ! toGuild x x@
+
+e.g.:
+
+>>> toGuild Blue Blue :: Maybe Guild
+Nothing
+>>> toGuild Green Green :: Maybe Guild
+Nothing
+
+-}
+
+toGuild :: (MonadThrow m) => Color -> Color -> m Guild
+
+toGuild White Blue  = return Azorius  
+toGuild Blue  White = return Azorius  
+
+toGuild Blue  Black = return Dimir    
+toGuild Black Blue  = return Dimir    
+
+toGuild Black Red   = return Rakdos   
+toGuild Red   Black = return Rakdos   
+
+toGuild Red   Green = return Gruul    
+toGuild Green Red   = return Gruul    
+
+toGuild Green White = return Selesnya 
+toGuild White Green = return Selesnya 
+
+toGuild White Black = return Orzhov
+toGuild Black White = return Orzhov
+
+toGuild Black Green = return Golgari  
+toGuild Green Black = return Golgari  
+
+toGuild Green Blue  = return Simic    
+toGuild Blue  Green = return Simic    
+
+toGuild Blue  Red   = return Izzet    
+toGuild Red   Blue  = return Izzet    
+
+toGuild Red   White = return Boros    
+toGuild White Red   = return Boros
+
+toGuild x y = throwM e
+  where
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toGuild " % Format.string % " " % Format.string % " }}} ")
+                        (displayName 'toGuild)
+                        (showWithApplicationPrecedence x)
+                        (showWithApplicationPrecedence y)
+                       )
+
+{-# INLINEABLE toGuild #-}
+
+--------------------------------------------------
+
+{- | Construct a `ShardOrWedge` from three /distinct/ colors.
+
+-}
+
+toShardOrWedge :: (MonadThrow m) => Color -> Color -> Color -> m ShardOrWedge
+toShardOrWedge = \case
+
+{-# INLINEABLE toShardOrWedge #-}
+
+--------------------------------------------------
+
+{- | Construct a `Nephilim` from four /distinct/ colors.
+
+-}
+
+toNephilim :: (MonadThrow m) => Color -> Color -> Color -> Color -> m Nephilim
+toNephilim = \case
+
+{-# INLINEABLE toNephilim #-}
+
+--------------------------------------------------
+-- Functions: Destructors ------------------------
+--------------------------------------------------
+
+fromColors :: Colors -> [Color]
+fromColors = \case
+
+  ZeroColors     -> []
+  OneColor    c1 -> fromColor        c1
+  TwoColors   c2 -> fromGuild        c2
+  ThreeColors c3 -> fromShardOrWedge c3
+  FourColors  c4 -> fromNephilim     c4
+  FiveColors     -> allColors
+
+--------------------------------------------------
+
+fromColor :: Color -> [Color]
+fromColor = (: [])
+
+--------------------------------------------------
+
+fromGuild :: Guild -> [Color]
+fromGuild = \case
+
+  Azorius  -> AzoriusColors
+  Dimir    -> DimirColors
+  Rakdos   -> RakdosColors
+  Gruul    -> GruulColors
+  Selesnya -> SelesnyaColors
+
+  Orzhov   -> OrzhovColors
+  Izzet    -> IzzetColors
+  Golgari  -> GolgariColors
+  Boros    -> BorosColors
+  Simic    -> SimicColors
+
+--------------------------------------------------
+
+fromShardOrWedge :: ShardOrWedge -> [Color]
+fromShardOrWedge = \case
+
+  Bant   -> BantColors
+  Esper  -> EsperColors
+  Grixis -> GrixisColors
+  Jund   -> JundColors
+  Naya   -> NayaColors
+
+  Mardu  -> MarduColors
+  Temur  -> TemurColors
+  Abzan  -> AbzanColors
+  Jeskai -> JeskaiColors
+  Sultai -> SultaiColors
+
+--------------------------------------------------
+
+fromNephilim :: Nephilim -> [Color]
+fromNephilim = \case
+
+  Artifice   -> ArtificeColors
+  Chaos      -> ChaosColors
+  Aggression -> AggressionColors
+  Altruism   -> AltruismColors
+  Growth     -> GrowthColors
 
 --------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
-abbreviateColor :: Color -> Maybe Text
-abbreviateColor (Color s0) = Text.toUpper <$> (go s1)
+sortColors :: [Color] -> [Color]
+sortColors cs = cs'
   where
 
-  s1 = Text.toLower s0
-
-  go = \case
-
-    "white"     -> Just "W"
-    "blue"      -> Just "U"
-    "black"     -> Just "B"
-    "red"       -> Just "R"
-    "green"     -> Just "G"
-
-    "w"         -> Just "W"
-    "u"         -> Just "U"
-    "b"         -> Just "B"
-    "r"         -> Just "R"
-    "g"         -> Just "G"
-
-    _           -> Nothing
-
---------------------------------------------------
--- Pretty ----------------------------------------
---------------------------------------------------
-
--- | @≡ 'PP.braces' . 'abbreviateColor'@
-
-instance Pretty Color where
-
-  pretty = ppColor
-
---------------------------------------------------
-
-ppColor :: Color -> Doc i
-ppColor color = PP.braces docColor
-  where
-
-  docColor    = PP.pretty stringColor
-  stringColor = (abbreviateColor color) & fromMaybe ""
-
---------------------------------------------------
--- Parse -----------------------------------------
---------------------------------------------------
-
--- | @≡ 'pColor'@
-instance Parse Color where
-  parser = pColor
-
---------------------------------------------------
-
-{- | Parses:
-
-* color abbreviations
-* english color words
-* case-insensitively
-
-Inverts 'ppColor'.
-
--}
-
-pColor :: MTGParsing m => m Color
-pColor = do
-
-  pAssoc cs <?> "Color"
-
-  where
-
-  cs :: Assoc Color
-  cs = csLower <> csUpper
-
-  csLower = csUpper <&> (bimap Text.toLower id)
-
-  csUpper =
-
-    [ "W" -: White
-    , "U" -: Blue
-    , "B" -: Black
-    , "R" -: Red
-    , "G" -: Green
-
-    , "White" -: White
-    , "Blue"  -: Blue
-    , "Black" -: Black
-    , "Red"   -: Red
-    , "Green" -: Green
-    ]
-
---------------------------------------------------
-
--- | @≡ 'pColor'@
-
-parseColor :: (MonadThrow m) => String -> m Color
-parseColor = runParser 'Color pColor 
+  cs' = cs
 
 --------------------------------------------------
 -- Optics ----------------------------------------
 --------------------------------------------------
 
-makePrisms ''Color
 
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
+{-
+--------------------------------------------------
+
+Naming:
+
+- Colors
+- ColorSet
+- Polychrome
+
+Naming:
+
+- ThreeColors
+- Trichrome
+- ShardOrWedge
+- Dega, Ceta, Necra, Raka, Ana
+
+Naming:
+
+- FourColors
+- Tetrachrome
+- Nephilim
+
+Naming:
+
+- FiveColors
+- Pentachrome
+- WUBRG
+
+--------------------------------------------------
+
+Explicitly-Bidirectional Pattern-Synonym:
+
+    pattern HeadC x <- x:xs where
+      HeadC x = [x]
+
+--------------------------------------------------
+-}
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------
