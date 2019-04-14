@@ -386,7 +386,7 @@ instance Parse LanguageInfo where
 
 Inverts 'ppLanguageInfo'.
 
->>> 
+>>> parseLanguageInfo "English (en)"
 LanguageInfo {abbreviation = "en", endonym = "English"}
 
 -}
@@ -410,10 +410,11 @@ pLanguageInfo = p <?> "LanguageInfo"
 == Example
 
 >>> :set -XTemplateHaskellQuotes
+>>> :set -XApplicativeDo
 >>> import qualified "parsers" Text.Parser.Combinators as P
 >>> import qualified "parsers" Text.Parser.Char as P
 >>> import qualified "parsers" Text.Parser.Token as P
->>> runParserPartially anonymous (pLanguageEndonym *> P.symbolic '(' *> pFreeText *> P.eof) "words before ( words after"
+>>> runParserPartially 'True (do t <- pLanguageEndonym; (P.symbolic '(' *> pFreeText *> P.eof); return t) "words before ( words after"
 "words before"
 
 -}

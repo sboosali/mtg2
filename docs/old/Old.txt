@@ -1742,6 +1742,14 @@ True
 
 
 
+:set -XTemplateHaskellQuotes
+import qualified "parsers" Text.Parser.Combinators as P
+import qualified "parsers" Text.Parser.Char as P
+import qualified "parsers" Text.Parser.Token as P
+runParserPartially anonymous (pLanguageEndonym *> P.symbolic '(' *> pFreeText *> P.eof) "words before ( words after"
+
+"words before"
+
 
 
 

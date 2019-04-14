@@ -49,7 +49,7 @@ import MTG.Classes.Prelude
 --------------------------------------------------
 
 import "spiros" Prelude.Spiros     as EXPORT
-import "spiros" Prelude.Spiros.GUI as EXPORT (displayName)
+import "spiros" Prelude.Spiros.GUI as EXPORT (displayName, anonymous)
 
 --------------------------------------------------
 
