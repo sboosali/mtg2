@@ -40,7 +40,7 @@ Parsing (see 'parser'):
 e.g. 'parseColors':
 
 >>> parseColors "UG"
-Colors [Color "Green",Color "Blue"]
+Colors ["Green","Blue"]
 
 -}
 

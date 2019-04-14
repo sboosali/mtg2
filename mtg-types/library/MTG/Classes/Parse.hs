@@ -150,10 +150,7 @@ runParserCompletely
   => Name -> (forall p. (MTGParsing p) => p a)
   -> (String -> m a)
 
-runParserCompletely name p = runParserPartially name q
-  where
-
-  q = (p <* P.eof)
+runParserCompletely name p = runParserPartially name (p <* P.eof)
 
 --------------------------------------------------
 
@@ -201,7 +198,10 @@ See 'pText'.
 == Examples
 
 >>> :set -XTemplateHaskellQuotes
->>> let Nothing = runParser 'pSymbolText pSymbolText "{αàéñ①∞∅↑•✔✘❓}"
+>>> runParser 'pSymbolText pSymbolText "{abc-123}"
+"abc-123"
+>>> isJust (runParser 'pSymbolText pSymbolText "{αàéñ①∞∅↑•✔✘❓}")
+True
 
 == Definition
 
@@ -256,7 +256,9 @@ In particular,`pText` accepts many Unicode characters, like:
 
 == Examples
 
-
+>>> :set -XTemplateHaskellQuotes
+>>> runParserCompletely 'pText pText "abc-123"
+"abc-123"
 
 -}
 
@@ -283,8 +285,8 @@ See 'pFreeChar'.
 Parses whitespace and Unicode:
 
 >>> :set -XTemplateHaskellQuotes
->>> Just "日本語" = (runParser ''Text pFreeText "日本語")
->>> Just "Quinton Hoover" = (runParser ''Text pFreeText "Quinton Hoover")
+>>> Just "日本語" = (runParser 'pFreeText pFreeText "日本語")
+>>> Just "Quinton Hoover" = (runParser 'pFreeText pFreeText "Quinton Hoover")
 
 (i.e. including non-ASCII characters.)
 
@@ -317,11 +319,12 @@ See 'pUnfreeChar'.
 
 == Examples
 
->>> runParser 'pUnfreeText (pUnfreeText " _") "free_text"
->>> runParser 'pUnfreeText (pUnfreeText " _") "free text"
-Nothing
 >>> runParser 'pUnfreeText (pUnfreeText "-_") "free text"
 "free text"
+>>> isNothing (runParser 'pUnfreeText (pUnfreeText " _") "free_text")
+True
+>>> isNothing (runParser 'pUnfreeText (pUnfreeText " _") "free text")
+True
 
 == Definition
 

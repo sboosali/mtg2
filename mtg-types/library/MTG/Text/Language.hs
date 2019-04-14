@@ -386,7 +386,7 @@ instance Parse LanguageInfo where
 
 Inverts 'ppLanguageInfo'.
 
->>> parseLanguageInfo "English (en)"
+>>> 
 LanguageInfo {abbreviation = "en", endonym = "English"}
 
 -}
@@ -410,16 +410,21 @@ pLanguageInfo = p <?> "LanguageInfo"
 == Example
 
 >>> :set -XTemplateHaskellQuotes
->>> runParser 'pLanguageEndonym pLanguageEndonym "words before ( words after"
+>>> import qualified "parsers" Text.Parser.Combinators as P
+>>> import qualified "parsers" Text.Parser.Char as P
+>>> import qualified "parsers" Text.Parser.Token as P
+>>> runParserPartially anonymous (pLanguageEndonym *> P.symbolic '(' *> pFreeText *> P.eof) "words before ( words after"
 "words before"
 
 -}
 
 pLanguageEndonym :: (MTGParsing m) => m Text
-pLanguageEndonym = go <$> pUnfreeText "("
+pLanguageEndonym = go <$> P.token p
   where
 
   go = Text.strip
+
+  p = pUnfreeText "("
 
 --------------------------------------------------
 
@@ -428,13 +433,13 @@ pLanguageEndonym = go <$> pUnfreeText "("
 == Example
 
 >>> :set -XTemplateHaskellQuotes
->>> runParser 'pLanguageAbbreviation pLanguageAbbreviation " GR "
+>>> runParser 'pLanguageAbbreviation pLanguageAbbreviation "GR "
 "gr"
 
 -}
 
 pLanguageAbbreviation :: (MTGParsing m) => m Text
-pLanguageAbbreviation = go <$> p <?> "Abbreviation"
+pLanguageAbbreviation = go <$> P.token p <?> "Abbreviation"
   where
 
   go = Text.pack > Text.toLower > Text.strip

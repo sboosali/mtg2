@@ -59,6 +59,11 @@ module MTG.Types
 
   , module MTG.Text.Watermark
 
+  -- * Classes.
+
+  , module MTG.Classes.Parse
+  , module MTG.Classes.Print
+
   ) where
 
 --------------------------------------------------
@@ -91,6 +96,11 @@ import MTG.Text.Subtype
 import MTG.Text.Supertype
 import MTG.Text.Symbol
 import MTG.Text.Watermark
+
+--------------------------------------------------
+
+import MTG.Classes.Parse
+import MTG.Classes.Print
 
 --------------------------------------------------
 -- EOF -------------------------------------------
