@@ -40,7 +40,7 @@ import MTG.Classes.Prelude
 import qualified "parsers" Text.Parser.Char        as P
 import qualified "parsers" Text.Parser.Token       as P
 
---import "parsers" Text.Parser.Combinators ( Parsing )
+import "parsers" Text.Parser.Combinators ( Parsing( (<?>) ))
 import "parsers" Text.Parser.Char        ( CharParsing )
 import "parsers" Text.Parser.Token       ( TokenParsing )
 
@@ -399,7 +399,12 @@ Fails via 'empty' or 'P.unexpected'.
 
 == Examples
 
->>> (<?>) :: m a -> String -> m a
+>>> namedBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
+>>> pBool = pAssoc namedBools <?> "Bool"
+>>> parseBool = runParser 'pBool pBool
+>>> parseBool "on"
+True
+>>> parseBool "xxx"
 
 -}
 

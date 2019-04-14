@@ -28,11 +28,6 @@ import MTG.Types.Prelude
 import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
-
-import qualified "parsers" Text.Parser.Combinators as P
-import qualified "parsers" Text.Parser.Char        as P
-
---------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 

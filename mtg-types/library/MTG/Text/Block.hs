@@ -36,8 +36,8 @@ import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 
-import qualified "parsers" Text.Parser.Combinators as P
-import qualified "parsers" Text.Parser.Char        as P
+-- import qualified "parsers" Text.Parser.Combinators as P
+-- import qualified "parsers" Text.Parser.Char        as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -75,6 +75,17 @@ data BlockInfo = BlockInfo
 
 --------------------------------------------------
 -- Patterns --------------------------------------
+--------------------------------------------------
+
+pattern AntediluvianPseudoBlock :: BlockName
+pattern AntediluvianPseudoBlock = BlockName "Antediluvian Sets"
+
+pattern OrdinalPseudoBlock :: BlockName
+pattern OrdinalPseudoBlock = BlockName "Ordinal Core Sets"
+
+pattern CardinalPseudoBlock :: BlockName
+pattern CardinalPseudoBlock = BlockName "Cardinal Core Sets"
+
 --------------------------------------------------
 
 pattern MirageBlock :: BlockName
@@ -131,8 +142,8 @@ pattern ScarsBlock = BlockName "Scars Of Mirrodin"
 pattern InnistradBlock :: BlockName
 pattern InnistradBlock = BlockName "Innistrad"
 
-pattern RavnicaReturnBlock :: BlockName
-pattern RavnicaReturnBlock = BlockName "Return To Ravnica"
+pattern RavnicaBlock2 :: BlockName
+pattern RavnicaBlock2 = BlockName "Return To Ravnica"
 
 pattern TherosBlock :: BlockName
 pattern TherosBlock = BlockName "Theros"
@@ -140,8 +151,8 @@ pattern TherosBlock = BlockName "Theros"
 pattern KhansBlock :: BlockName
 pattern KhansBlock = BlockName "Khans Of Tarkir"
 
-pattern ZendikarReturnBlock :: BlockName
-pattern ZendikarReturnBlock = BlockName "Battle For Zendikar"
+pattern ZendikarBlock2 :: BlockName
+pattern ZendikarBlock2 = BlockName "Battle For Zendikar"
 
 pattern ShadowsBlock :: BlockName
 pattern ShadowsBlock = BlockName "Shadows Over Innistrad"
@@ -155,16 +166,54 @@ pattern AmonkhetBlock = BlockName "Amonkhet"
 pattern IxalanBlock :: BlockName
 pattern IxalanBlock = BlockName "Ixalan"
 
+pattern RavnicaBlock3 :: BlockName
+pattern RavnicaBlock3 = BlockName "Guilds of Ravnica"
+
+--------------------------------------------------
+-- Functions -------------------------------------
 --------------------------------------------------
 
-pattern AntediluvianPseudoBlock :: BlockName
-pattern AntediluvianPseudoBlock = BlockName "Antediluvian Sets"
+knownBlocks :: [BlockName]
+knownBlocks = fakeBlocks ++ realBlocks
+  where
 
-pattern OrdinalPseudoBlock :: BlockName
-pattern OrdinalPseudoBlock = BlockName "Ordinal Core Sets"
+  fakeBlocks =
 
-pattern CardinalPseudoBlock :: BlockName
-pattern CardinalPseudoBlock = BlockName "Cardinal Core Sets"
+    [ AntediluvianPseudoBlock
+    , OrdinalPseudoBlock
+    , CardinalPseudoBlock
+    ]
+
+  realBlocks =
+
+    [ MirageBlock
+    , RathBlock
+    , UrzaBlock
+    , MasquesBlock
+    , InvasionBlock
+    , OdysseyBlock
+    , OnslaughtBlock
+    , MirrodinBlock
+    , KamigawaBlock
+    , RavnicaBlock
+    , IceageBlock
+    , TimespiralBlock
+    , LorwynBlock
+    , ShadowmoorBlock
+    , AlaraBlock
+    , ZendikarBlock
+    , ScarsBlock
+    , InnistradBlock
+    , RavnicaBlock2
+    , TherosBlock
+    , KhansBlock
+    , ZendikarBlock2
+    , ShadowsBlock
+    , KaladeshBlock
+    , AmonkhetBlock
+    , IxalanBlock
+    , RavnicaBlock3
+    ]
 
 --------------------------------------------------
 -- Optics ----------------------------------------

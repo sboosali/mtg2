@@ -34,6 +34,18 @@ DataDirectory ?=./data
 HaskellRepository ?=
 
 #------------------------------------------------#
+# Options...
+
+CabalOptions ?=
+
+#------------------------------------------------#
+# Subcommands...
+
+CabalBuild ?=cabal new-build $(CabalOptions)
+CabalTest  ?=cabal new-test --enable-tests $(CabalOptions)
+CabalBench ?=cabal new-bench --enable-benchmarks $(CabalOptions)
+
+#------------------------------------------------#
 # Environment Variables...
 
 LC_ALL=C.UTF-8
@@ -60,7 +72,7 @@ check:
 
 	@printf "%s\n\n" "Testing..."
 
-	$(Cabal) new-test $(CabalOptions) --enable-tests $(CabalTargets)
+	$(CabalTest) $(CabalOptions) $(CabalTargets)
 
 	@printf "\n%s\n" "========================================"
 
@@ -120,7 +132,7 @@ all: mtg-types mtg-json mtg-csv mtg-sql dist
 
 mtg-types:
 
-	$(Cabal) new-build $(CabalOptions) -f"+develop" "lib:mtg-types"
+	$(CabalBuild) -f"+develop" "lib:mtg-types"
 
 .PHONY: mtg-types
 
@@ -128,7 +140,7 @@ mtg-types:
 
 mtg-json:
 
-	$(Cabal) new-build $(CabalOptions) -f"+develop" "lib:mtg-json"
+	$(CabalBuild) -f"+develop" "lib:mtg-json"
 
 .PHONY: mtg-json
 
@@ -136,7 +148,7 @@ mtg-json:
 
 mtg-sql:
 
-	$(Cabal) new-build $(CabalOptions) -f"+develop" "lib:mtg-sql"
+	$(CabalBuild) -f"+develop" "lib:mtg-sql"
 
 .PHONY: mtg-sql
 
@@ -144,7 +156,7 @@ mtg-sql:
 
 mtg-csv:
 
-	$(Cabal) new-build $(CabalOptions) -f"+develop" "lib:mtg-csv"
+	$(CabalBuild) -f"+develop" "lib:mtg-csv"
 
 .PHONY: mtg-csv
 
@@ -152,7 +164,7 @@ mtg-csv:
 
 mtg-scryfall:
 
-	$(Cabal) new-build $(CabalOptions) -f"+develop" "lib:mtg-scryfall"
+	$(CabalBuild) -f"+develop" "lib:mtg-scryfall"
 
 .PHONY: mtg-scryfall
 
@@ -192,6 +204,46 @@ checkdocs:
 	@printf "\n%s\n" "========================================"
 
 .PHONY: checkdocs
+
+#------------------------------------------------#
+
+check-mtg-types:
+
+	$(CabalTest) "mtg-types:test:doc"
+
+.PHONY: check-mtg-types
+
+#------------------------------------------------#
+
+check-mtg-json:
+
+	$(CabalTest) "mtg-json:test:doc"
+
+.PHONY: check-mtg-json
+
+#------------------------------------------------#
+
+check-mtg-sql:
+
+	$(CabalTest) "mtg-sql:test:doc"
+
+.PHONY: check-mtg-sql
+
+#------------------------------------------------#
+
+check-mtg-csv:
+
+	$(CabalTest) "mtg-csv:test:doc"
+
+.PHONY: check-mtg-csv
+
+#------------------------------------------------#
+
+check-mtg-scryfall:
+
+	$(CabalTest) "mtg-scryfall:test:doc"
+
+.PHONY: check-mtg-scryfall
 
 #------------------------------------------------#
 # Cabal...
