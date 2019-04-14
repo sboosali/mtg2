@@ -1020,6 +1020,160 @@ monohybrid (ManaSymbol s) = ManaSymbol ("{2/" <> s <> "}")
 
 
 
+type Colors = [Color]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+whichColors :: [Color] -> Colors
+whichColors = _
+
+
+
+
+
+
+
+
+
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (format "toColors: {{{ toColors " % Format.string % " }}} " (show cs))
+
+
+
+
+
+
+
+
+
+
+
+
+
+toColorsM :: (MonadThrow m) => [Color] -> m Colors
+toColorsM cs = cs & (ordNub > sort > go)
+  where
+
+  go = \case
+
+      []                                 -> return (ZeroColors                          )
+      [a]                                -> return (OneColor                    a       )
+      [a,b]                              -> return (TwoColors   (toGuild        a b)    )
+      [a,b,c]                            -> return (ThreeColors (toShardOrWedge a b c)  )
+      [a,b,c,d]                          -> return (FourColors  (toNephilim     a b c d))
+      [ White, Blue, Black, Red, Green ] -> return (FiveColors                          )
+      _                                  -> throwM e -- (NOTE: this case should never be reached.)
+
+  e :: PatternMatchFail
+  e = PatternMatchFail (runFormat ("``` " % Format.string % " ```: {{{ toColors " % Format.string % " }}} ")
+                        (displayName 'toColors)
+                        (showsPrec applicationPrecedence cs "")
+                       )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+toGuild :: (MonadThrow m) => Color -> Color -> m Guild
+
+toGuild White Blue  = return Azorius  
+toGuild Blue  White = return Azorius  
+
+toGuild Blue  Black = return Dimir    
+toGuild Black Blue  = return Dimir    
+
+toGuild Black Red   = return Rakdos   
+toGuild Red   Black = return Rakdos   
+
+toGuild Red   Green = return Gruul    
+toGuild Green Red   = return Gruul    
+
+toGuild Green White = return Selesnya 
+toGuild White Green = return Selesnya 
+
+toGuild White Black = return Orzhov
+toGuild Black White = return Orzhov
+
+toGuild Black Green = return Golgari  
+toGuild Green Black = return Golgari  
+
+toGuild Green Blue  = return Simic    
+toGuild Blue  Green = return Simic    
+
+toGuild Blue  Red   = return Izzet    
+toGuild Red   Blue  = return Izzet    
+
+toGuild Red   White = return Boros    
+toGuild White Red   = return Boros
+
+toGuild White White = throwM e
+toGuild Blue  Blue  = throwM e
+toGuild Black Black = throwM e
+toGuild Red   Red   = throwM e
+toGuild Green Green = throwM e
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

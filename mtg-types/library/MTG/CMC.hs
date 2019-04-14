@@ -20,7 +20,7 @@ import MTG.Types.Prelude
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 

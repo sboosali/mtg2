@@ -38,7 +38,7 @@ Parsing...
 
 -}
 
-module MTG.Enum.ManaSymbol where
+module MTG.Text.ManaSymbol where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -46,23 +46,22 @@ module MTG.Enum.ManaSymbol where
 
 import MTG.Types.Prelude
 
-import MTG.Enum.Color
+import MTG.Text.Color
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
 
 --------------------------------------------------
 
-import qualified "parsers" Text.Parser.Combinators as P
-import qualified "parsers" Text.Parser.Char        as P
+-- import qualified "parsers" Text.Parser.Combinators as P
+-- import qualified "parsers" Text.Parser.Char        as P
 import qualified "parsers" Text.Parser.Token       as P
 
 --------------------------------------------------
@@ -296,12 +295,12 @@ genericSymbol n = ManaSymbol $ (fromString . show) n
 --------------------------------------------------
 
 phyrexian :: ManaSymbol -> ManaSymbol
-phyrexian (ManaSymbol s) = ManaSymbol ("P" <> s)
+phyrexian (ManaSymbol s) = ManaSymbol (s <> "/P")
 
 --------------------------------------------------
 
 monohybrid :: ManaSymbol -> ManaSymbol
-monohybrid (ManaSymbol s) = ManaSymbol ("2/" <> s)
+monohybrid (ManaSymbol s) = ManaSymbol (s <> "/2")
 
 --------------------------------------------------
 -- Pretty ----------------------------------------
@@ -309,27 +308,27 @@ monohybrid (ManaSymbol s) = ManaSymbol ("2/" <> s)
 
 -- | @≡ 'ppManaSymbol'@
 
--- instance Pretty ManaSymbol where
+instance Pretty ManaSymbol where
 
---   pretty = ppManaSymbol
+  pretty = ppManaSymbol
 
--- --------------------------------------------------
+--------------------------------------------------
 
--- -- | @≡ 'ppManaSymbol'@
+-- | @≡ 'runPrinter' 'ppManaSymbol'@
 
--- prettyManaSymbol :: ManaSymbol -> String
--- prettyManaSymbol = ppManaSymbol > runPrinter
+prettyManaSymbol :: ManaSymbol -> String
+prettyManaSymbol = runPrinter ppManaSymbol
 
--- --------------------------------------------------
+--------------------------------------------------
 
--- -- | 
+-- | 
 
--- ppManaSymbol :: ManaSymbol -> Doc i
--- ppManaSymbol symbol = PP.braces docManaSymbol
---   where
+ppManaSymbol :: ManaSymbol -> Doc i
+ppManaSymbol (ManaSymbol s) = PP.braces docManaSymbol
+  where
 
---   docManaSymbol    = PP.pretty stringManaSymbol
---   stringManaSymbol = (abbreviateManaSymbol symbol) & fromMaybe "?" -- TODO -- 
+  docManaSymbol    = PP.pretty stringManaSymbol
+  stringManaSymbol = s
 
 --------------------------------------------------
 -- Parse -----------------------------------------

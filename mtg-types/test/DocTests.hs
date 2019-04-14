@@ -30,8 +30,8 @@ main = do
 --------------------------------------------------
 
 sources = modules2filepaths "hs" "library" $
-  "MTG.Types MTG.Types.Prelude MTG.List.Colors MTG.CMC \
-  \ MTG.Enum.Artist MTG.Enum.Block MTG.Enum.Border MTG.Enum.Cardtype MTG.Enum.Color MTG.Enum.Edition MTG.Enum.Format MTG.Enum.Frame MTG.Enum.Keyword MTG.Enum.Language MTG.Enum.Layout MTG.Enum.Legality MTG.Enum.ManaSymbol MTG.Enum.Name MTG.Enum.Rarity MTG.Enum.Subtype MTG.Enum.Supertype MTG.Enum.Symbol MTG.Enum.Watermark"
+  "MTG.Types MTG.Types.Prelude MTG.List.Colors MTG.CMC MTG.Enum.Color \
+  \ MTG.Text.Artist MTG.Text.Block MTG.Text.Border MTG.Text.Cardtype MTG.Text.Color MTG.Text.Edition MTG.Text.Format MTG.Text.Frame MTG.Text.Keyword MTG.Text.Language MTG.Text.Layout MTG.Text.Legality MTG.Text.ManaSymbol MTG.Text.Name MTG.Text.Rarity MTG.Text.Subtype MTG.Text.Supertype MTG.Text.Symbol MTG.Text.Watermark"
 
 --------------------------------------------------
 

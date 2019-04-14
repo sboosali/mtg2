@@ -9,10 +9,11 @@
 
 --------------------------------------------------
 
-{-|
+{-| 'Artist' is the name of an artist.
 
 -}
-module MTG.Enum.Legality where
+
+module MTG.Text.Artist where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -20,13 +21,13 @@ module MTG.Enum.Legality where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-newtype Legality = Legality Text
+newtype Artist = Artist Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -37,27 +38,45 @@ newtype Legality = Legality Text
 
 --------------------------------------------------
 
--- | @= 'Legal'@
-instance Default Legality where def = Legal
+-- | @≡ 'noArtist'@
+instance Default Artist where def = Artist ""
+
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+knownArtists :: [Artist]
+knownArtists =
+
+  [ QuintonHoover
+  , RebeccaGuay
+  , TereseNielsen
+  ] 
 
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
 
-pattern Legal :: Legality
-pattern Legal = "legal"
+-- | @≡ ""@
+pattern NoArtist :: Artist
+pattern NoArtist = Artist ""
 
-pattern Restricted :: Legality
-pattern Restricted = "restricted"
+--------------------------------------------------
 
-pattern Banned :: Legality
-pattern Banned = "banned"
+pattern QuintonHoover :: Artist
+pattern QuintonHoover = "Quinton Hoover"
+
+pattern RebeccaGuay :: Artist
+pattern RebeccaGuay = "Rebecca Guay"
+
+pattern TereseNielsen :: Artist
+pattern TereseNielsen = "Terese Nielsen"
 
 --------------------------------------------------
 -- Optics ----------------------------------------
 --------------------------------------------------
 
-makePrisms ''Legality
+makePrisms ''Artist
 
 --------------------------------------------------
 -- EOF -------------------------------------------

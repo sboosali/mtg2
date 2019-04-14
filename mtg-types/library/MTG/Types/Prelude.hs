@@ -48,7 +48,8 @@ import MTG.Classes.Prelude
 -- Exports ---------------------------------------
 --------------------------------------------------
 
-import "spiros" Prelude.Spiros as EXPORT
+import "spiros" Prelude.Spiros     as EXPORT
+import "spiros" Prelude.Spiros.GUI as EXPORT (displayName)
 
 --------------------------------------------------
 
@@ -66,6 +67,11 @@ import "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as EXPORT ( rende
 import "parsers" Text.Parser.Combinators as EXPORT ( Parsing( (<?>) ))
 import "parsers" Text.Parser.Char        as EXPORT ( CharParsing )
 import "parsers" Text.Parser.Token       as EXPORT ( TokenParsing )
+
+--------------------------------------------------
+
+import qualified "formatting" Formatting as Format
+import           "formatting" Formatting (Format)
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -91,7 +97,13 @@ import           "base" GHC.Stack.Types (HasCallStack)
 -- Functions -------------------------------------
 --------------------------------------------------
 
--- | Wraps 'readP_to_S'.
+{- | Run an 'MTGParsing' parser.
+
+== Implementation
+
+Wraps 'readP_to_S'.
+
+-}
 
 runParser
   :: forall m a.
@@ -122,12 +134,13 @@ runParser name p = go
 --------------------------------------------------
 
 -- | Aliases 'renderText'
+
 renderText :: PP.SimpleDocStream i -> Text
 renderText = PP.Text.renderStrict
 
 --------------------------------------------------
 
-{- | 
+{- | Specialize a /safely-partial/ string function.
 
 @
 instance 'IsString' XYZ where
@@ -161,6 +174,28 @@ fromString_MonadThrow pM = pI
   mkError = displayException > error
 
   -- ⇑ « error :: forall (r :: RuntimeRep). forall (a :: TYPE r). HasCallStack => [Char] -> a ».
+
+--------------------------------------------------
+
+{- | Run an format-specification.
+
+== Implementation
+
+Wraps `Format.formatToString`
+
+-}
+
+runFormat :: Format String a -> a
+runFormat = Format.formatToString
+
+--------------------------------------------------
+
+{- | @≡ 'showsPrec' 'applicationPrecedence'@
+
+-}
+
+showWithApplicationPrecedence :: (Show a) => a -> String
+showWithApplicationPrecedence x = showsPrec applicationPrecedence x ""
 
 --------------------------------------------------
 -- EOF -------------------------------------------

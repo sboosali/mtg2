@@ -12,8 +12,7 @@
 {-|
 
 -}
-
-module MTG.Enum.Border where
+module MTG.Text.Legality where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -21,19 +20,13 @@ module MTG.Enum.Border where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-import MTG.Types.Prelude
-
-import Control.Lens (makePrisms)
-
---------------------------------------------------
-
-newtype Border = Border Text
+newtype Legality = Legality Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -44,36 +37,27 @@ newtype Border = Border Text
 
 --------------------------------------------------
 
--- | @= 'BlackBorder'@
-instance Default Border where def = BlackBorder
+-- | @= 'Legal'@
+instance Default Legality where def = Legal
 
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
 
--- | Most cards are block-bordered.
+pattern Legal :: Legality
+pattern Legal = "legal"
 
-pattern BlackBorder :: Border
-pattern BlackBorder = "black"
+pattern Restricted :: Legality
+pattern Restricted = "restricted"
 
-pattern WhiteBorder :: Border
-pattern WhiteBorder = "white"
-
-pattern SilverBorder :: Border
-pattern SilverBorder = "silver"
-
---------------------------------------------------
--- Functions -------------------------------------
---------------------------------------------------
-
-toBorder :: Text -> Border
-toBorder = Border
+pattern Banned :: Legality
+pattern Banned = "banned"
 
 --------------------------------------------------
 -- Optics ----------------------------------------
 --------------------------------------------------
 
-makePrisms ''Border
+makePrisms ''Legality
 
 --------------------------------------------------
 -- EOF -------------------------------------------

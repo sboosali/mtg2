@@ -149,12 +149,16 @@ annNamesake = MTGAnnotations [ AnnNamesake ]
 -- Functions -------------------------------------
 --------------------------------------------------
 
-{- | 
+{- | Render a 'Doc' annotated for MTG.
+
+@
+≡ 'runPrinter' 'id'
+@
 
 -}
 
 renderString_MTGDocument :: MTGDocument -> String
-renderString_MTGDocument = runPrinter
+renderString_MTGDocument = runPrinter id
 
 --------------------------------------------------
 
@@ -164,8 +168,6 @@ renderString_MTGDocument = runPrinter
 
 -- renderANSI_MTGDocument :: MTGDocument -> String
 -- renderANSI_MTGDocument = _
-
-
 
 --------------------------------------------------
 

@@ -20,7 +20,7 @@ import MTG.JSON.Prelude
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 

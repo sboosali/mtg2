@@ -22,7 +22,7 @@ Languages that are officially supported:
 
 -}
 
-module MTG.Enum.Language where
+module MTG.Text.Language where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -32,7 +32,7 @@ import MTG.Types.Prelude
 
 --------------------------------------------------
 
-import Control.Lens (makeLenses, makePrisms)
+import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 

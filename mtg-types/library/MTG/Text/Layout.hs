@@ -8,11 +8,11 @@
 
 
 -}
-module MTG.Enum.Layout where
+module MTG.Text.Layout where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 

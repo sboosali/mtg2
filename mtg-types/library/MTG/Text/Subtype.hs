@@ -8,11 +8,11 @@
 {-|
 
 -}
-module MTG.Enum.Subtype where
+module MTG.Text.Subtype where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 

@@ -17,7 +17,7 @@ These groups of watermarks have been printed:
 * 'miscellaneousWatermarks' (ungrouped)
 
 -}
-module MTG.Enum.Watermark where
+module MTG.Text.Watermark where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -27,7 +27,7 @@ import MTG.Types.Prelude
 
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 -- Types -----------------------------------------

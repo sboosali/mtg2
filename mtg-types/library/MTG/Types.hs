@@ -14,43 +14,43 @@ module MTG.Types
 
   -- * Enum types.
 
-  , module MTG.Enum.Artist
+  , module MTG.Text.Artist
 
-  , module MTG.Enum.Block
+  , module MTG.Text.Block
 
-  , module MTG.Enum.Border
+  , module MTG.Text.Border
 
-  , module MTG.Enum.Cardtype
+  , module MTG.Text.Cardtype
 
-  , module MTG.Enum.Color
+  , module MTG.Text.Color
 
-  , module MTG.Enum.Edition
+  , module MTG.Text.Edition
 
-  , module MTG.Enum.Format
+  , module MTG.Text.Format
 
-  , module MTG.Enum.Frame
+  , module MTG.Text.Frame
 
-  , module MTG.Enum.Keyword
+  , module MTG.Text.Keyword
 
-  , module MTG.Enum.Language
+  , module MTG.Text.Language
 
-  , module MTG.Enum.Layout
+  , module MTG.Text.Layout
 
-  , module MTG.Enum.Legality
+  , module MTG.Text.Legality
 
-  , module MTG.Enum.ManaSymbol
+  , module MTG.Text.ManaSymbol
 
-  , module MTG.Enum.Name
+  , module MTG.Text.Name
 
-  , module MTG.Enum.Rarity
+  , module MTG.Text.Rarity
 
-  , module MTG.Enum.Subtype
+  , module MTG.Text.Subtype
 
-  , module MTG.Enum.Supertype
+  , module MTG.Text.Supertype
 
-  , module MTG.Enum.Symbol
+  , module MTG.Text.Symbol
 
-  , module MTG.Enum.Watermark
+  , module MTG.Text.Watermark
 
   ) where
 
@@ -63,25 +63,25 @@ import MTG.List.ManaCost
 
 --------------------------------------------------
 
-import MTG.Enum.Artist
-import MTG.Enum.Block
-import MTG.Enum.Border
-import MTG.Enum.Cardtype
-import MTG.Enum.Color
-import MTG.Enum.Edition
-import MTG.Enum.Format
-import MTG.Enum.Frame
-import MTG.Enum.Keyword
-import MTG.Enum.Language
-import MTG.Enum.Layout
-import MTG.Enum.Legality
-import MTG.Enum.ManaSymbol
-import MTG.Enum.Name
-import MTG.Enum.Rarity
-import MTG.Enum.Subtype
-import MTG.Enum.Supertype
-import MTG.Enum.Symbol
-import MTG.Enum.Watermark
+import MTG.Text.Artist
+import MTG.Text.Block
+import MTG.Text.Border
+import MTG.Text.Cardtype
+import MTG.Text.Color
+import MTG.Text.Edition
+import MTG.Text.Format
+import MTG.Text.Frame
+import MTG.Text.Keyword
+import MTG.Text.Language
+import MTG.Text.Layout
+import MTG.Text.Legality
+import MTG.Text.ManaSymbol
+import MTG.Text.Name
+import MTG.Text.Rarity
+import MTG.Text.Subtype
+import MTG.Text.Supertype
+import MTG.Text.Symbol
+import MTG.Text.Watermark
 
 --------------------------------------------------
 -- EOF -------------------------------------------

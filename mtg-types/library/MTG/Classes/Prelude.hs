@@ -46,10 +46,23 @@ type Assoc a = [( Text, a )]
 -- Functions -------------------------------------
 --------------------------------------------------
 
--- | Wraps 'renderString'.
+{- | Run an 'MTGPrinting' pretty-printer.
 
-runPrinter :: Doc i -> String
-runPrinter = PP.layoutSmart PP.defaultLayoutOptions > PP.String.renderString
+== Implementation
+
+Wraps `PP.String.renderString` and `PP.layoutSmart`.
+
+-}
+
+runPrinter
+  :: (a -> Doc i)
+  -> (a -> String)
+
+runPrinter f = f > layout > render
+  where
+
+  layout = PP.layoutSmart PP.defaultLayoutOptions
+  render = PP.String.renderString
   
 --------------------------------------------------
 -- EOF -------------------------------------------

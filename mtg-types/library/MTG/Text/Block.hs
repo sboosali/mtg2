@@ -7,13 +7,13 @@
 {-|
 
 -}
-module MTG.Enum.Block where
+module MTG.Text.Block where
 
 import MTG.Types.Prelude
 
-import MTG.Enum.Edition
+import MTG.Text.Edition
 
-import Control.Lens (makeLenses, makePrisms)
+import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 

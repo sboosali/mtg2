@@ -7,15 +7,15 @@
 {-|
 
 -}
-module MTG.Enum.Supertype where
+module MTG.Text.Name where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
-newtype Supertype = Supertype Text
+newtype CardName = CardName Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -24,23 +24,10 @@ newtype Supertype = Supertype Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''Supertype
+makePrisms ''CardName
 
 --------------------------------------------------
 
-basicSupertype :: Supertype
-basicSupertype = "Basic"
 
-legendarySupertype :: Supertype
-legendarySupertype = "Legendary"
 
-snowSupertype :: Supertype
-snowSupertype = "Snow"
-
-ongoingSupertype :: Supertype
-ongoingSupertype = "Ongoing"
-
-worldSupertype :: Supertype
-worldSupertype = "World"
- 
 --------------------------------------------------

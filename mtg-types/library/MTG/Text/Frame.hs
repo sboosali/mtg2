@@ -7,15 +7,15 @@
 {-|
 
 -}
-module MTG.Enum.Name where
+module MTG.Text.Frame where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
-newtype CardName = CardName Text
+newtype Frame = Frame Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -24,10 +24,19 @@ newtype CardName = CardName Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''CardName
-
+makePrisms ''Frame
 --------------------------------------------------
 
+oldFrame :: Frame
+oldFrame = "old"
 
+timeshiftedFrame :: Frame
+timeshiftedFrame = "timeshifted"
+
+newFrame :: Frame
+newFrame = "new"
+
+futureFrame :: Frame
+futureFrame = "future"
 
 --------------------------------------------------

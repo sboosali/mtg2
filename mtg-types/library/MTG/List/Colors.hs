@@ -49,7 +49,7 @@ module MTG.List.Colors
 
   ( module MTG.List.Colors
 
-  , module MTG.Enum.Color
+  , module MTG.Text.Color
   ) where
 
 --------------------------------------------------
@@ -58,28 +58,28 @@ module MTG.List.Colors
 
 import MTG.Types.Prelude
 
-import MTG.Enum.Color
+import MTG.Text.Color
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
 import qualified "prettyprinter" Data.Text.Prettyprint.Doc               as PP
-import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
+--import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.String
 
 --------------------------------------------------
 
-import qualified "attoparsec" Data.Attoparsec.Text as P
+--import qualified "attoparsec" Data.Attoparsec.Text as P
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import qualified "text" Data.Text as T
+--import qualified "text" Data.Text as T
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -111,6 +111,11 @@ instance IsList Colors where
   type Item Colors = Color
   fromList = toColors
   toList   = coerce
+
+--------------------------------------------------
+
+instance IsString Colors where
+  fromString = fromString_MonadThrow parseColors
 
 --------------------------------------------------
 -- Patterns --------------------------------------
@@ -236,10 +241,10 @@ ppColors (Colors cs) = PP.hcat (pretty <$> cs)
 
 --------------------------------------------------
 
--- | @≡ 'ppColors'@
+-- | @≡ 'runPrinter' 'ppColors'@
 
-prettyColors :: Colors -> Doc i
-prettyColors (Colors cs) = PP.hcat (pretty <$> cs)
+prettyColors :: Colors -> String
+prettyColors = runPrinter ppColors
 
 --------------------------------------------------
 -- Parse -----------------------------------------

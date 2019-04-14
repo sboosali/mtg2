@@ -7,15 +7,15 @@
 {-|
 
 -}
-module MTG.Enum.Frame where
+module MTG.Text.Supertype where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
-newtype Frame = Frame Text
+newtype Supertype = Supertype Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -24,19 +24,23 @@ newtype Frame = Frame Text
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
-makePrisms ''Frame
+makePrisms ''Supertype
+
 --------------------------------------------------
 
-oldFrame :: Frame
-oldFrame = "old"
+basicSupertype :: Supertype
+basicSupertype = "Basic"
 
-timeshiftedFrame :: Frame
-timeshiftedFrame = "timeshifted"
+legendarySupertype :: Supertype
+legendarySupertype = "Legendary"
 
-newFrame :: Frame
-newFrame = "new"
+snowSupertype :: Supertype
+snowSupertype = "Snow"
 
-futureFrame :: Frame
-futureFrame = "future"
+ongoingSupertype :: Supertype
+ongoingSupertype = "Ongoing"
 
+worldSupertype :: Supertype
+worldSupertype = "World"
+ 
 --------------------------------------------------

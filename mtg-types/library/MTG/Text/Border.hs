@@ -9,11 +9,11 @@
 
 --------------------------------------------------
 
-{-| 'Artist' is the name of an artist.
+{-|
 
 -}
 
-module MTG.Enum.Artist where
+module MTG.Text.Border where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -21,13 +21,19 @@ module MTG.Enum.Artist where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
-newtype Artist = Artist Text
+import MTG.Types.Prelude
+
+import "lens" Control.Lens (makePrisms)
+
+--------------------------------------------------
+
+newtype Border = Border Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
@@ -38,45 +44,36 @@ newtype Artist = Artist Text
 
 --------------------------------------------------
 
--- | @≡ 'noArtist'@
-instance Default Artist where def = Artist ""
-
---------------------------------------------------
--- Constants -------------------------------------
---------------------------------------------------
-
-knownArtists :: [Artist]
-knownArtists =
-
-  [ QuintonHoover
-  , RebeccaGuay
-  , TereseNielsen
-  ] 
+-- | @= 'BlackBorder'@
+instance Default Border where def = BlackBorder
 
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
 
--- | @≡ ""@
-pattern NoArtist :: Artist
-pattern NoArtist = Artist ""
+-- | Most cards are block-bordered.
+
+pattern BlackBorder :: Border
+pattern BlackBorder = "black"
+
+pattern WhiteBorder :: Border
+pattern WhiteBorder = "white"
+
+pattern SilverBorder :: Border
+pattern SilverBorder = "silver"
 
 --------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
 
-pattern QuintonHoover :: Artist
-pattern QuintonHoover = "Quinton Hoover"
-
-pattern RebeccaGuay :: Artist
-pattern RebeccaGuay = "Rebecca Guay"
-
-pattern TereseNielsen :: Artist
-pattern TereseNielsen = "Terese Nielsen"
+toBorder :: Text -> Border
+toBorder = Border
 
 --------------------------------------------------
 -- Optics ----------------------------------------
 --------------------------------------------------
 
-makePrisms ''Artist
+makePrisms ''Border
 
 --------------------------------------------------
 -- EOF -------------------------------------------

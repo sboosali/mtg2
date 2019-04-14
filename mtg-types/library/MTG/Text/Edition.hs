@@ -8,12 +8,12 @@
 {-|
 
 -}
-module MTG.Enum.Edition where
+module MTG.Text.Edition where
 
 import MTG.Types.Prelude
-import MTG.Enum.Language
+import MTG.Text.Language
 
-import Control.Lens (makeLenses, makePrisms)
+import "lens" Control.Lens (makeLenses, makePrisms)
 
 --------------------------------------------------
 

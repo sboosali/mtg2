@@ -7,11 +7,11 @@
 {-|
 
 -}
-module MTG.Enum.Format where
+module MTG.Text.Format where
 
 import MTG.Types.Prelude
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 

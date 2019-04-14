@@ -22,7 +22,7 @@
 
 -}
 
-module MTG.Enum.Symbol where
+module MTG.Text.Symbol where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -30,14 +30,14 @@ module MTG.Enum.Symbol where
 
 import MTG.Types.Prelude
 
-import MTG.Enum.Color
-import MTG.Enum.ManaSymbol
+import MTG.Text.Color
+import MTG.Text.ManaSymbol
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
@@ -56,13 +56,14 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.String as PP.S
 
 -}
 
-newtype Symbol = Symbol Text
+newtype Symbol = Symbol
+
+  Text
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
 
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
@@ -71,7 +72,7 @@ newtype Symbol = Symbol Text
 
 instance IsString Symbol where
 
-  fromString = (coerce . fromString)
+  fromString = (Symbol . fromString)
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -87,11 +88,8 @@ untapSymbol = "Q"
 -- Functions -------------------------------------
 --------------------------------------------------
 
-toSymbol :: [ManaSymbol] -> Symbol
-toSymbol symbols = cost
-  where
-
-  cost = Symbol symbols --TODO
+toSymbol :: ManaSymbol -> Symbol
+toSymbol (ManaSymbol symbol) = (Symbol symbol)
 
 --------------------------------------------------
 
@@ -103,6 +101,7 @@ loyaltyActivationSymbol i =
   where
   s = (fromString . show) (abs i)
 
+{-
 --------------------------------------------------
 -- Pretty ----------------------------------------
 --------------------------------------------------
@@ -116,11 +115,13 @@ instance Pretty Symbol where
 --------------------------------------------------
 
 prettySymbol :: Symbol -> Doc i
-prettySymbol Symbol = PP.braces docSymbol
+prettySymbol symbol = PP.braces docSymbol
   where
 
   docSymbol    = PP.pretty stringSymbol
-  stringSymbol = (abbreviateSymbol Symbol) & fromMaybe ""
+  stringSymbol = case symbol of Symbol t -> t
+
+--stringSymbol = (abbreviateSymbol symbol) & fromMaybe ""
 
 --------------------------------------------------
 
@@ -137,7 +138,7 @@ instance Parse Symbol where
 
 --------------------------------------------------
 
-pSymbol :: Parser Symbol
+pSymbol :: MTGParsing m => m Symbol
 pSymbol = p
   where
 
@@ -146,7 +147,8 @@ pSymbol = p
 --------------------------------------------------
 
 parseSymbol :: (MonadThrow m) => String -> m Symbol
-parseSymbol = runParser pSymbol 
+parseSymbol = runParser 'Symbol pSymbol 
+-}
 
 --------------------------------------------------
 -- Optics ----------------------------------------

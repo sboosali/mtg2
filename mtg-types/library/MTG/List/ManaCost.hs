@@ -27,7 +27,7 @@ module MTG.List.ManaCost
 
   ( module MTG.List.ManaCost
 
-  , module MTG.Enum.ManaSymbol
+  , module MTG.Text.ManaSymbol
   ) where
 
 --------------------------------------------------
@@ -36,14 +36,14 @@ module MTG.List.ManaCost
 
 import MTG.Types.Prelude
 
-import MTG.Enum.ManaSymbol
+import MTG.Text.ManaSymbol
 import MTG.List.Colors
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import Control.Lens (makePrisms)
+import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
 
@@ -95,7 +95,7 @@ instance IsList ManaCost where
 
 instance IsString ManaCost where
 
-  fromString = (coerce . fromString)
+  fromString = fromString_MonadThrow parseManaCost
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -132,18 +132,14 @@ instance Pretty ManaCost where
 --------------------------------------------------
 
 ppManaCost :: ManaCost -> Doc i
-ppManaCost ManaCost = PP.braces docManaCost
-  where
-
-  docManaCost    = PP.pretty stringManaCost
-  stringManaCost = (abbreviateManaCost ManaCost) & fromMaybe ""
+ppManaCost (ManaCost ss) = PP.hcat (pretty <$> ss)
 
 --------------------------------------------------
 
--- | @≡ 'ppManaCost'@
+-- | @≡ 'runPrinter' 'ppManaCost'@
 
 prettyManaCost :: ManaCost -> String
-prettyManaCost = (PP.String.renderString . ppManaCost)
+prettyManaCost = runPrinter ppManaCost
 
 --------------------------------------------------
 -- Parse -----------------------------------------
@@ -165,7 +161,7 @@ pManaCost = _
 -- | @≡ 'pManaCost'@
 
 parseManaCost :: (MonadThrow m) => String -> m ManaCost
-parseManaCost = runParser pManaCost 
+parseManaCost = runParser 'ManaCost pManaCost
 
 --------------------------------------------------
 -- Optics ----------------------------------------
