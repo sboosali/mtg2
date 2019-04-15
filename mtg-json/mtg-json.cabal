@@ -674,25 +674,14 @@ executable mtg-json
 
                -----------------
 
-               , bytestring
-               , filepath
-               , directory
-
-               -----------------
-
                , optparse-applicative ^>= 0.14
                , attoparsec           ^>= 0.13
-
-               -----------------
-
-               , prettyprinter               ^>= 1.2
-               , prettyprinter-ansi-terminal ^>= 1.1
-               , formatting                  ^>= 6.3
+               , ansi-wl-pprint       ^>= 0.6
+               , formatting           ^>= 6.3
 
                -----------------
 
                , lens
-               , lens-aeson
 
                -----------------
 
@@ -706,6 +695,13 @@ executable mtg-json
                , http-client-tls
                , http-types 
                , wreq
+
+               -----------------
+
+               , containers ^>= 0.6
+               , bytestring
+               , filepath
+               , directory
 
                -----------------
 

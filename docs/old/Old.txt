@@ -1941,6 +1941,139 @@ import qualified GHC.Exception ( errorCallWithCallStackException )
 
 
 
+negateMtgNumber :: MtgNumber -> MtgNumber
+negateMtgNumber = normalizeMtgNumber . go
+  where
+
+  go :: MtgNumber -> MtgNumber
+  go = \case
+
+    MtgWildcard -> 0 - MtgWildcard
+    MtgNatural n -> 0 - MtgNatural n
+    MtgAdd x y -> MtgAdd x y
+    MtgMinus x y -> MtgMinus x y
+
+
+
+
+
+
+data Operation
+ = Addition
+ | Subtraction
+
+data Literal
+  = Natural Natural
+  | Wildcard
+
+
+data MTGNumber
+
+  = 
+
+
+data NOperation
+ = NAddition
+ | NSubtraction
+
+data NLiteral
+  = NNatural Natural
+  | NWildcard
+
+
+
+
+{- | `fromInteger` is `MtgNatural`.
+
+>>> (0 :: MtgNumber)
+>>> 'MtgNatural' 0
+-}
+
+instance Num MtgNumber where
+
+      fromInteger = MtgNatural . fromInteger
+      (+)         = MtgAdd
+      (*)         = 
+     
+      negate      = fmap negate
+      abs         = fmap abs
+      signum      = fmap signum
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-# SPECIALIZE putAnsiDocs :: PP.Chunk (PP.Doc) -> IO () #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pPrint :: P.Parser Subcommand
+pPrint = asum
+
+  [ P.strArgument "version" PrintVersion
+  , P.strArgument "license" PrintLicense
+  ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

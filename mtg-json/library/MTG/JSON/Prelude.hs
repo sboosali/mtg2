@@ -17,8 +17,7 @@ module MTG.JSON.Prelude
 
   ( module EXPORT
   , module MTG.Types
-
-  , module MTG.JSON.Prelude
+--, module MTG.JSON.Prelude
   ) where
 
 --------------------------------------------------
@@ -33,21 +32,17 @@ import "spiros" Prelude.Spiros as EXPORT
 
 --------------------------------------------------
 
---import "enumerate" Enumerate as EXPORT
+import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
+import "attoparsec" Data.Attoparsec.Text as EXPORT ( Parser )
 
 --------------------------------------------------
 
-import "attoparsec" Data.Attoparsec.Text as EXPORT ( Parser(..) )
-
---------------------------------------------------
-
-import qualified "formatting" Formatting as Format
+--import qualified "formatting" Formatting as Format
 
 --------------------------------------------------
 -- Utilities -------------------------------------

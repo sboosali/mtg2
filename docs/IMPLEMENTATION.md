@@ -1,6 +1,9 @@
 # Implementation Notes
 
-## `Data.Char`
+
+## `base` package
+
+### `Data.Char` module
 
 ```
 λ> (\(character, category) -> Prelude.putStr [character] >> Prelude.putStr " " >> Prelude.print category) `Prelude.traverse` ((\c -> (c, Char.generalCategory c)) <$> [' '..'~'])
@@ -134,5 +137,69 @@ z LowercaseLetter
 ```
 
 
+## `ansi-wl-pprint` package
+
+### `Text.PrettyPrint.ANSI.Leijen` module
+ 
+#### Consumers
+
+> This terminal formatting functionality is, as far as possible, portable across platforms with their varying terminals. However, note that to display ANSI colors and formatting will only be displayed on Windows consoles if the Doc value is output using the `putDoc` function or one of its friends. Rendering the Doc to a String and then outputing that will only work on Unix-style operating systems.
+
+* `show   :: Doc -> String`
+* `putDoc :: Doc -> IO ()`
+
+#### Producers
+
+Forecolor combinators:
+
+* `black :: Doc -> Doc`
+* `red :: Doc -> Doc`
+* `green :: Doc -> Doc`
+* `yellow :: Doc -> Doc`
+* `blue :: Doc -> Doc`
+* `magenta :: Doc -> Doc`
+* `cyan :: Doc -> Doc`
+* `white :: Doc -> Doc`
+* `dullblack :: Doc -> Doc`
+* `dullred :: Doc -> Doc`
+* `dullgreen :: Doc -> Doc`
+* `dullyellow :: Doc -> Doc`
+* `dullblue :: Doc -> Doc`
+* `dullmagenta :: Doc -> Doc`
+* `dullcyan :: Doc -> Doc`
+* `dullwhite :: Doc -> Doc`
+
+Backcolor combinators:
+
+* `onblack :: Doc -> Doc`
+* `onred :: Doc -> Doc`
+* `ongreen :: Doc -> Doc`
+* `onyellow :: Doc -> Doc`
+* `onblue :: Doc -> Doc`
+* `onmagenta :: Doc -> Doc`
+* `oncyan :: Doc -> Doc`
+* `onwhite :: Doc -> Doc`
+* `ondullblack :: Doc -> Doc`
+* `ondullred :: Doc -> Doc`
+* `ondullgreen :: Doc -> Doc`
+* `ondullyellow :: Doc -> Doc`
+* `ondullblue :: Doc -> Doc`
+* `ondullmagenta :: Doc -> Doc`
+* `ondullcyan :: Doc -> Doc`
+* `ondullwhite :: Doc -> Doc`
+
+Emboldening combinators:
+
+* `bold :: Doc -> Doc`
+* `debold :: Doc -> Doc`
+
+Underlining combinators:
+
+* `underline :: Doc -> Doc`
+* `deunderline :: Doc -> Doc`
+
+Formatting elimination combinators:
+
+* `plain :: Doc -> Doc`
 
 ## 

@@ -33,21 +33,28 @@ import qualified "optparse-applicative" Options.Applicative.Help as P hiding (fu
 
 -- NOTE « attoparsec » uses strict « Text ».
 
+import qualified "optparse-applicative" Options.Applicative.Help.Pretty as PP
+
+-- NOTE « optparse-applicative » re-exports « Text.PrettyPrint.ANSI.Leijen »
+--      from the « ansi-wl-pprint » package (via the « ansi-pretty » package).
+
 --------------------------------------------------
 
 import qualified "formatting" Formatting as Format
-import           "formatting" Formatting (Format)
+import           "formatting" Formatting (Format, (%))
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
+
+import qualified "base" Data.List as List
 
 import           "base" Data.Maybe
 import           "base" System.Exit
 
 --------------------------------------------------
 
-import "base" Prelude
+import qualified "base" Prelude
 
 --------------------------------------------------
 -- CLI -------------------------------------------
@@ -89,16 +96,23 @@ preferences = P.prefs (mconcat xs)
 {-# INLINEABLE preferences #-}
 
 --------------------------------------------------
+
+programDescription :: [PP.Doc]
+programDescription =
+
+  [ "{{{ mtg-json }}} is a program for fetching and extending a list of {{{ Magic: The Gathering }} cards."
+  ]
+
+{-# INLINEABLE programDescription #-}
+
+--------------------------------------------------
 -- « ParserInfo »s -------------------------------
 --------------------------------------------------
 
 -- | 
 
 piCommand :: P.ParserInfo Command
-piCommand = info description pCommand
-
-  where
-  description = "{{{ mtg-json }}} is a program for fetching and extending a list of {{{ Magic: The Gathering }} cards."
+piCommand = info (docsToChunk programDescription) pCommand
 
 {-# INLINEABLE piCommand #-}
 
@@ -108,8 +122,8 @@ piCommand = info description pCommand
 
 piFetch :: P.ParserInfo Subcommand
 piFetch = info description pFetch
-
   where
+
   description = "Fetch {{{ mtg.json }}} from SRC, save it in DST."
 
 {-# INLINEABLE piFetch #-}
@@ -217,7 +231,23 @@ pFetch = do
 -- | 
 
 pPrint :: P.Parser Subcommand
-pPrint = _
+pPrint = P.argument reader fields
+  where
+
+  fields :: P.Mod P.ArgumentFields a
+  fields = mconcat
+    [ P.metavar "INFO"
+    , P.completeWith (fst <$> cs)
+    ]
+
+  reader :: P.ReadM Subcommand
+  reader = pAssoc cs
+
+  cs :: [(String, Subcommand)]
+  cs =
+    [ "version"-: PrintVersion
+    , "license"-: PrintLicense
+    ]
 
 {-# INLINEABLE pPrint #-}
 
@@ -271,12 +301,20 @@ fromParserResult = \case
       where
 
         s :: String
-        s = runFormat ("Exit Code: " % Format.int % "\n\
-                        Std Err:\n" % Format.string)
+        s = runFormat ("Exit Code: " % Format.int % "\nStd Err:\n" % Format.string)
             exitcode
             stderr
 
 {-# INLINEABLE fromParserResult #-}
+
+--------------------------------------------------
+
+{-| -}
+
+docsToChunk :: [PP.Doc] -> P.Chunk PP.Doc
+docsToChunk = PP.vcat > Just > P.Chunk
+
+{-# INLINEABLE docsToChunk #-}
 
 --------------------------------------------------
 -- EOF -------------------------------------------
