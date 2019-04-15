@@ -1790,6 +1790,163 @@ runParserPartially anonymous (pLanguageEndonym *> P.symbolic '(' *> pFreeText *>
 
 
 
+cli :: IO ()
+cli = do
+  nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    helpVersion :: String
+    helpVersion = "Print the version of this program. The format is: dot-separated numerics. For example: {{{ 0.11.0 }}}. When the verbosity is {{{ 1 }}} (the default) or less, no other text is printed (also see option {{{ --verbose }}}); when {{{ 2 }}} or greater, also print the patch version (i.e. the git commit) and build information (the compiler version, and transitive dependencies' versions)."
+
+    helpLicense :: String
+    helpLicense = "Print the license of this program. The format is: an SPDX License Identifier (alphanumerics, plus hyphens and/or dots). For example: {{{ Apache-2.0 }}}. When the verbosity is {{{ 1 }}} (the default) or less, no other text is printed (also see option {{{ --verbose }}}); when {{{ 2 }}} or greater, also print the license contents."
+
+
+
+
+
+
+
+
+
+
+
+
+import Options.Applicative
+import Options.Applicative.Help as AH
+import Options.Applicative.Types as AT
+import System.Environment (getArgs, getProgName)
+import System.Exit (exitWith, ExitCode(..))
+import System.IO (hPutStr, stderr)
+
+execParserWithHelp :: ParserPrefs -> ParserInfo a -> IO a
+execParserWithHelp pprefs pinfo = do
+  args <- getArgs
+  case execParserPure pprefs pinfo args of
+    Right a -> return a
+    Left failure -> do
+      progn <- getProgName
+      msg <- AT.errMessage failure progn
+      let extra = if null args
+                  then AH.parserHelpText pprefs pinfo
+                  else ""
+      let c = errExitCode failure
+      case c of
+        ExitSuccess -> putStr (msg ++ extra)
+        _           -> hPutStr stderr (msg ++ extra)
+      exitWith c
+
+main :: IO ()
+main = execParserWithHelp (prefs idm) opts >>= run
+
+opts :: ParserInfo Command
+opts = info (commands <**> helper) idm
+
+run :: Command -> IO ()
+run = ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-| -}
+
+fromParserResult :: P.ParserResult a -> Either SomeException a
+fromParserResult = \case
+
+    P.Success a           -> Right a
+    P.Failure e           -> Left (toStdErrException (P.renderFailure e programExecutable))
+    P.CompletionInvoked _ -> Left def
+
+  where
+
+    toStdErrException :: (String, ExitCode) -> SomeException
+    toStdErrException (stderr, exitcode) = toException (Prelude.userError s)
+      where
+
+        s :: String
+        s = runFormat ("Exit Code: " % Format.int % "\n\
+                        Std Err:\n" % Format.string)
+            exitcode
+            stderr
+
+{-# INLINEABLE fromParserResult #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import qualified GHC.Exception ( errorCallWithCallStackException )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

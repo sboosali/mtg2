@@ -85,7 +85,7 @@ import qualified "prettyprinter" Data.Text.Prettyprint.Doc.Render.Text   as PP.T
 import           "base" GHC.Stack.Types (HasCallStack)
 
 --------------------------------------------------
--- Functions -------------------------------------
+-- Utilities -------------------------------------
 --------------------------------------------------
 
 -- | Aliases 'renderText'
@@ -132,7 +132,16 @@ fromString_MonadThrow pM = pI
 
 --------------------------------------------------
 
-{- | Run an format-specification.
+{- | @≡ 'showsPrec' 'applicationPrecedence'@
+
+-}
+
+showWithApplicationPrecedence :: (Show a) => a -> String
+showWithApplicationPrecedence x = showsPrec applicationPrecedence x ""
+
+--------------------------------------------------
+
+{- | Run a format-specification.
 
 == Implementation
 
@@ -143,14 +152,7 @@ Wraps `Format.formatToString`
 runFormat :: Format String a -> a
 runFormat = Format.formatToString
 
---------------------------------------------------
-
-{- | @≡ 'showsPrec' 'applicationPrecedence'@
-
--}
-
-showWithApplicationPrecedence :: (Show a) => a -> String
-showWithApplicationPrecedence x = showsPrec applicationPrecedence x ""
+{-# INLINEABLE runFormat #-}
 
 --------------------------------------------------
 -- EOF -------------------------------------------

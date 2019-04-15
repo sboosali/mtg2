@@ -592,6 +592,14 @@ library
              , attoparsec ^>= 0.13
 
   --------------------
+  -- Printing --------
+  --------------------
+
+              , prettyprinter               ^>= 1.2
+              , prettyprinter-ansi-terminal ^>= 1.1
+              , formatting                  ^>= 6.3
+
+  --------------------
   -- Records ---------
   --------------------
 
@@ -645,34 +653,61 @@ executable mtg-json
 
   hs-source-dirs: ./executables
 
-  main-is:       Program/MTG/SQL/JSON/Main.hs
+  main-is:       Program/MTG/JSON/Main.hs
 
-  other-modules: Program.MTG.JSON.IO
-                 Program.MTG.JSON.CLI
+  other-modules: Program.MTG.JSON.Types
+
+               , Program.MTG.JSON.IO
+               , Program.MTG.JSON.CLI
+
+               , Program.MTG.JSON.Prelude
+               , Program.MTG.JSON.Constants
 
   ----------------------------
 
   build-depends: mtg-json
+               , mtg-types
+
+               -----------------
+
                , spiros
 
-               , optparse-applicative ^>= 0.14
+               -----------------
 
                , bytestring
-
                , filepath
                , directory
 
+               -----------------
+
+               , optparse-applicative ^>= 0.14
+               , attoparsec           ^>= 0.13
+
+               -----------------
+
+               , prettyprinter               ^>= 1.2
+               , prettyprinter-ansi-terminal ^>= 1.1
+               , formatting                  ^>= 6.3
+
+               -----------------
+
                , lens
                , lens-aeson
+
+               -----------------
 
                , zlib
                , tar
                , zip-archive
 
+               -----------------
+
                , http-client 
                , http-client-tls
                , http-types 
                , wreq
+
+               -----------------
 
 --------------------------------------------------
 -- EOF -------------------------------------------

@@ -2,52 +2,41 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE BlockArguments        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ApplicativeDo         #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 
 --------------------------------------------------
 
-{- | Re-export:
-
-* the "Prelude.Spiros" @module@ — my custom prelude (from the @spiros@ package).
-* the "MTG.Types.Prelude" @module@ — the @mtg-types@ package's custom prelude.
+{-|
 
 -}
 
-module MTG.JSON.Prelude
-
-  ( module EXPORT
-  , module MTG.Types
-
-  , module MTG.JSON.Prelude
-  ) where
+module Program.MTG.JSON.IO where
 
 --------------------------------------------------
--- Exports ---------------------------------------
+-- Imports (Internal) ----------------------------
 --------------------------------------------------
 
-import "mtg-types" MTG.Types
+import Program.MTG.JSON.Prelude
 
 --------------------------------------------------
-
-import "spiros" Prelude.Spiros as EXPORT
-
+-- Imports (External) ----------------------------
 --------------------------------------------------
 
---import "enumerate" Enumerate as EXPORT
-
 --------------------------------------------------
--- Imports ---------------------------------------
+-- Effects ---------------------------------------
 --------------------------------------------------
 
-import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
+{- | 
 
---------------------------------------------------
+@mtg-json@'s @main@ invocation.
 
-import "attoparsec" Data.Attoparsec.Text as EXPORT ( Parser(..) )
+-}
 
---------------------------------------------------
 
-import qualified "formatting" Formatting as Format
 
 --------------------------------------------------
 -- Utilities -------------------------------------

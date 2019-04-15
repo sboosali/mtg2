@@ -636,12 +636,27 @@ executable mtg-sql
   ----------------------------
 
   build-depends: mtg-sql
+
+               -----------------
+
                , spiros
+
+               -----------------
 
                , optparse-applicative ^>= 0.14
 
+               -----------------
+
+               , prettyprinter               ^>= 1.2
+               , prettyprinter-ansi-terminal ^>= 1.1
+               , formatting                  ^>= 6.3
+
+               -----------------
+
                , filepath
                , directory
+
+               -----------------
 
 --TODO--
 -- 
