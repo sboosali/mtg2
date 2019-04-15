@@ -21,8 +21,11 @@
 module Program.MTG.JSON.Prelude
 
   ( module EXPORT
-  , module Program.MTG.JSON.Prelude
+
   , module MTG.JSON
+  , module MTG.Types
+
+  , module Program.MTG.JSON.Prelude
   , module Prelude.Spiros
   ) where
 
@@ -31,7 +34,7 @@ module Program.MTG.JSON.Prelude
 --------------------------------------------------
 
 import "mtg-json"  MTG.JSON
-import "mtg-types" MTG.Types
+import "mtg-types" MTG.Types hiding ( pAssoc )
 
 --------------------------------------------------
 
@@ -39,24 +42,23 @@ import "spiros" Prelude.Spiros
 
 --------------------------------------------------
 
-import "attoparsec" Data.Attoparsec.Text as EXPORT ( Parser(..) )
-
---------------------------------------------------
-
-import Control.Exception as EXPORT ( ErrorCall(..) )
+import "base" Control.Exception as EXPORT ( ErrorCall(..) )
+import "base" System.Exit       as EXPORT ( ExitCode(..) )
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
 import qualified "optparse-applicative" Options.Applicative             as P
+
 import qualified "optparse-applicative" Options.Applicative.Help.Pretty as PP
 
 --------------------------------------------------
 
 import qualified "formatting" Formatting as Format
-import           "formatting" Formatting ( (%) )
 
+--------------------------------------------------
+-- Imports ---------------------------------------
 --------------------------------------------------
 
 import qualified "containers" Data.Map as Map
@@ -65,7 +67,7 @@ import qualified "containers" Data.Map as Map
 
 import qualified "base" Control.Arrow as Arrow
 
-import qualified GHC.Exception as GHC ( errorCallWithCallStackException )
+import qualified "base" GHC.Exception as GHC ( errorCallWithCallStackException )
 
 --------------------------------------------------
 -- Definitions -----------------------------------
@@ -117,6 +119,25 @@ runFormat = Format.formatToString
 
 --------------------------------------------------
 
+{- |
+
+== Exports
+
+>>> fromExitCode ExitSuccess
+0
+>>> fromExitCode (ExitFailure 1)
+1
+
+-}
+
+fromExitCode :: ExitCode -> Int
+fromExitCode = \case
+
+  ExitSuccess   -> 0
+  ExitFailure i -> i
+
+--------------------------------------------------
+
 {- | Like `Map.fromList`, but preserving all values.
 
 == Examples
@@ -133,14 +154,14 @@ allFromList = map (Arrow.second (:[])) > Map.fromListWith (++)
 
 --------------------------------------------------
 
-{-| Parse an @Enum@, given an /association list/.
+{-| Create a /parser/ and a /completer/ for an “@Enum@-@String@”, given an /association list/.
 
 == Examples
 
 >>> tBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
->>> rBool = pAssoc tBools
+>>> ( rBool, _ ) = pAssoc tBools
 >>> import qualified Options.Applicative as P
->>> readBool t = P.getParseResult (P.execParserPure P.defaultPrefs (P.info mempty (P. rBool)) [t])
+>>> readBool t = P.getParseResult (P.execParserPure P.defaultPrefs (P.info mempty (P.argument mempty rBool)) [t])
 >>> readBool "on"
 Just True
 >>> readBool "1"
@@ -157,9 +178,9 @@ pAssoc
     ( 
     )
   => [(String, a)]
-  -> P.ReadM a
+  -> ( P.ReadM a, [String] )
 
-pAssoc kvs = rV
+pAssoc kvs = ( rV, cV )
 
   where
 
@@ -167,6 +188,11 @@ pAssoc kvs = rV
 
   rV :: P.ReadM a
   rV = P.maybeReader pV
+
+  -- completions:
+
+  cV :: [String]
+  cV = fst <$> kvs
 
   -- parser:
 

@@ -2069,6 +2069,124 @@ pPrint = asum
 
 
 
+pFetch :: P.Parser Subcommand
+pFetch = do
+
+  src' <- pSrc
+  dst' <- pDst
+
+  let src = src'
+  let dst = dst'
+  let srcdst = SrcDst{ src, dst }
+
+  return (FetchJSON srcdst)
+
+  where
+
+  pSrc :: P.Parser Src
+  pSrc = _
+
+  pDst :: P.Parser Dst
+  pDst = _
+
+
+
+
+
+
+
+
+
+
+
+
+  dryrun <- (P.flag TrueRun DryRun) (mconcat
+
+        [ P.long    "dryrun"
+        , P.short   'i'
+        , P.style   P.bold
+        , P.help    "Disable effects. Whether the execution will just be a 'dry-run' (i.e. most effects are disabled, instead they are printed out). {{{ -i }}} abbreviates \"information\"."
+        ])
+
+
+{{{ -p }}} abbreviates \"print\"."
+
+{{{ -z }}} abbreviates \"zero effects\"."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+data SrcDst = SrcDst
+
+  { src :: Maybe Src
+  , dst :: Maybe Dst
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pFetch :: P.Parser Subcommand
+pFetch = do
+
+  src <- pSrc
+  dst <- pDst
+
+  let srcdst = SrcDst{ src, dst }
+
+  return (FetchJSON srcdst)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

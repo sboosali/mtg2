@@ -170,14 +170,14 @@ defaultDryness = TrueRun
 --------------------------------------------------
 --------------------------------------------------
 
-{- | Read the source ('Src'), write it to a destination ('Dst').
+{- | Read the source ('Src'), and write it to a destination ('Dst').
 
 -}
 
 data SrcDst = SrcDst
 
-  { src :: Maybe Src
-  , dst :: Maybe Dst
+  { src :: Src
+  , dst :: Dst
   }
 
   deriving stock    (Show,Read,Eq,Ord)
@@ -204,8 +204,33 @@ data Src
 
 --------------------------------------------------
 
--- | @≡ 'SrcFile'@
-instance IsString Src where fromString = SrcFile
+-- | @≡ 'parseSrc'@
+instance IsString Src where fromString = parseSrc
+
+--------------------------------------------------
+
+{- | 
+== Examples
+
+>>> parseSrc "-"
+SrcStdin
+>>> parseSrc "./mtg.json"
+SrcFile "./mtg.json"
+>>> parseSrc "          ./mtg.json          "
+SrcFile "./mtg.json"
+
+-}
+
+parseSrc :: String -> Src
+parseSrc = munge > \case
+
+  "-" -> SrcStdin
+
+  s -> SrcFile s
+
+  where
+
+  munge = lrstrip
 
 --------------------------------------------------
 --------------------------------------------------
@@ -225,9 +250,83 @@ data Dst
 
 --------------------------------------------------
 
--- | @≡ 'DstFile'@
-instance IsString Dst where fromString = DstFile
+-- | @≡ 'parseDst'@
+instance IsString Dst where fromString = parseDst
 
+--------------------------------------------------
+
+{- | 
+== Examples
+
+>>> parseDst "-"
+DstStdin
+>>> parseDst "./mtg.hs"
+DstFile "./mtg.hs"
+>>> parseDst "          ./mtg.hs          "
+DstFile "./mtg.hs"
+
+-}
+
+parseDst :: String -> Dst
+parseDst = munge > \case
+
+  "-" -> DstStdout
+
+  s -> DstFile s
+
+  where
+
+  munge = lrstrip
+
+--------------------------------------------------
+--------------------------------------------------
+{-TODO-
+
+{-| Whether the program output is colorful or not.
+
+c.f. @grep@:
+
+@
+$ grep --color=auto ...
+$ grep --color=on   ...
+$ grep --color=off  ...
+@
+
+-}
+
+data WhetherColorful
+
+  = ColorAuto
+  | ColorOn
+  | ColorOff
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
+
+-}
+--------------------------------------------------
+--------------------------------------------------
+{-TODO-
+
+{-| Whether the program output has unicode characters or not.
+
+-}
+
+data WhetherUnicode
+
+  = AsciiOnly
+  | UnicodeToo
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Lift)
+  deriving anyclass (NFData,Hashable)
+
+-}
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------

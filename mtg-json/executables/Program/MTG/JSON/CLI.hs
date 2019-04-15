@@ -41,17 +41,10 @@ import qualified "optparse-applicative" Options.Applicative.Help.Pretty as PP
 --------------------------------------------------
 
 import qualified "formatting" Formatting as Format
-import           "formatting" Formatting (Format, (%))
+import           "formatting" Formatting ( (%) )
 
 --------------------------------------------------
 -- Imports ---------------------------------------
---------------------------------------------------
-
-import qualified "base" Data.List as List
-
-import           "base" Data.Maybe
-import           "base" System.Exit
-
 --------------------------------------------------
 
 import qualified "base" Prelude
@@ -97,7 +90,7 @@ preferences = P.prefs (mconcat xs)
 
 --------------------------------------------------
 
-programDescription :: [PP.Doc]
+programDescription :: [String] -- [PP.Doc]
 programDescription =
 
   [ "{{{ mtg-json }}} is a program for fetching and extending a list of {{{ Magic: The Gathering }} cards."
@@ -112,7 +105,14 @@ programDescription =
 -- | 
 
 piCommand :: P.ParserInfo Command
-piCommand = info (docsToChunk programDescription) pCommand
+piCommand = info header description pCommand
+  where
+
+  header :: String
+  header = ""
+
+  description :: String
+  description = Prelude.unlines programDescription
 
 {-# INLINEABLE piCommand #-}
 
@@ -121,9 +121,13 @@ piCommand = info (docsToChunk programDescription) pCommand
 -- | 
 
 piFetch :: P.ParserInfo Subcommand
-piFetch = info description pFetch
+piFetch = info header description pFetch
   where
 
+  header :: String
+  header = ""
+
+  description :: String
   description = "Fetch {{{ mtg.json }}} from SRC, save it in DST."
 
 {-# INLINEABLE piFetch #-}
@@ -133,9 +137,13 @@ piFetch = info description pFetch
 -- | 
 
 piPrint :: P.ParserInfo Subcommand
-piPrint = info description pPrint
-
+piPrint = info header description pPrint
   where
+
+  header :: String
+  header = ""
+
+  description :: String
   description = "Print out the program version or license, or its current configuration."
 
 {-# INLINEABLE piPrint #-}
@@ -178,9 +186,9 @@ pOptions = do
   dryrun <- (P.flag TrueRun DryRun) (mconcat
 
         [ P.long    "dryrun"
-        , P.short   'i'
+        , P.short   'z'
         , P.style   P.bold
-        , P.help    "Disable effects. Whether the execution will just be a 'dry-run' (i.e. most effects are disabled, instead they are printed out). {{{ -i }}} abbreviates \"information\"."
+        , P.help    "Disable effects. Whether the execution will just be a 'dry-run' (i.e. most effects are disabled, instead they are printed out). {{{ -z }}} abbreviates \"zero effects\"."
         ])
 
   return Options{..}
@@ -192,9 +200,10 @@ pOptions = do
 {- | @mtg-json@'s 'Subcommand's. -}
 
 pSubcommand :: P.Parser Subcommand
-pSubcommand = P.hsubparser ps
+pSubcommand = P.hsubparser (mconcat ps)
   where
 
+  ps :: [P.Mod P.CommandFields Subcommand]
   ps =
       [ P.command "fetch" piFetch
       , P.command "print" piPrint
@@ -207,41 +216,65 @@ pSubcommand = P.hsubparser ps
 -- | 
 
 pFetch :: P.Parser Subcommand
-pFetch = do
+pFetch = FetchJSON <$> do
 
   src <- pSrc
   dst <- pDst
 
-  let srcdst = SrcDst{ src, dst }
-
-  return (FetchJSON srcdst)
+  return SrcDst{ src, dst }
 
   where
 
   pSrc :: P.Parser Src
-  pSrc = _
+  pSrc = parseSrc <$> (P.option P.str) (mconcat
+
+        [ P.long    "--input"
+        , P.short   'i'
+        , P.metavar "URI"
+        , P.value   defaultSrc
+        , P.showDefault
+        , P.style   P.bold
+        , P.help    "Where to input the {{{ mtg.json }}} JSON file from."
+        ])
 
   pDst :: P.Parser Dst
-  pDst = _
+  pDst = parseDst <$> (P.option P.str) (mconcat
+
+        [ P.long    "--output"
+        , P.short   'o'
+        , P.metavar "FILE"
+        , P.value   defaultDst
+        , P.showDefault
+        , P.style   P.bold
+        , P.help    "Where to output the parsed {{{ mtg.hs }}} Haskell file into (readable via the {{{ Read }}} typeclass)."
+        ])
+
+  defaultSrc :: String
+  defaultSrc = ""
+
+  defaultDst :: String
+  defaultDst = ""
 
 {-# INLINEABLE pFetch #-}
+
+--TODO-- P.helpDoc :: Maybe Doc -> Mod f a
 
 --------------------------------------------------
 
 -- | 
 
 pPrint :: P.Parser Subcommand
-pPrint = P.argument reader fields
+pPrint = P.argument rPrint fields
   where
 
   fields :: P.Mod P.ArgumentFields a
   fields = mconcat
-    [ P.metavar "INFO"
-    , P.completeWith (fst <$> cs)
+    [ P.completeWith cPrint
     ]
 
-  reader :: P.ReadM Subcommand
-  reader = pAssoc cs
+  rPrint :: P.ReadM Subcommand
+  cPrint :: [String]
+  (rPrint, cPrint) = pAssoc cs
 
   cs :: [(String, Subcommand)]
   cs =
@@ -267,11 +300,12 @@ defaulting x = \p -> maybe x id <$> optional p
 {-| -}
 
 info
-  :: forall a.
-     String -> P.Parser a
-  -> P.ParserInfo a
+  :: forall a. String
+       -> String
+       -> P.Parser a
+       -> P.ParserInfo a
 
-info description parser = P.info (P.helper <*> parser) information
+info header description parser = P.info (P.helper <*> parser) information
   where
 
   information :: P.InfoMod a
@@ -279,6 +313,7 @@ info description parser = P.info (P.helper <*> parser) information
 
       [ P.fullDesc
       , P.progDesc description
+      , P.header   header
       ]
 
 {-# INLINEABLE info #-}
@@ -292,7 +327,7 @@ fromParserResult = \case
 
     P.Success a           -> Right a
     P.Failure e           -> Left (toStdErrException (P.renderFailure e programExecutable))
-    P.CompletionInvoked _ -> Left def
+    P.CompletionInvoked _ -> Left (toStdErrException (programExecutable, ExitFailure 1))
 
   where
 
@@ -302,7 +337,7 @@ fromParserResult = \case
 
         s :: String
         s = runFormat ("Exit Code: " % Format.int % "\nStd Err:\n" % Format.string)
-            exitcode
+            (fromExitCode exitcode)
             stderr
 
 {-# INLINEABLE fromParserResult #-}
@@ -315,6 +350,21 @@ docsToChunk :: [PP.Doc] -> P.Chunk PP.Doc
 docsToChunk = PP.vcat > Just > P.Chunk
 
 {-# INLINEABLE docsToChunk #-}
+
+--------------------------------------------------
+
+{-| -}
+
+helpDocs :: [PP.Doc] -> P.Mod f a
+helpDocs docs = P.helpDoc (Just doc)
+  where
+
+  doc :: PP.Doc
+  doc = PP.hcat docs
+
+--------------------------------------------------
+
+--TODO-- « terminfo »
 
 --------------------------------------------------
 -- EOF -------------------------------------------
