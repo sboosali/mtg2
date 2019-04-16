@@ -16,10 +16,6 @@ module Main ( main ) where
 import Program.MTG.JSON.CLI       (getCommand)
 import Program.MTG.JSON.IO        (runCommand)
 
---------------------------------------------------
--- Imports ---------------------------------------
---------------------------------------------------
-
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------
@@ -38,9 +34,7 @@ main = do
 
   command <- getCommand
 
-  status <- runCommand command
-
-  return status
+  runCommand command
 
 --------------------------------------------------
 -- EOF -------------------------------------------

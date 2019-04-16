@@ -72,7 +72,7 @@ data Subcommand
 data Options = Options
 
   { verbosity :: Verbosity
-  , dryrun    :: Dryness
+  , dryrun    :: Effectfulness
   }
 
   deriving stock    (Show,Read,Eq,Ord)
@@ -108,14 +108,23 @@ type URI = FilePath
 --------------------------------------------------
 --------------------------------------------------
 
-{-|
+{- |
+
+== CLI
+
+* `Quiet`   — @$ mtg-json -q  ...@ (a.k.a. @--quiet@.)
+* `Concise` — @$ mtg-json     ...@ (i.e. the `defaultVerbosity`.)
+* `Verbose` — @$ mtg-json -v  ...@ (i.e. one flag.)
+* `Loud`    — @$ mtg-json -vv ...@ (i.e. two flags.)
 
 -}
 
 data Verbosity
 
-  = Concise
+  = Quiet
+  | Concise
   | Verbose
+  | Loud
 
   deriving stock    (Enum,Bounded,Ix)
   deriving stock    (Show,Read,Eq,Ord)
@@ -140,10 +149,14 @@ defaultVerbosity = Concise
 --------------------------------------------------
 
 {-|
+== CLI
+
+* `TrueRun` — @$ mtg-json    ...@ (i.e. the `defaultEffectfulness`.)
+* `DryRun`  — @$ mtg-json -z ...@ (a.k.a. @--dryrun@.)
 
 -}
 
-data Dryness
+data Effectfulness
 
   = DryRun
   | TrueRun
@@ -156,16 +169,16 @@ data Dryness
 
 --------------------------------------------------
 
--- | @= 'defaultDryness'@
+-- | @= 'defaultEffectfulness'@
 
-instance Default Dryness where def = defaultDryness
+instance Default Effectfulness where def = defaultEffectfulness
 
 --------------------------------------------------
 
 -- | @= 'TrueRun'@
 
-defaultDryness :: Dryness
-defaultDryness = TrueRun
+defaultEffectfulness :: Effectfulness
+defaultEffectfulness = TrueRun
 
 --------------------------------------------------
 --------------------------------------------------

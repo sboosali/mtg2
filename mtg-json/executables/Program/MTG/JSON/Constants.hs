@@ -9,7 +9,7 @@
 {-| Program metadata:
 
 * name: `programName`, `programExecutable`.
-* version: `programVersion`.
+* version: `programVersion`, `programVersionBranch`.
 * license: `programLicenseIdentifier`, `programLicenseContents`.
 
 -}
@@ -20,6 +20,7 @@ module Program.MTG.JSON.Constants
   , programExecutable
 
   , programVersion
+  , programVersionBranch
 
   , programLicenseIdentifier
   , programLicenseContents

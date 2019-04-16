@@ -305,8 +305,10 @@ info
        -> P.Parser a
        -> P.ParserInfo a
 
-info header description parser = P.info (P.helper <*> parser) information
+info header description p = pi
   where
+
+  pi = P.info (P.helper <*> p) information
 
   information :: P.InfoMod a
   information = mconcat
