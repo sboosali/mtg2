@@ -12,6 +12,11 @@
 * version: `programVersion`, `programVersionBranch`.
 * license: `programLicenseIdentifier`, `programLicenseContents`.
 
+Data metadata:
+
+* source locations: `defaultSource`, `knownSources`.
+* destination locations: `defaultDestination`.
+
 -}
 
 module Program.MTG.JSON.Constants
@@ -27,12 +32,18 @@ module Program.MTG.JSON.Constants
 
   , programExamples
 
+  , defaultSource
+  , knownSources
+
+  , defaultDestination
+
   ) where
 
 --------------------------------------------------
 -- Imports ---------------------------------------
 --------------------------------------------------
 
+import Program.MTG.JSON.Types
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------
@@ -91,6 +102,52 @@ programExamples =
 
   [ 
   ]
+
+-- ============================================ --
+-- Locations:
+
+-- | @≡ https://mtgjson.com/json/Vintage.json.gz@
+
+defaultSource :: String
+defaultSource = "https://mtgjson.com/json/Vintage.json.gz"
+
+--------------------------------------------------
+
+{- | Sources of MTG Data.
+
+Most 'URI's are @"https://mtgjson.com/json/_.json.gz"@.
+
+== Links
+
+* <https://mtgjson.com/downloads/compiled/>
+
+-}
+
+knownSources :: [(String, URI)]
+knownSources =
+
+  [ "default"   -: defaultSource
+
+  , "vintage"   -: "https://mtgjson.com/json/Vintage.json.gz"
+  , "modern"    -: "https://mtgjson.com/json/Modern.json.gz"
+  , "standard"  -: "https://mtgjson.com/json/Standard.json.gz"
+
+  , "allsets"   -: "https://mtgjson.com/json/AllSets.json.gz"
+  , "allcards"  -: "https://mtgjson.com/json/AllCards.json.gz"
+
+  , "sets"      -: "https://mtgjson.com/json/SetList.json.gz"
+  , "cardtypes" -: "https://mtgjson.com/json/CardTypes.json.gz"
+  , "keywords"  -: "https://mtgjson.com/json/Keywords.json.gz"
+
+  , "version"   -: "https://mtgjson.com/json/version.json"
+  ]
+
+--------------------------------------------------
+
+-- | @≡ ./mtg.hs@
+
+defaultDestination :: String
+defaultDestination = "./mtg.hs"
 
 --------------------------------------------------
 -- EOF -------------------------------------------

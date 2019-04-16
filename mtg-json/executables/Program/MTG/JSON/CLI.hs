@@ -175,13 +175,17 @@ pCommand = do
 pOptions :: P.Parser Options
 pOptions = do
 
-  verbosity <- (P.flag Concise Verbose) (mconcat
+  ------------------------------
+
+  verbose <- (P.flag Concise Verbose) (mconcat
 
         [ P.long    "verbose"
         , P.short   'v'
         , P.style   P.bold
         , P.help    "Enable verbose messages. (Includes network progress from downloading any resources. Includes printing the config that's derived from the invocation of this command: (1), parsing these command-line options; and (2), defaulting the values of any optional options.). {{{ -v }}} abbreviates \"verbose\"."
         ])
+
+  ------------------------------
 
   dryrun <- (P.flag TrueRun DryRun) (mconcat
 
@@ -190,6 +194,18 @@ pOptions = do
         , P.style   P.bold
         , P.help    "Disable effects. Whether the execution will just be a 'dry-run' (i.e. most effects are disabled, instead they are printed out). {{{ -z }}} abbreviates \"zero effects\"."
         ])
+
+  ------------------------------
+
+  force <- (P.flag RespectExisting OverwriteExisting) (mconcat
+
+        [ P.long    "force"
+        , P.short   'f'
+        , P.style   P.bold
+        , P.help    "Overwrite FILE. Whether existing files will be overwritten, or preserved (prompting for confirmation). {{{ -f }}} abbreviates \"forcefully overwrite\"."
+        ])
+
+  ------------------------------
 
   return Options{..}
 
@@ -225,14 +241,17 @@ pFetch = FetchJSON <$> do
 
   where
 
+  ------------------------------
+
   pSrc :: P.Parser Src
   pSrc = parseSrc <$> (P.option P.str) (mconcat
 
-        [ P.long    "--input"
+        [ P.long    "input"
         , P.short   'i'
         , P.metavar "URI"
         , P.value   defaultSrc
         , P.showDefault
+        , P.completeWith cSrc
         , P.style   P.bold
         , P.help    "Where to input the {{{ mtg.json }}} JSON file from."
         ])
@@ -240,20 +259,32 @@ pFetch = FetchJSON <$> do
   pDst :: P.Parser Dst
   pDst = parseDst <$> (P.option P.str) (mconcat
 
-        [ P.long    "--output"
+        [ P.long    "output"
         , P.short   'o'
         , P.metavar "FILE"
         , P.value   defaultDst
         , P.showDefault
+        , P.action  "file"
         , P.style   P.bold
         , P.help    "Where to output the parsed {{{ mtg.hs }}} Haskell file into (readable via the {{{ Read }}} typeclass)."
         ])
 
+  ------------------------------
+
   defaultSrc :: String
-  defaultSrc = ""
+  defaultSrc = SrcUri defaultSource
 
   defaultDst :: String
-  defaultDst = ""
+  defaultDst = DstFile defaultDestination
+
+  ------------------------------
+
+  rSrc :: P.ReadM Src
+  cSrc :: [String]
+
+  (rSrc, cSrc) = pAssoc (SrcUri <$> (fst <$> knownSources))
+
+  ------------------------------
 
 {-# INLINEABLE pFetch #-}
 

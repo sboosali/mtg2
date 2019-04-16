@@ -28,6 +28,13 @@ import Program.MTG.JSON.Prelude
 -- Imports (External) ----------------------------
 --------------------------------------------------
 
+import qualified "directory" System.Directory as Directory
+
+--------------------------------------------------
+
+import qualified "formatting" Formatting as Format
+import           "formatting" Formatting ( Format, (%) )
+
 --------------------------------------------------
 -- IO --------------------------------------------
 --------------------------------------------------
@@ -71,17 +78,95 @@ $ mtg-json fetch --input ... --output ... version
 -}
 
 fetchJSON :: Options -> SrcDst -> IO ()
-fetchJSON Options{..} = \SrcDst{src,dst} -> do
+fetchJSON Options{..} SrcDst{src,dst} = do
 
-  go src dst
+  putStdErr sSrc
+
+  mtg_json <- inputSrc
+
+  mtg_hs <- parseJSON
+
+  putStdErr sDst
+
+  outputDst
 
   where
 
-  go :: Src -> Dst -> IO ()
-  go src dst = do
+  ------------------------------
 
-    print src
-    print dst
+  sSrc :: String
+  sSrc = runFormat ("\nFetching from: " % Format.string % "...\n") s
+      where
+      s = prettySrc src
+
+  sDst :: String
+  sDst = runFormat ("\nSaving to: " % Format.string % "...\n") s
+      where
+      s = prettyDst src
+
+  ------------------------------
+
+  inputSrc :: IO ()
+  inputSrc = case src of
+
+      SrcStdin -> do
+
+          promptSrc
+
+      SrcFile fp -> do
+
+          readSrc fp
+
+      SrcUri uri -> do
+
+          fetchSrc uri
+
+  ------------------------------
+
+  outputDst :: IO ()
+  outputDst = case dst of
+
+      DstStdout -> do
+
+          printDst
+
+      DstFile fp -> do
+
+          writeDst fp
+
+  ------------------------------
+
+  promptSrc :: IO String
+  promptSrc = _
+
+  ------------------------------
+
+  readSrc :: FilePath -> IO String
+  readSrc fp = IO.readFile fp
+
+  ------------------------------
+
+  fetchSrc :: URI -> IO String
+  fetchSrc uri = IO.readFile uri  -- TODO -- download, decompress, read.
+
+  ------------------------------
+
+  writeDst :: FilePath -> String -> IO ()
+  writeDst fp mtg_hs = case force of
+
+      RespectExisting -> do
+
+        let e = runFormat ("\n[Error] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< mtg-json >>> with the <<< --force >>> option to overwrite.\n") fp -- TODO -- prompt user to confirm.
+
+        if   Directory.doesPathExist fp
+        then putStdErr e
+        else IO.writeFile fp mtg_hs
+
+      OverwriteExisting -> do
+
+        IO.writeFile fp mtg_hs
+
+  ------------------------------
 
 {-# INLINEABLE fetchJSON #-}
 
@@ -100,7 +185,7 @@ $ mtg-json print version
 printVersion :: Options -> IO ()
 printVersion Options{..} = do
 
-  go verbosity
+  go verbose
 
   where
 
@@ -141,7 +226,7 @@ $ mtg-json print license
 printLicense :: Options -> IO ()
 printLicense Options{..} = do
 
-  go verbosity
+  go verbose
 
   where
 
@@ -172,4 +257,4 @@ printLicense Options{..} = do
 
 --------------------------------------------------
 -- EOF -------------------------------------------
---------------------------------------------------
+--------------------------------------------------]

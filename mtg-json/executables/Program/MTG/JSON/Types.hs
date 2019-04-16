@@ -71,8 +71,9 @@ data Subcommand
 
 data Options = Options
 
-  { verbosity :: Verbosity
-  , dryrun    :: Effectfulness
+  { verbose :: Verbosity
+  , dryrun  :: Effectfulness
+  , force   :: Forcefulness
   }
 
   deriving stock    (Show,Read,Eq,Ord)
@@ -94,8 +95,9 @@ instance Default Options where def = defaultOptions
 defaultOptions :: Options
 defaultOptions = Options{..}
   where
-  verbosity    = def
-  dryrun       = def
+  verbose = def
+  dryrun  = def
+  force   = def
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -179,6 +181,41 @@ instance Default Effectfulness where def = defaultEffectfulness
 
 defaultEffectfulness :: Effectfulness
 defaultEffectfulness = TrueRun
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-|
+== CLI
+
+* `RespectExisting`   — @$ mtg-json    ...@ (i.e. the `defaultForcefulness`.)
+* `OverwriteExisting` — @$ mtg-json -f ...@ (a.k.a. @--force@.)
+
+-}
+
+data Forcefulness
+
+  = RespectExisting
+  | OverwriteExisting
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
+  deriving anyclass (GEnum)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'defaultForcefulness'@
+
+instance Default Forcefulness where def = defaultForcefulness
+
+--------------------------------------------------
+
+-- | @= 'RespectExisting'@
+
+defaultForcefulness :: Forcefulness
+defaultForcefulness = RespectExisting
 
 --------------------------------------------------
 --------------------------------------------------
@@ -340,6 +377,26 @@ data WhetherUnicode
   deriving anyclass (NFData,Hashable)
 
 -}
+
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+prettySrc :: Src -> String
+prettySrc = \case
+
+  SrcStdin   -> "-"
+  SrcFile fp -> "" <> fp
+  SrcUri uri -> "" <> uri
+
+--------------------------------------------------
+
+prettyDst :: Dst -> String
+prettyDst = \case
+
+  DstStdout  -> "-"
+  DstFile fp -> "" <> fp
+
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------

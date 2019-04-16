@@ -67,10 +67,26 @@ import qualified "containers" Data.Map as Map
 
 import qualified "base" Control.Arrow as Arrow
 
+import qualified "base" System.IO as IO
+
 import qualified "base" GHC.Exception as GHC ( errorCallWithCallStackException )
 
 --------------------------------------------------
 -- Definitions -----------------------------------
+--------------------------------------------------
+
+putStdErr :: String -> IO ()
+putStdErr = IO.hPutStr IO.stderr
+
+{-# INLINEABLE putStdErr #-}
+
+--------------------------------------------------
+
+putStdOut :: String -> IO ()
+putStdOut = IO.hPutStr IO.stdout
+
+{-# INLINEABLE putStdOut #-}
+
 --------------------------------------------------
 
 printDivider :: IO ()
