@@ -309,7 +309,7 @@ instance IsString Dst where fromString = parseDst
 == Examples
 
 >>> parseDst "-"
-DstStdin
+DstStdout
 >>> parseDst "./mtg.hs"
 DstFile "./mtg.hs"
 >>> parseDst "          ./mtg.hs          "

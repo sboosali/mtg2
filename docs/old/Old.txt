@@ -2710,7 +2710,31 @@ optionsLib =
 
 
 
+>>> tBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
+>>> ( rBool, _ ) = pAssoc tBools
+>>> import qualified Options.Applicative as P
+>>> readBool t = P.getParseResult (P.execParserPure P.defaultPrefs (P.info mempty (P.argument mempty rBool)) [t])
+>>> readBool "on"
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
+( rBool, _ ) = pAssoc tBools
+import qualified Options.Applicative as P
+readBool t = P.getParseResult (P.execParserPure P.defaultPrefs (P.info mempty (P.argument mempty rBool)) [t])
+readBool "on"
 
 
 

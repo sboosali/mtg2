@@ -71,6 +71,8 @@ import qualified "base" System.IO as IO
 
 import qualified "base" GHC.Exception as GHC ( errorCallWithCallStackException )
 
+import qualified "base" Prelude
+
 --------------------------------------------------
 -- Definitions -----------------------------------
 --------------------------------------------------
@@ -159,9 +161,9 @@ fromExitCode = \case
 == Examples
 
 >>> allFromList []
-Map.fromList []
+fromList []
 >>> allFromList [(1, 'a'), (2, 'b'), (1, 'c')]
-Map.fromList [(1,"ab"), (2,"b")]
+fromList [(1,"ca"),(2,"b")]
 
 -}
 
@@ -176,8 +178,9 @@ allFromList = map (Arrow.second (:[])) > Map.fromListWith (++)
 
 >>> tBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
 >>> ( rBool, _ ) = pAssoc tBools
->>> import qualified Options.Applicative as P
->>> readBool t = P.getParseResult (P.execParserPure P.defaultPrefs (P.info mempty (P.argument mempty rBool)) [t])
+>>> import qualified "optparse-applicative" Options.Applicative as P
+>>> import qualified "base" Prelude
+>>> readBool t = (P.getParseResult (P.execParserPure P.defaultPrefs (P.info (P.argument rBool Prelude.mempty) Prelude.mempty) [t]))
 >>> readBool "on"
 Just True
 >>> readBool "1"
@@ -185,7 +188,7 @@ Just True
 >>> readBool "???"
 Nothing
 >>> :t rBool
-P.ReadM Bool
+rBool :: P.ReadM Bool
 
 -}
 
@@ -221,6 +224,18 @@ pAssoc kvs = ( rV, cV )
   kvs' = allFromList kvs
 
 {-# INLINEABLE pAssoc #-}
+
+--------------------------------------------------
+-- Examples --------------------------------------
+--------------------------------------------------
+
+-- | (type-checked 'pAssoc' example).
+example_pAssoc :: String -> Maybe Bool
+example_pAssoc t = (P.getParseResult (P.execParserPure P.defaultPrefs (P.info (P.argument rBool Prelude.mempty) Prelude.mempty) [t]))
+  where
+
+  tBools = [ "off"-: False, "0"-: False, "on"-: True, "1"-: True ]
+  ( rBool, _ ) = pAssoc tBools
 
 --------------------------------------------------
 -- EOF -------------------------------------------

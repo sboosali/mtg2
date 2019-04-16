@@ -31,7 +31,7 @@ main = do
   putStrLn "-- DocTest: Executable -----------------"
   putStrLn "----------------------------------------"
 
-  --doctestExe
+  doctestExe
 
   putStrLn "----------------------------------------"
 
@@ -50,8 +50,8 @@ doctestExe = doctest (sourcesExe ++ flagsExe)
 --------------------------------------------------
 
 sourcesLib = modules2filepaths "hs" "library" $
-  "MTG.Types MTG.Types.Prelude MTG.Classes.Prelude MTG.Classes.Print MTG.Classes.Parse MTG.Types.Errors MTG.Text.List.Colors MTG.Text.List.ManaCost MTG.Number.CMC MTG.Enum.Color \
-  \ MTG.Text.Artist MTG.Text.Block MTG.Text.Border MTG.Text.Cardtype MTG.Text.Color MTG.Text.Edition MTG.Text.Format MTG.Text.Frame MTG.Text.Keyword MTG.Text.Language MTG.Text.Layout MTG.Text.Legality MTG.Text.ManaSymbol MTG.Text.Name MTG.Text.Rarity MTG.Text.Subtype MTG.Text.Supertype MTG.Text.Symbol MTG.Text.Watermark"
+
+  "MTG.JSON MTG.JSON.Prelude MTG.JSON.UUID MTG.JSON.Schema.Set MTG.JSON.Schema.Card"
 
 --------------------------------------------------
 

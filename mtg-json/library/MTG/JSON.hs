@@ -8,6 +8,9 @@
 
 {-| Export all public modules of the @mtg-json@ package.
 
+>>> "TODO"
+"TODO"
+
 -}
 
 module MTG.JSON
