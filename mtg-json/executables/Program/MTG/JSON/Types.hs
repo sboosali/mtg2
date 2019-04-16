@@ -379,13 +379,52 @@ data WhetherUnicode
 -}
 
 --------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
+
+{-| Represents an @mtg.json@ input (i.e. unparsed).
+
+-}
+
+newtype MTGJSON = MTGJSON
+
+  String                        -- TODO -- ByteString
+
+  deriving stock    (Show,Read,Lift,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+instance IsString MTGJSON where fromString = coerce
+
+--------------------------------------------------
+--------------------------------------------------
+
+{-| Represents an @mtg.hs@ output (i.e. parsed).
+
+-}
+
+newtype MTGHS = MTGHS
+
+  String                        -- TODO -- ByteString
+
+  deriving stock    (Show,Read,Lift,Generic)
+  deriving newtype  (Eq,Ord,Semigroup,Monoid)
+  deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+instance IsString MTGHS where fromString = coerce
+
+--------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
 prettySrc :: Src -> String
 prettySrc = \case
 
-  SrcStdin   -> "-"
+  SrcStdin   -> "<<stdin>>"
   SrcFile fp -> "" <> fp
   SrcUri uri -> "" <> uri
 
@@ -394,7 +433,7 @@ prettySrc = \case
 prettyDst :: Dst -> String
 prettyDst = \case
 
-  DstStdout  -> "-"
+  DstStdout  -> "<<stdout>>"
   DstFile fp -> "" <> fp
 
 --------------------------------------------------

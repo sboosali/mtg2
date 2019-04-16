@@ -230,6 +230,7 @@ module MTG.JSON.Schema.Card where
 -- Imports ---------------------------------------
 --------------------------------------------------
 
+import MTG.JSON.UUID
 import MTG.JSON.Prelude
 
 --------------------------------------------------
@@ -245,10 +246,12 @@ import qualified "attoparsec" Data.Attoparsec.Text as P
 {-| 
 
 -}
-{-
 data CardObject = CardObject 
 
-  { _id            :: Text 
+  { _uuid          :: UUID
+  }
+
+{-
   , _layout        :: Text 
   , _name          :: Text 
   , _names         :: Maybe [Text] 

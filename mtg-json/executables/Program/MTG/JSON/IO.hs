@@ -36,6 +36,12 @@ import qualified "formatting" Formatting as Format
 import           "formatting" Formatting ( Format, (%) )
 
 --------------------------------------------------
+
+import qualified "base" System.IO as IO
+
+import qualified "base" Prelude
+
+--------------------------------------------------
 -- IO --------------------------------------------
 --------------------------------------------------
 
@@ -84,11 +90,11 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   mtg_json <- inputSrc
 
-  mtg_hs <- parseJSON
+  mtg_hs <- mtgjson2mtghs mtg_json
 
   putStdErr sDst
 
-  outputDst
+  outputDst mtg_hs
 
   where
 
@@ -106,12 +112,16 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  inputSrc :: IO ()
+  inputSrc :: IO MTGJSON
   inputSrc = case src of
 
       SrcStdin -> do
 
           promptSrc
+
+      SrcLines ts -> do
+
+          MTGJSON (Prelude.unlines ts)
 
       SrcFile fp -> do
 
@@ -123,36 +133,49 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  outputDst :: IO ()
-  outputDst = case dst of
+  outputDst :: MTGHS -> IO ()
+  outputDst mtg_hs = case dst of
 
       DstStdout -> do
 
-          printDst
+          printDst mtg_hs
 
       DstFile fp -> do
 
-          writeDst fp
+          writeDst fp mtg_hs
 
   ------------------------------
 
-  promptSrc :: IO String
-  promptSrc = _
+  promptSrc :: IO MTGJSON
+  promptSrc = MTGJSON <$> do
+
+    IO.hGetContents IO.stdin
+
+    -- IO.hGetContents IO.stdin
 
   ------------------------------
 
-  readSrc :: FilePath -> IO String
-  readSrc fp = IO.readFile fp
+  readSrc :: FilePath -> IO MTGJSON
+  readSrc fp = MTGJSON <$> do
+
+    IO.readFile fp
 
   ------------------------------
 
-  fetchSrc :: URI -> IO String
-  fetchSrc uri = IO.readFile uri  -- TODO -- download, decompress, read.
+  fetchSrc :: URI -> IO MTGJSON
+  fetchSrc uri = MTGJSON <$> do
+
+    IO.readFile uri  -- TODO -- download, decompress, read.
 
   ------------------------------
 
-  writeDst :: FilePath -> String -> IO ()
-  writeDst fp mtg_hs = case force of
+  printDst :: MTGHS -> IO ()
+  printDst (MTGHS mtg) = putStdOut mtg
+
+  ------------------------------
+
+  writeDst :: FilePath -> MTGHS -> IO ()
+  writeDst fp (MTGHS mtg) = case force of
 
       RespectExisting -> do
 
@@ -160,11 +183,11 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
         if   Directory.doesPathExist fp
         then putStdErr e
-        else IO.writeFile fp mtg_hs
+        else IO.writeFile fp mtg
 
       OverwriteExisting -> do
 
-        IO.writeFile fp mtg_hs
+        IO.writeFile fp mtg
 
   ------------------------------
 
@@ -254,6 +277,9 @@ printLicense Options{..} = do
 --------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
+
+mtgjson2mtghs :: MTGJSON -> MTGHS
+mtgjson2mtghs (MTGJSON s) = (MTGHS s) -- TODO
 
 --------------------------------------------------
 -- EOF -------------------------------------------

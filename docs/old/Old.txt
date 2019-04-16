@@ -2527,6 +2527,46 @@ fetchJSON Options{..} = \SrcDst{src,dst} -> do
 
 
 
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+prettySrc :: Src -> String
+prettySrc = \case
+
+  SrcStdin   -> "-"
+  SrcFile fp -> "" <> fp
+  SrcUri uri -> "" <> uri
+
+--------------------------------------------------
+
+prettyDst :: Dst -> String
+prettyDst = \case
+
+  DstStdout  -> "-"
+  DstFile fp -> "" <> fp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
