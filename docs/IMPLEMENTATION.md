@@ -3,6 +3,12 @@
 
 ## `base` package
 
+### `System.IO` module
+
+```
+hPutStr :: Handle -> String -> IO ()
+```
+
 ### `Data.Char` module
 
 ```

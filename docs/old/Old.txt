@@ -2229,6 +2229,369 @@ mtg-scryfall:
 
 
 
+pFetch :: P.Parser Subcommand
+pFetch = FetchJSON <$> do
+
+  src <- pSrc
+  dst <- pDst
+
+  return SrcDst{ src, dst }
+
+  where
+
+  pSrc :: P.Parser Src
+  pSrc = parseSrc <$> (P.option P.str) (mconcat
+
+        [ P.long    "input"
+        , P.short   'i'
+        , P.metavar "URI"
+        , P.value   defaultSrc
+        , P.showDefault
+        , P.style   P.bold
+        , P.help    "Where to input the {{{ mtg.json }}} JSON file from."
+        ])
+
+  pDst :: P.Parser Dst
+  pDst = parseDst <$> (P.option P.str) (mconcat
+
+        [ P.long    "output"
+        , P.short   'o'
+        , P.metavar "FILE"
+        , P.value   defaultDst
+        , P.showDefault
+        , P.style   P.bold
+        , P.help    "Where to output the parsed {{{ mtg.hs }}} Haskell file into (readable via the {{{ Read }}} typeclass)."
+        ])
+
+  fields :: P.Mod P.ArgumentFields a
+  fields = mconcat
+    [ P.completeWith cPrint
+    ]
+
+  rSrc :: P.ReadM Subcommand
+  cSrc :: [String]
+  (rSrc, cSrc) = pAssoc knownSources
+
+  defaultSrc :: String
+  defaultSrc = SrcUri defaultSource
+
+  defaultDst :: String
+  defaultDst = DstFile defaultDestination
+
+  knownSrcs :: [Src]
+  knownSrcs = SrcUri <$> (fst <$> knownSources)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  where
+
+  ------------------------------
+
+  pSrc :: P.Parser Src
+  pSrc = parseSrc <$> (P.option P.str) (mconcat
+
+        [ P.long    "input"
+        , P.short   'i'
+        , P.metavar "URI"
+        , P.value   defaultSrc
+        , P.showDefault
+        , P.completeWith cSrc
+        , P.style   P.bold
+        , P.help    "Where to input the {{{ mtg.json }}} JSON file from."
+        ])
+
+  pDst :: P.Parser Dst
+  pDst = parseDst <$> (P.option P.str) (mconcat
+
+        [ P.long    "output"
+        , P.short   'o'
+        , P.metavar "FILE"
+        , P.value   defaultDst
+        , P.showDefault
+        , P.completeWith cDst
+        , P.style   P.bold
+        , P.help    "Where to output the parsed {{{ mtg.hs }}} Haskell file into (readable via the {{{ Read }}} typeclass)."
+        ])
+
+  ------------------------------
+
+  defaultSrc :: String
+  defaultSrc = SrcUri defaultSource
+
+  defaultDst :: String
+  defaultDst = DstFile defaultDestination
+
+  ------------------------------
+
+  rSrc :: P.ReadM Src
+  cSrc :: [String]
+
+  (rSrc, cSrc) = pAssoc (SrcUri <$> (fst <$> knownSources))
+
+  rDst :: P.ReadM Dst
+  cDst :: [String]
+
+  (rDst, cDst) = pAssoc (DstFile <$> (fst <$> knownDestinations))
+
+  ------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  go :: Src -> Dst -> IO ()
+  go src dst = do
+
+    print (srcToMessage src)
+    print (dstToMessage dst)
+
+    writeDst dst
+
+    where
+
+    srcToMessage :: Src -> String
+    srcToMessage = \case
+      runFormat ("Fetching from: " % Format.string % "...\n") s
+
+    dstToMessage :: Dst -> String
+    dstToMessage = \case
+      runFormat ("Saving to: " % Format.string % "...\n") s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  go :: Src -> Dst -> IO ()
+  go src = \case
+
+        -- be « --quiet » (i.e. don't print) when saving to stdout.
+        --TODO-- or print to stderr??
+
+    DstStdout -> do
+
+        printDst
+
+    DstFile fp -> do
+
+        print (srcToMessage src)
+        print (dstToMessage dst)
+
+        writeDst fp
+
+    where
+
+    srcToMessage :: Src -> String
+    srcToMessage = \case
+      runFormat ("Fetching from: " % Format.string % "...\n") s
+
+    dstToMessage :: Dst -> String
+    dstToMessage = \case
+      runFormat ("Saving to: " % Format.string % "...\n") s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fetchJSON :: Options -> SrcDst -> IO ()
+fetchJSON Options{..} = \SrcDst{src,dst} -> do
+
+  go src dst
+
+  where
+
+  ------------------------------
+
+  go :: Src -> Dst -> IO ()
+  go src dst = do
+
+    putStdErr sSrc
+    putStdErr sDst
+
+    case dst of
+
+        DstStdout -> do
+
+            printDst
+
+        DstFile fp -> do
+
+            writeDst fp
+
+      where
+
+      sSrc :: String
+      sSrc = runFormat ("\nFetching from: " % Format.string % "...\n") s
+
+      sDst :: String
+      sDst = runFormat ("\nSaving to: " % Format.string % "...\n") s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
