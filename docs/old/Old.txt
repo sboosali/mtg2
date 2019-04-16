@@ -2562,6 +2562,41 @@ prettyDst = \case
 
 
 
+  defaultSrc :: Src
+  defaultSrc = SrcUri defaultSource
+
+  defaultDst :: Dst
+  defaultDst = DstFile defaultDestination
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

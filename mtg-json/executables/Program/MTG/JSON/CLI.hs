@@ -197,7 +197,7 @@ pOptions = do
 
   ------------------------------
 
-  force <- (P.flag RespectExisting OverwriteExisting) (mconcat
+  forcefulness <- (P.flag RespectExisting OverwriteExisting) (mconcat
 
         [ P.long    "force"
         , P.short   'f'
@@ -244,7 +244,7 @@ pFetch = FetchJSON <$> do
   ------------------------------
 
   pSrc :: P.Parser Src
-  pSrc = parseSrc <$> (P.option P.str) (mconcat
+  pSrc = (P.option (parseSrc <$> P.str)) (mconcat
 
         [ P.long    "input"
         , P.short   'i'
@@ -257,7 +257,7 @@ pFetch = FetchJSON <$> do
         ])
 
   pDst :: P.Parser Dst
-  pDst = parseDst <$> (P.option P.str) (mconcat
+  pDst = (P.option (parseDst <$> P.str)) (mconcat
 
         [ P.long    "output"
         , P.short   'o'
@@ -271,18 +271,18 @@ pFetch = FetchJSON <$> do
 
   ------------------------------
 
-  defaultSrc :: String
+  defaultSrc :: Src
   defaultSrc = SrcUri defaultSource
 
-  defaultDst :: String
+  defaultDst :: Dst
   defaultDst = DstFile defaultDestination
 
   ------------------------------
 
-  rSrc :: P.ReadM Src
-  cSrc :: [String]
+  -- rSrc :: P.ReadM Src
+  -- cSrc :: [String]
 
-  (rSrc, cSrc) = pAssoc (SrcUri <$> (fst <$> knownSources))
+  (_rSrc, cSrc) = (pAssoc (bimap id SrcUri <$> knownSources))
 
   ------------------------------
 

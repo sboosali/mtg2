@@ -53,14 +53,14 @@ import Program.MTG.JSON.Prelude
 -- | The english name of this program.
 
 programName :: String
-programName = "Skeletor Haskell"
+programName = "MTG_JSON"
 
 --------------------------------------------------
 
 -- | The executeable name of this program (as invoked in a terminal).
 
 programExecutable :: String
-programExecutable = "skeletor-haskell"
+programExecutable = "mtg-json"
 
 -- ============================================ --
 -- Version Information:

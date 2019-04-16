@@ -33,7 +33,7 @@ import qualified "directory" System.Directory as Directory
 --------------------------------------------------
 
 import qualified "formatting" Formatting as Format
-import           "formatting" Formatting ( Format, (%) )
+import           "formatting" Formatting ( (%) )
 
 --------------------------------------------------
 
@@ -90,7 +90,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   mtg_json <- inputSrc
 
-  mtg_hs <- mtgjson2mtghs mtg_json
+  let mtg_hs = mtgjson2mtghs mtg_json
 
   putStdErr sDst
 
@@ -108,7 +108,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
   sDst :: String
   sDst = runFormat ("\nSaving to: " % Format.string % "...\n") s
       where
-      s = prettyDst src
+      s = prettyDst dst
 
   ------------------------------
 
@@ -121,7 +121,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
       SrcLines ts -> do
 
-          MTGJSON (Prelude.unlines ts)
+          return $ MTGJSON (Prelude.unlines (toS <$> ts))
 
       SrcFile fp -> do
 
@@ -175,13 +175,14 @@ fetchJSON Options{..} SrcDst{src,dst} = do
   ------------------------------
 
   writeDst :: FilePath -> MTGHS -> IO ()
-  writeDst fp (MTGHS mtg) = case force of
+  writeDst fp (MTGHS mtg) = case forcefulness of
 
       RespectExisting -> do
 
         let e = runFormat ("\n[Error] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< mtg-json >>> with the <<< --force >>> option to overwrite.\n") fp -- TODO -- prompt user to confirm.
 
-        if   Directory.doesPathExist fp
+        bExists <- Directory.doesPathExist fp
+        if   bExists
         then putStdErr e
         else IO.writeFile fp mtg
 

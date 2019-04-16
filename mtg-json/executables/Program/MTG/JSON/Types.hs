@@ -71,9 +71,9 @@ data Subcommand
 
 data Options = Options
 
-  { verbose :: Verbosity
-  , dryrun  :: Effectfulness
-  , force   :: Forcefulness
+  { verbose      :: Verbosity
+  , dryrun       :: Effectfulness
+  , forcefulness :: Forcefulness
   }
 
   deriving stock    (Show,Read,Eq,Ord)
@@ -95,9 +95,9 @@ instance Default Options where def = defaultOptions
 defaultOptions :: Options
 defaultOptions = Options{..}
   where
-  verbose = def
-  dryrun  = def
-  force   = def
+  verbose      = def
+  dryrun       = def
+  forcefulness = def
 
 --------------------------------------------------
 -- Types -----------------------------------------
