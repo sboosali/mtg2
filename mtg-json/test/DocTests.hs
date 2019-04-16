@@ -1,4 +1,3 @@
-
 --------------------------------------------------
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -19,27 +18,88 @@ import "base" Prelude
 -- Main ------------------------------------------
 --------------------------------------------------
 
+main :: IO ()
 main = do
 
-  printDivider
+  putStrLn "----------------------------------------"
+  putStrLn "-- DocTest: Library --------------------"
+  putStrLn "----------------------------------------"
 
-  doctest (sources ++ flags)
+  doctestLib
 
-  printDivider
+  putStrLn "----------------------------------------"
+  putStrLn "-- DocTest: Executable -----------------"
+  putStrLn "----------------------------------------"
+
+  --doctestExe
+
+  putStrLn "----------------------------------------"
 
 --------------------------------------------------
 
-sources = modules2filepaths "hs" "library" $
-  "MTG.SQL.Postgres MTG.SQL.Postgres.Enum"
+doctestLib :: IO ()
+doctestLib = doctest (sourcesLib ++ flagsLib)
 
 --------------------------------------------------
 
-flags = (extensions2flags extensions) ++ options
+doctestExe :: IO ()
+doctestExe = doctest (sourcesExe ++ flagsExe)
+
+--------------------------------------------------
+-- Utilities -------------------------------------
+--------------------------------------------------
+
+sourcesLib = modules2filepaths "hs" "library" $
+  "MTG.Types MTG.Types.Prelude MTG.Classes.Prelude MTG.Classes.Print MTG.Classes.Parse MTG.Types.Errors MTG.Text.List.Colors MTG.Text.List.ManaCost MTG.Number.CMC MTG.Enum.Color \
+  \ MTG.Text.Artist MTG.Text.Block MTG.Text.Border MTG.Text.Cardtype MTG.Text.Color MTG.Text.Edition MTG.Text.Format MTG.Text.Frame MTG.Text.Keyword MTG.Text.Language MTG.Text.Layout MTG.Text.Legality MTG.Text.ManaSymbol MTG.Text.Name MTG.Text.Rarity MTG.Text.Subtype MTG.Text.Supertype MTG.Text.Symbol MTG.Text.Watermark"
 
 --------------------------------------------------
 
-extensions :: [String]
-extensions =
+sourcesExe = modules2filepaths "hs" "executables" $
+
+  "Program.MTG.JSON.Types Program.MTG.JSON.IO Program.MTG.JSON.CLI Program.MTG.JSON.Constants Program.MTG.JSON.Prelude"
+
+--------------------------------------------------
+--------------------------------------------------
+
+flagsLib :: [String]
+flagsLib = concat
+
+  [ extensions2flags extensions0
+  , optionsLib
+  ]
+
+--------------------------------------------------
+
+flagsExe :: [String]
+flagsExe = concat
+
+  [ extensions2flags extensions0
+  , optionsExe
+  ]
+
+--------------------------------------------------
+--------------------------------------------------
+
+optionsLib :: [String]
+optionsLib =
+
+  [ "-fdefer-type-errors"
+  ]
+
+--------------------------------------------------
+
+optionsExe :: [String]
+optionsExe =
+
+  [ "-i" <> "./library"
+  ]
+
+--------------------------------------------------
+--------------------------------------------------
+
+extensions0 :: [String]
+extensions0 =
 
   [ "AutoDeriveTypeable"
   , "BangPatterns"
@@ -87,14 +147,6 @@ extensions =
   ]
 
 --------------------------------------------------
-
-options :: [String]
-options =
-
-  [ 
-  ]
-
---------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
 
@@ -122,10 +174,15 @@ extension2flag = ("-X" ++)
 --------------------------------------------------
 
 modules2filepaths :: String -> String -> String -> [String]
-modules2filepaths extension directory = fmap go . words
+modules2filepaths extension directory
 
- where
- go s = directory ++ "/" ++ (module2filename s) ++ "." ++ extension
+  = fmap go
+  . filterBlanks
+  . words
+
+  where
+
+  go s = directory ++ "/" ++ (module2filename s) ++ "." ++ extension
 
 --------------------------------------------------
 
@@ -154,22 +211,9 @@ filterBlanks = filter (not . areAllCharactersBlank)
 --------------------------------------------------
 -- Notes -----------------------------------------
 --------------------------------------------------
-
 {-
 
-$ grep -h -i LANGUAGE -r library/ | sort | uniq | ...
-
-$ cat ... | sort | uniq | xargs | sed -e 's/ / /g'
-
 -}
-
--- [1] every module in this directory (i.e. `hs-source-dirs`),
--- [2] and all language extensions,
--- whether enabled by default or otherwise used,
--- (i.e. both `default-extensions` and `other-extensions`)
--- EXCEPT those that conflict
--- (e.g. DeriveAnyClass and GeneralizedNewtypeDeriving)
-
 --------------------------------------------------
 -- EOF -------------------------------------------
 --------------------------------------------------

@@ -179,7 +179,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
       RespectExisting -> do
 
-        let e = runFormat ("\n[Error] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< mtg-json >>> with the <<< --force >>> option to overwrite.\n") fp -- TODO -- prompt user to confirm.
+        let e = runFormat ("\n[Error] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< " % Format.string % " >>> with the <<< --force >>> option to overwrite.\n") fp programExecutable -- TODO -- prompt user to confirm.
 
         bExists <- Directory.doesPathExist fp
         if   bExists

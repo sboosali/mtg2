@@ -2587,6 +2587,137 @@ prettyDst = \case
 
 
 
+https://github.com/phadej/cabal-doctest/blob/master/README.md
+
+
+-- cabal-doctest
+
+
+
+
+
+
+
+
+
+When you build your project, this Setup will generate a Build_doctests module. To use it in a testsuite, simply do this:
+
+module Main where
+
+import Build_doctests (flags, pkgs, module_sources)
+import Data.Foldable (traverse_)
+import Test.DocTest (doctest)
+
+main :: IO ()
+main = do
+    traverse_ putStrLn args -- optionally print arguments
+    doctest args
+  where
+    args = flags ++ pkgs ++ module_sources
+
+
+
+
+
+x-doctest-components: lib exe:mtg-json
+
+
+module Main where
+
+import Build_doctests (Component (..), components)
+import Data.Foldable (for_)
+import Test.DocTest (doctest)
+
+main :: IO ()
+main = for_ components $ \(Component name flags pkgs sources) -> do
+    print name
+    putStrLn "----------------------------------------"
+    let args = flags ++ pkgs ++ sources
+    for_ args putStrLn
+    doctest args
+
+
+
+
+test-suite doctests:
+  if impl(ghc >= 8.0)
+    x-doctest-options: -fdiagnostics-color=never
+  x-doctest-source-dirs: test
+  x-doctest-modules: Servant.Utils.LinksSpec
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ,  "-i" <> "../mtg-types/library"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+optionsLib :: [String]
+optionsLib =
+
+  [ "-fdefer-type-errors"
+  ,  "-i" <> "../mtg-types/library"
+  ,  "-i" <> "./mtg-types/library"
+  ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
