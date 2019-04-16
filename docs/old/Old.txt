@@ -2174,6 +2174,60 @@ pFetch = do
 
 
 
+{- |
+
+== CLI
+
+* `Quiet`   — @$ mtg-json -v0 ...@ or @$ mtg-json -q ...@ (a.k.a. the default).
+* `Concise` — @$ mtg-json -v ...@ or @$ mtg-json ...@ (a.k.a. the default).
+* `Verbose` — @$ mtg-json -v1 ...@ or @$ mtg-json -v ...@
+* `Loud`    — @$ mtg-json -v2 ...@ or @$ mtg-json -vv ...@
+
+-}
+
+data Verbosity
+
+  = Quiet
+  | Concise
+  | Verbose
+  | Loud
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------#
+
+mtg-scryfall:
+
+	$(CabalBuild) -f"+develop" "lib:mtg-scryfall"
+
+.PHONY: mtg-scryfall
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

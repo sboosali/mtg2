@@ -18,27 +18,34 @@ version:             0.0.0
 -- Description -----------------------------------
 --------------------------------------------------
 
-synopsis: SQL Database from « mtg.json » (of Magic The Gathering cards)
-
 category: MTG
+
+synopsis: Parse « mtg.json » (all Magic The Gathering sets/cards)
 
 --------------------------------------------------
 
-description: Create a SQL database from « mtg.json ».
+description: Parse « @mtg.json@ » into « @mtg.hs@ ».
              .
-             @CREATE TABLE@s for:
+             . « @mtg.json@ » is a JSON file, maintained and updated by <https://mtgjson.com/>.
+             It stores all known /Magic: The Gathering/ data.
+             ,
+             The @mtg-json@ program (provided by this package) fetches it and parses it (validating and refining the data).
+             Most /black-bordered/ cards, and all sets legal in the /Vintage/ format, can be represented;
+             some (but not all) /silver-bordered/ can be represented too.
              .
-             * Magic The Gathering cards.
-             * Magic The Gathering sets.
+             The “JSON”-y datatypes, `CardObject` and `SetObject`, use the string-based @MTG.Text.\*@ types.
+             The “Haskell”-y datatypes, `Card` and `Set`, use the more richly-typed @MTG.Enum.\*@ &co.
+             In particular, /silver-bordered/ cards with non-integer power-and-toughness or converted-mana-cost are rejected because,
+             for example, @Card@ represents @cmc@ as @Card { cmc :: Natural, ... }@ (not as a @String@ or a @Float@, as @CardObject@ does).
              .
-             @CREATE TYPE@s for:
+             See @module MTG.JSON@:
              .
-             * Colors
-             * (Known) Keywords
-             * (Known) Card Types
-             * (Known) Sub-Types
-             * (Known) Super-Types
-             * (Known) Card Names
+             * Hackage: <https://hackage.haskell.org/package/mtg-json/docs/MTG-JSON@html#t:Card>
+             * GitHub: <https://github.com/sboosali/mtg/blob/master/mtg-json/library/MTG/JSON.hs#L10>
+             .
+             See also the @README@:
+             .
+             * GitHub: <https://github.com/sboosali/mtg/tree/master/mtg-json#readme>
              .
 
 --------------------------------------------------

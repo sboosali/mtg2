@@ -70,7 +70,7 @@ extra-source-files: LICENSE
             
 data-dir: data
 
-data-files: *.txt
+--data-files: *.txt
 
 --------------------------------------------------
 -- Repository ------------------------------------

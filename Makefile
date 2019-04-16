@@ -23,10 +23,26 @@ CabalProgram ?=$(Package):exe:$(Package)
 Cabal ?=cabal
 Ghc   ?=ghc
 
+Open          ?=xdg-open
+ClipboardCopy ?=xclip -selection clipboard
+
+CheckCabal            ?=$(Cabal) check
+CheckBash             ?=shellcheck
+CheckStaticExecutable ?=! ldd
+  # ^ TODO on OSX, otool -o
+
 #------------------------------------------------#
 # Paths...
 
 DataDirectory ?=./data
+
+ShareDirectory ?=./gitignore/share
+# ^ gitignore'd during development.
+#  for a release, override to « ./share ».
+
+BashCompletionDirectory ?=$(ShareDirectory)/bash-completion
+ZshCompletionDirectory  ?=$(ShareDirectory)/zsh-completion
+FishCompletionDirectory ?=$(ShareDirectory)/fish-completion
 
 #------------------------------------------------#
 # Miscellaneous...
@@ -41,9 +57,13 @@ CabalOptions ?=
 #------------------------------------------------#
 # Subcommands...
 
-CabalBuild ?=cabal new-build $(CabalOptions)
-CabalTest  ?=cabal new-test --enable-tests $(CabalOptions)
-CabalBench ?=cabal new-bench --enable-benchmarks $(CabalOptions)
+CabalBuild   ?=$(Cabal) new-build $(CabalOptions)
+CabalRun     ?=$(Cabal) new-run $(CabalOptions)
+CabalInstall ?=$(Cabal) -v --overwrite-policy=always new-install
+
+CabalTest    ?=$(Cabal) new-test --enable-tests $(CabalOptions)
+CabalBench   ?=$(Cabal) new-bench --enable-benchmarks $(CabalOptions)
+CabalDocs    ?=$(Cabal) new-haddock --enable-documentation $(CabalOptions)
 
 #------------------------------------------------#
 # Environment Variables...
@@ -140,7 +160,7 @@ mtg-types:
 
 mtg-json:
 
-	$(CabalBuild) -f"+develop" "lib:mtg-json"
+	$(CabalRun) -f"+develop" "exe:mtg-json" -- --help
 
 .PHONY: mtg-json
 
@@ -148,7 +168,7 @@ mtg-json:
 
 mtg-sql:
 
-	$(CabalBuild) -f"+develop" "lib:mtg-sql"
+	$(CabalRun) -f"+develop" "exe:mtg-sql" -- --help
 
 .PHONY: mtg-sql
 
@@ -156,17 +176,9 @@ mtg-sql:
 
 mtg-csv:
 
-	$(CabalBuild) -f"+develop" "lib:mtg-csv"
+	$(CabalRun) -f"+develop" "exe:mtg-csv" -- --help
 
 .PHONY: mtg-csv
-
-#------------------------------------------------#
-
-mtg-scryfall:
-
-	$(CabalBuild) -f"+develop" "lib:mtg-scryfall"
-
-.PHONY: mtg-scryfall
 
 #------------------------------------------------#
 # Data...
@@ -181,6 +193,54 @@ fetch:
 	(cd "$(DataDirectory)/json"       && wget "https://mtgjson.com/json/Vintage.json.zip")
 
 .PHONY: fetch
+
+#------------------------------------------------#
+# Programs...
+
+install-mtg-json:
+
+	@printf "\n%s\n" "========================================"
+
+	$(CabalInstall) "exe:mtg-json"
+
+	@printf "\n%s\n" "========================================"
+
+	@mkdir -p "$(BashCompletionDirectory)"
+	mtg-json --bash-completion-script `which mtg-json` > "$(BashCompletionDirectory)/mtg-json.bash"
+
+	@mkdir -p "$(ZshCompletionDirectory)"
+	mtg-json --zsh-completion-script `which mtg-json` > "$(ZshCompletionDirectory)/mtg-json.zsh"
+
+	@mkdir -p "$(FishCompletionDirectory)"
+	mtg-json --fish-completion-script `which mtg-json` > "$(FishCompletionDirectory)/mtg-json.fish"
+
+	@printf "\n%s\n" "========================================"
+
+	$(CheckStaticExecutable) `which mtg-json` || true
+
+	@printf "\n%s\n" "========================================"
+
+	source `readlink -f "$(BashCompletionDirectory)/mtg-json.bash"`
+
+	@printf "\n%s\n" "========================================"
+
+.PHONY: install-mtg-json
+
+#------------------------------------------------#
+
+install-mtg-sql:
+
+	$(CabalInstall) "exe:mtg-sql"
+
+.PHONY: install-mtg-sql
+
+#------------------------------------------------#
+
+install-mtg-csv:
+
+	$(CabalInstall) "exe:mtg-csv"
+
+.PHONY: install-mtg-csv
 
 #------------------------------------------------#
 # Tests...
