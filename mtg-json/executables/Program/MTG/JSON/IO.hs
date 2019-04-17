@@ -301,14 +301,51 @@ printLicense Options{..} = do
 
 {- | Download and decompress a @JSON@ file.
 
+== Exceptions
+
+May throw:
+
+* ``
+* ``
+
 -}
 
-fetchJsonGz :: () -> IO (MTGJSON ByteString)
-fetchJsonGz () = do
+fetchMtgJsonGz :: () -> IO (MTGJSON ByteString)
+fetchMtgJsonGz () = do
 
-  
+  manager <- HTTPS.newManager HTTPS.tlsManagerSettings
+  fetchMtgJsonGzWith manager
 
   return (MTGJSON "")
+
+--------------------------------------------------
+
+{- | -}
+
+fetchMtgJsonGzWith :: HTTPS.Manager -> () -> IO (MTGJSON ByteString)
+fetchMtgJsonGzWith manager () = do
+
+  
+  go manager c = do
+    putStrLn $ urlFromMCICardIdentifier c 
+    putStrLn $ pathFromMCICardIdentifier c 
+    downloadImageFromMagicCardsInfo manager c >>= either failure (success c) 
+  failure e = print e 
+  success c i = do 
+    B.writeFile (pathFromMCICardIdentifier c) i
+    delayMilliseconds (t&fromIntegral)  -- threadDelay (fromIntegral t) 
+
+    
+downloadImageFromMagicCardsInfo :: Manager -> MCICardIdentifier -> IO (Either HttpException B.ByteString)
+downloadImageFromMagicCardsInfo manager c = handleHttpErrors $ do 
+  request <- parseUrlThrow url
+  response <- httpLbs request manager
+  let body = response&responseBody 
+  return $ Right body 
+  where 
+  url = urlFromMCICardIdentifier c
+  handleHttpErrors = handle @HttpException (Left > return) 
+  -- handle $ (\(e ::HttpException) -> Left e) 
 
 --------------------------------------------------
 -- Utilities -------------------------------------
