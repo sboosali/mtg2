@@ -28,12 +28,34 @@ import Program.MTG.JSON.Prelude
 -- Imports (External) ----------------------------
 --------------------------------------------------
 
+import qualified "zlib" Codec.Compression.GZip     as GZIP    -- GZIP format 
+import qualified "zlib" Codec.Compression.Zlib     as ZLIB    -- ZLIB format 
+import qualified "zlib" Codec.Compression.Zlib.Raw as DEFLATE -- DEFLATE format 
+import qualified "zlib" Codec.Compression.Zlib.Raw as Z
+
+--------------------------------------------------
+
+import qualified "zip-archive" Codec.Archive.Zip as ZIP
+
+--------------------------------------------------
+
+import qualified "http-types"      Network.HTTP.Types.Status as HTTP
+import qualified "http-client"     Network.HTTP.Client       as HTTP
+import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
+
+--------------------------------------------------
+
 import qualified "directory" System.Directory as Directory
 
 --------------------------------------------------
 
 import qualified "formatting" Formatting as Format
 import           "formatting" Formatting ( (%) )
+
+--------------------------------------------------
+
+import qualified "bytestring" Data.ByteString.Lazy       as Lazy
+import qualified "bytestring" Data.ByteString.Lazy.Char8 as ASCII
 
 --------------------------------------------------
 

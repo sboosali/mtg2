@@ -702,9 +702,9 @@ executable mtg-json
 
                -----------------
 
-               , http-client 
+               , http-client
                , http-client-tls
-               , http-types 
+               , http-types
                , wreq
 
                -----------------
