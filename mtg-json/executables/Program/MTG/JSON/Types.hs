@@ -20,16 +20,14 @@
 module Program.MTG.JSON.Types
 
   ( module Program.MTG.JSON.Types
-
-  , module Program.MTG.JSON.SrcDst
-
   ) where
 
 --------------------------------------------------
 -- Imports (Internal) ----------------------------
 --------------------------------------------------
 
-import Program.MTG.JSON.SrcDst
+import Data.SrcDst
+
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------

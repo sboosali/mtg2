@@ -512,7 +512,7 @@ common Haskell2020Benchmark
    --------------------
 
 --------------------------------------------------
--- Library ---------------------------------------
+-- Libraries -------------------------------------
 --------------------------------------------------
 
 library
@@ -523,7 +523,7 @@ library
 
 ------------------------------
 
- hs-source-dirs: library
+ hs-source-dirs: ./library
   
  -----------------------------
 
@@ -624,36 +624,78 @@ library
 
  -----------------------------
 
---------------------------------------------------
--- Tests -----------------------------------------
---------------------------------------------------
+library srcdst
 
-test-suite doc
+------------------------------
 
- import: Haskell2020Program
+ import: Haskell2020Library
+
+------------------------------
+
+ hs-source-dirs: ./srcdst
+  
+ -----------------------------
+
+ exposed-modules: Data.SrcDst
+                , Conduit.SrcDst
 
  -----------------------------
 
- hs-source-dirs: ./test
-
- main-is:        DocTests.hs
+ other-modules: Prelude.SrcDst
 
  -----------------------------
 
- build-depends: base
+ if !flag(develop)
 
-              ----------------
-
-              , mtg-types
-              , mtg-json
-
-              ----------------
-
-              , doctest
+     extra-libraries: z
+                    , tar
 
  -----------------------------
 
- type: exitcode-stdio-1.0
+ build-depends:
+
+  --------------------
+  -- My Libraries ----
+  --------------------
+
+               spiros    ^>= 0.4
+
+  --------------------
+  -- Standard Libraries
+  --------------------
+
+             , containers ^>= 0.6
+
+             , bytestring ^>= 0.10
+
+             , binary     ^>= 0.8
+
+             , filepath   ^>= 1.4
+             , directory  ^>= 1.3
+
+             , time        >= 1.8
+
+  --------------------
+  -- Conduit Libraries
+  --------------------
+
+             , conduit      ^>= 1.3
+             , http-conduit ^>= 2.3
+             , resourcet    ^>= 1.2
+
+             , http-client
+             , http-client-tls
+             , http-types
+
+  --------------------
+  -- Tarball Libraries
+  --------------------
+
+             , zlib
+             , tar
+             , zip-archive
+
+  --------------------
 
 --------------------------------------------------
 -- Executables -----------------------------------
@@ -684,6 +726,7 @@ executable mtg-json
 
   build-depends: mtg-json
                , mtg-types
+               , srcdst
 
                -----------------
 
@@ -741,6 +784,37 @@ executable mtg-json
                , time        >= 1.8
 
                -----------------
+
+--------------------------------------------------
+-- Tests -----------------------------------------
+--------------------------------------------------
+
+test-suite doc
+
+ import: Haskell2020Program
+
+ -----------------------------
+
+ hs-source-dirs: ./test
+
+ main-is:        DocTests.hs
+
+ -----------------------------
+
+ build-depends: base
+
+              ----------------
+
+              , mtg-types
+              , mtg-json
+
+              ----------------
+
+              , doctest
+
+ -----------------------------
+
+ type: exitcode-stdio-1.0
 
 --------------------------------------------------
 -- EOF -------------------------------------------

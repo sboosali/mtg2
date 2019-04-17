@@ -20,10 +20,11 @@ module Program.MTG.JSON.IO where
 -- Imports (Internal) ----------------------------
 --------------------------------------------------
 
+import Conduit.SrcDst
+
 import Program.MTG.JSON.Types
 import Program.MTG.JSON.Paths
 import Program.MTG.JSON.Constants
-import Program.MTG.JSON.SrcDst
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------

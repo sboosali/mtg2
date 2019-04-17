@@ -93,6 +93,8 @@ optionsExe :: [String]
 optionsExe =
 
   [ "-i" <> "./library"
+  , "-i" <> "./srcdst"
+  , "-i" <> "./executables"
   ]
 
 --------------------------------------------------
