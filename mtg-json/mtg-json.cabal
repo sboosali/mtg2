@@ -368,6 +368,9 @@ common Haskell2020Library
    -- (miscellaneous)
    --------------------
 
+                  RankNTypes
+                  GADTs
+
    -- RebindableSyntax
    -- kinds:
    -- DataKinds ConstraintKinds

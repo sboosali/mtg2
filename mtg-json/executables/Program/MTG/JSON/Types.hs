@@ -1,6 +1,9 @@
 --------------------------------------------------
 -- Extensions ------------------------------------
 --------------------------------------------------
+{-# LANGUAGE GADTs #-}
+
+--------------------------------------------------
 
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -422,6 +425,18 @@ newtype MTGHS t = MTGHS
 
 instance (IsString t) => IsString (MTGHS t) where
   fromString = (MTGHS . fromString)
+
+--------------------------------------------------
+-- GADTs -----------------------------------------
+--------------------------------------------------
+
+{- | How to @"Program.MTG.JSON.IO.fetch"@ (and process) a resource.
+
+-}
+
+data FetchConfig (a :: *) where
+
+  FetchMtgJsonGz :: URI -> FetchConfig (MTGJSON ByteString)
 
 --------------------------------------------------
 -- Functions -------------------------------------

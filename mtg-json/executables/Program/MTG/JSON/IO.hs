@@ -310,42 +310,36 @@ May throw:
 
 -}
 
-fetchMtgJsonGz :: () -> IO (MTGJSON ByteString)
-fetchMtgJsonGz () = do
+fetch :: forall a. FetchConfig a -> IO a
+fetch config = do
 
-  manager <- HTTPS.newManager HTTPS.tlsManagerSettings
-  fetchMtgJsonGzWith manager
+  let settings = HTTPS.tlsManagerSettings
 
-  return (MTGJSON "")
+  manager <- HTTPS.newTlsManagerWith settings
+
+  fetchWith manager config
+
+{-# INLINEABLE fetch #-}
 
 --------------------------------------------------
 
-{- | -}
+{- | (See `fetch`.) -}
 
-fetchMtgJsonGzWith :: HTTPS.Manager -> () -> IO (MTGJSON ByteString)
-fetchMtgJsonGzWith manager () = do
+fetchWith :: forall a. HTTPS.Manager -> FetchConfig a -> IO a
+fetchWith manager config = go config
+  where
 
-  
-  go manager c = do
-    putStrLn $ urlFromMCICardIdentifier c 
-    putStrLn $ pathFromMCICardIdentifier c 
-    downloadImageFromMagicCardsInfo manager c >>= either failure (success c) 
-  failure e = print e 
-  success c i = do 
-    B.writeFile (pathFromMCICardIdentifier c) i
-    delayMilliseconds (t&fromIntegral)  -- threadDelay (fromIntegral t) 
+  go :: FetchConfig a -> IO a
+  go = \case
 
-    
-downloadImageFromMagicCardsInfo :: Manager -> MCICardIdentifier -> IO (Either HttpException B.ByteString)
-downloadImageFromMagicCardsInfo manager c = handleHttpErrors $ do 
-  request <- parseUrlThrow url
-  response <- httpLbs request manager
-  let body = response&responseBody 
-  return $ Right body 
-  where 
-  url = urlFromMCICardIdentifier c
-  handleHttpErrors = handle @HttpException (Left > return) 
-  -- handle $ (\(e ::HttpException) -> Left e) 
+    FetchMtgJsonGz uri -> fetchMtgJsonGz uri
+
+  fetchMtgJsonGz :: URI -> IO (MTGJSON a)
+  fetchMtgJsonGz uri = do
+
+    _
+
+{-# INLINEABLE fetchWith #-}
 
 --------------------------------------------------
 -- Utilities -------------------------------------

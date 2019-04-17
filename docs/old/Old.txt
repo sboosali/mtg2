@@ -2748,6 +2748,87 @@ readBool "on"
 
 
 
+fetchWith :: forall a. HTTPS.Manager -> FetchConfig a -> IO (MTGJSON a)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  go :: forall x. FetchConfig x -> IO x
+  go = \case
+
+    FetchMtgJsonGz uri -> fetchMtgJsonGz uri
+
+  fetchMtgJsonGz :: URI -> IO (MTGJSON a)
+  fetchMtgJsonGz uri = do
+
+
+
+
+
+
+
+
+go = do
+  downloadImageFromMagicCardsInfo manager c >>= either failure (success c) 
+  failure e = print e 
+  success c i = do 
+    B.writeFile (pathFromMCICardIdentifier c) i
+    delayMilliseconds (t&fromIntegral)  -- threadDelay (fromIntegral t) 
+
+    
+downloadImageFromMagicCardsInfo :: Manager -> MCICardIdentifier -> IO (Either HttpException B.ByteString)
+downloadImageFromMagicCardsInfo manager c = handleHttpErrors $ do 
+  request <- parseUrlThrow url
+  response <- httpLbs request manager
+  let body = response&responseBody 
+  return $ Right body 
+  where 
+  url = urlFromMCICardIdentifier c
+  handleHttpErrors = handle @HttpException (Left > return) 
+  -- handle $ (\(e ::HttpException) -> Left e) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
