@@ -674,8 +674,10 @@ executable mtg-json
                , Program.MTG.JSON.IO
                , Program.MTG.JSON.CLI
 
-               , Program.MTG.JSON.Prelude
                , Program.MTG.JSON.Constants
+               , Program.MTG.JSON.Paths
+
+               , Program.MTG.JSON.Prelude
 
   ----------------------------
 
@@ -731,8 +733,10 @@ executable mtg-json
 
                , binary     ^>= 0.8
 
-               , filepath
-               , directory
+               , filepath   ^>= 1.4
+               , directory  ^>= 1.3
+
+               , time        >= 1.8
 
                -----------------
 
