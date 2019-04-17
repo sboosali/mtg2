@@ -17,12 +17,19 @@
 
 -}
 
-module Program.MTG.JSON.Types where
+module Program.MTG.JSON.Types
+
+  ( module Program.MTG.JSON.Types
+
+  , module Program.MTG.JSON.SrcDst
+
+  ) where
 
 --------------------------------------------------
 -- Imports (Internal) ----------------------------
 --------------------------------------------------
 
+import Program.MTG.JSON.SrcDst
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------
@@ -125,13 +132,6 @@ defaultOptions = Options{..}
 
 --------------------------------------------------
 -- Types -----------------------------------------
---------------------------------------------------
-
--- |
-
-type URI = FilePath
-
---------------------------------------------------
 --------------------------------------------------
 
 {- |
@@ -243,119 +243,6 @@ defaultForcefulness = RespectExisting
 
 --------------------------------------------------
 --------------------------------------------------
-
-{- | Read the source ('Src'), and write it to a destination ('Dst').
-
--}
-
-data SrcDst = SrcDst
-
-  { src :: Src
-  , dst :: Dst
-  }
-
-  deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
-  deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
---------------------------------------------------
-
-{- | A local or remote source of some data.
-
--}
-
-data Src
-
-  = SrcBytes  LazyBytes
-  | SrcBytes' StrictBytes
-
-  | SrcStdin
-  | SrcUri   URI
-  | SrcFile  FilePath
-
-  deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
-  deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
-
--- | @≡ 'parseSrc'@
-instance IsString Src where fromString = parseSrc
-
---------------------------------------------------
-
-{- | 
-== Examples
-
->>> parseSrc "-"
-SrcStdin
->>> parseSrc "./mtg.json"
-SrcFile "./mtg.json"
->>> parseSrc "          ./mtg.json          "
-SrcFile "./mtg.json"
-
--}
-
-parseSrc :: String -> Src
-parseSrc = munge > \case
-
-  "-" -> SrcStdin
-
-  s -> SrcFile s
-
-  where
-
-  munge = lrstrip
-
---------------------------------------------------
---------------------------------------------------
-
-{- | A local destination for some data.
-
--}
-
-data Dst
-
-  = DstStdout
-  | DstFile    FilePath
-
-  deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
-  deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
-
--- | @≡ 'parseDst'@
-instance IsString Dst where fromString = parseDst
-
---------------------------------------------------
-
-{- | 
-== Examples
-
->>> parseDst "-"
-DstStdout
->>> parseDst "./mtg.hs"
-DstFile "./mtg.hs"
->>> parseDst "          ./mtg.hs          "
-DstFile "./mtg.hs"
-
--}
-
-parseDst :: String -> Dst
-parseDst = munge > \case
-
-  "-" -> DstStdout
-
-  s -> DstFile s
-
-  where
-
-  munge = lrstrip
-
---------------------------------------------------
---------------------------------------------------
 {-TODO-
 
 {-| Whether the program output is colorful or not.
@@ -459,26 +346,7 @@ instance (IsString t) => IsString (MTGHS t) where
 
 data FetchConfig (a :: *) where
 
-  FetchMtgJsonGz :: URI -> FetchConfig (MTGJSON ByteString)
-
---------------------------------------------------
--- Functions -------------------------------------
---------------------------------------------------
-
-prettySrc :: Src -> String
-prettySrc = \case
-
-  SrcStdin   -> "<<stdin>>"
-  SrcFile fp -> "" <> fp
-  SrcUri uri -> "" <> uri
-
---------------------------------------------------
-
-prettyDst :: Dst -> String
-prettyDst = \case
-
-  DstStdout  -> "<<stdout>>"
-  DstFile fp -> "" <> fp
+  FetchMtgJsonGz :: URL -> FetchConfig (MTGJSON ByteString)
 
 --------------------------------------------------
 -- EOF -------------------------------------------

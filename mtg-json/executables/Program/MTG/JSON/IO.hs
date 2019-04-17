@@ -23,6 +23,7 @@ module Program.MTG.JSON.IO where
 import Program.MTG.JSON.Types
 import Program.MTG.JSON.Paths
 import Program.MTG.JSON.Constants
+import Program.MTG.JSON.SrcDst
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------
@@ -336,92 +337,11 @@ fetchWith manager config = go config
 {-# INLINEABLE fetchWith #-}
 
 --------------------------------------------------
-
-{- | Read bytes “lazily” (`LazyBytes`) from a given source (`Src`).
-
--}
-
-readSrc :: Src -> IO LazyBytes
-readSrc = \case
-
-  SrcBytes  bs -> return bs
-  SrcBytes' bs -> return (Lazy.fromChunks [bs])
-
-  SrcStdin   -> readSrcStdin
-  SrcFile fp -> Lazy.readFile fp
-  SrcUri uri -> do
-
-    fp <- newTemporaryFilePath uri
-
-    download Nothing uri fp
-    Lazy.readFile fp
-
---------------------------------------------------
-
-{- | Read bytes “lazily” (`LazyBytes`) from @stdin@ (`IO.stdin`).
-
--}
-
-readSrcStdin :: IO LazyBytes
-readSrcStdin = do
-  IO.hSetBinaryMode IO.stdin True
-  Lazy.hGetContents IO.stdin
-
---------------------------------------------------
-
-{- | Copy the given source (`Src`) to a file (`FilePath`).
-
--}
-
-copySrc :: FilePath -> Src -> IO LazyBytes
-copySrc fpDst = \case
-
-  SrcBytes  bsSrc -> Lazy.writeFile fpDst bsSrc
-  SrcBytes' bsSrc -> Strict.writeFile fpDst bsSrc
-
-  SrcStdin      -> readSrcStdin >>= Lazy.writeFile fpDst
-  SrcFile fpSrc -> Directory.copyFile fpSrc fpDst
-  SrcUri uriSrc -> download Nothing uriSrc fpDst
-
---------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
 
 mtgjson2mtghs :: MTGJSON a -> MTGHS a
 mtgjson2mtghs (MTGJSON x) = (MTGHS x) -- TODO
-
---------------------------------------------------
-
-{- | Download a file.
-
-@download method uri fp@ downloads URI @uri@ to FilePath @fp@ (with optional request method @method@).
-
-The file contents being downloaded may be larger than available memory. @uri@ is streamed into @fp@.
-
-== Examples
-
-@
->> download (Just "GET") "https://mtgjson.com/json/Vintage.json.gz" "/tmp/Vintage.json.gz"
-@
-
--}
-
-download :: Maybe String -> URI -> FilePath -> IO ()
-download method uri fp = do
-
-  request <- HTTP.parseRequest uri'
-
-  Resource.runResourceT (HTTP.Conduit.httpSink request consume)
-
-  where
-
-  method' = method & maybe "" (++ " ")
-  uri'    = method' <> uri
-
-  consume :: HTTP.Response () -> ConduitM ByteString Void (ResourceT IO) ()
-  consume response = do
-
-    Conduit.sinkFileCautious fp
 
 --------------------------------------------------
 -- Notes -----------------------------------------
