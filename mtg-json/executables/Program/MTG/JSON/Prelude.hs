@@ -42,6 +42,10 @@ import "spiros" Prelude.Spiros
 
 --------------------------------------------------
 
+import "filepath" System.FilePath as EXPORT ( (</>) )
+
+--------------------------------------------------
+
 import "base" Control.Exception as EXPORT ( ErrorCall(..) )
 import "base" System.Exit       as EXPORT ( ExitCode(..) )
 
@@ -61,6 +65,10 @@ import qualified "formatting" Formatting as Format
 -- Imports ---------------------------------------
 --------------------------------------------------
 
+import "directory" System.Directory as Directory
+
+--------------------------------------------------
+
 import qualified "containers" Data.Map as Map
 
 --------------------------------------------------
@@ -75,6 +83,15 @@ import qualified "base" Prelude
 
 --------------------------------------------------
 -- Definitions -----------------------------------
+--------------------------------------------------
+
+errorCall :: (HasCallStack) => String -> SomeException
+errorCall s = GHC.errorCallWithCallStackException s ?callStack
+
+-- errorCallWithCallStackException :: String -> CallStack -> SomeException
+
+{-# INLINEABLE errorCall #-}
+
 --------------------------------------------------
 
 putStdErr :: String -> IO ()
@@ -100,12 +117,10 @@ printDivider = do
 
 --------------------------------------------------
 
-errorCall :: (HasCallStack) => String -> SomeException
-errorCall s = GHC.errorCallWithCallStackException s ?callStack
+-- | @mkdir -p@
 
--- errorCallWithCallStackException :: String -> CallStack -> SomeException
-
-{-# INLINEABLE errorCall #-}
+mkdir_p :: FilePath -> IO ()
+mkdir_p = Directory.createDirectoryIfMissing True
 
 --------------------------------------------------
 

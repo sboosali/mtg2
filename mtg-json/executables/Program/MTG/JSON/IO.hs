@@ -21,6 +21,7 @@ module Program.MTG.JSON.IO where
 --------------------------------------------------
 
 import Program.MTG.JSON.Types
+import Program.MTG.JSON.Paths
 import Program.MTG.JSON.Constants
 import Program.MTG.JSON.Prelude
 
@@ -71,6 +72,7 @@ import qualified "directory" System.Directory as Directory
 
 --------------------------------------------------
 
+import qualified "bytestring" Data.ByteString            as Strict
 import qualified "bytestring" Data.ByteString.Lazy       as Lazy
 import qualified "bytestring" Data.ByteString.Lazy.Char8 as ASCII
 
@@ -104,7 +106,7 @@ runCommand Command{ subcommand, options } = go subcommand
   go = \case
 
       FetchJSON srcdst -> do
-        fetchJSON options srcdst
+        fetchMTG options srcdst
 
       PrintVersion -> do
         printVersion options
@@ -119,23 +121,21 @@ runCommand Command{ subcommand, options } = go subcommand
 == CLI
 
 @
-$ mtg-json fetch --input ... --output ... version
+$ mtg-json fetch --input ... --output ... (all | vintage | ...)
 @
 
 -}
 
-fetchJSON :: Options -> SrcDst -> IO ()
-fetchJSON Options{..} SrcDst{src,dst} = do
+fetchMTG :: Options -> SrcDst -> IO ()
+fetchMTG Options{..} SrcDst{src,dst} = do
 
   putStdErr sSrc
 
-  mtg_json <- inputSrc
-
-  let mtg_hs = mtgjson2mtghs mtg_json
+  bytes <- inputSrc
 
   putStdErr sDst
 
-  outputDst mtg_hs
+  outputDst bytes
 
   where
 
@@ -153,29 +153,19 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  inputSrc :: IO Source
-  inputSrc = case src of
+  inputSrc :: IO LazyBytes
+  inputSrc = case dryrun of
 
-      SrcStdin -> do
-
-          promptSrc
-
-      SrcLines ts -> do
-
-          return $ MTGJSON (Prelude.unlines (toS <$> ts))
-
-      SrcFile fp -> do
-
-          readSrc fp
-
-      SrcUri uri -> do
-
-          fetchSrc uri
+    DryRun  -> return ""
+    TrueRun -> readSrc src
 
   ------------------------------
 
   outputDst :: (MTGHS String) -> IO ()
-  outputDst mtg_hs = case dst of
+  outputDst bytes = case dryrun of
+
+    DryRun  -> return ""
+    TrueRun -> case dst of
 
       DstStdout -> do
 
@@ -184,27 +174,6 @@ fetchJSON Options{..} SrcDst{src,dst} = do
       DstFile fp -> do
 
           writeDst fp mtg_hs
-
-  ------------------------------
-
-  promptSrc :: IO (MTGJSON String)
-  promptSrc = MTGJSON <$> do
-
-    IO.hGetContents IO.stdin
-
-    -- IO.hGetContents IO.stdin
-
-  ------------------------------
-
-  readSrc :: FilePath -> IO (MTGJSON String)
-  readSrc fp = MTGJSON <$> do
-
-    IO.readFile fp
-
-  ------------------------------
-
-  fetchSrc :: URI -> IO (MTGJSON String)
-  fetchSrc uri = fetch (FetchMtgJsonGz uri)
 
   ------------------------------
 
@@ -231,7 +200,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-{-# INLINEABLE fetchJSON #-}
+{-# INLINEABLE fetchMTG #-}
 
 --------------------------------------------------
 
@@ -368,34 +337,51 @@ fetchWith manager config = go config
 
 --------------------------------------------------
 
-readSource :: Source -> IO LazyBytes
-readSource = \case
+{- | Read bytes “lazily” (`LazyBytes`) from a given source (`Src`).
 
-  SourceStdin          -> Lazy.getContents
-  SourceFilePath    fp -> Lazy.readFile fp
-  SourceStrictBytes bs -> return (Lazy.fromChunks [bs])
-  SourceLazyBytes   bs -> return bs
+-}
+
+readSrc :: Src -> IO LazyBytes
+readSrc = \case
+
+  SrcBytes  bs -> return bs
+  SrcBytes' bs -> return (Lazy.fromChunks [bs])
+
+  SrcStdin   -> readSrcStdin
+  SrcFile fp -> Lazy.readFile fp
+  SrcUri uri -> do
+
+    fp <- newTemporaryFilePath uri
+
+    download Nothing uri fp
+    Lazy.readFile fp
 
 --------------------------------------------------
 
-readValue :: ReadValue a -> IO a
-readValue = \case
+{- | Read bytes “lazily” (`LazyBytes`) from @stdin@ (`IO.stdin`).
 
-  HaskellValue b    -> return "TODO"
-  JSONValue    v    -> return "TODO"
+-}
 
-  RemotePath uri    -> return "TODO"
+readSrcStdin :: IO LazyBytes
+readSrcStdin = do
+  IO.hSetBinaryMode IO.stdin True
+  Lazy.hGetContents IO.stdin
 
-  ArchivedPath   fp -> return "TODO"
-  CompressedPath fp -> return "TODO"
+--------------------------------------------------
 
-  String     s      -> return s
-  LazyText   t      -> return t
-  StrictText t      -> return t
+{- | Copy the given source (`Src`) to a file (`FilePath`).
 
-  LazyBytes       b -> return b
-  StrictBytes     b -> return b
-  CompressedBytes b -> return "TODO"
+-}
+
+copySrc :: FilePath -> Src -> IO LazyBytes
+copySrc fpDst = \case
+
+  SrcBytes  bsSrc -> Lazy.writeFile fpDst bsSrc
+  SrcBytes' bsSrc -> Strict.writeFile fpDst bsSrc
+
+  SrcStdin      -> readSrcStdin >>= Lazy.writeFile fpDst
+  SrcFile fpSrc -> Directory.copyFile fpSrc fpDst
+  SrcUri uriSrc -> download Nothing uriSrc fpDst
 
 --------------------------------------------------
 -- Utilities -------------------------------------
@@ -420,7 +406,7 @@ The file contents being downloaded may be larger than available memory. @uri@ is
 
 -}
 
-download :: Maybe String -> String -> FilePath -> IO ()
+download :: Maybe String -> URI -> FilePath -> IO ()
 download method uri fp = do
 
   request <- HTTP.parseRequest uri'

@@ -20,7 +20,7 @@ module Program.MTG.JSON.Paths where
 -- Imports (Internal) ----------------------------
 --------------------------------------------------
 
-import Program.MTG.JSON.Types
+--import Program.MTG.JSON.Types
 import Program.MTG.JSON.Constants
 import Program.MTG.JSON.Prelude
 

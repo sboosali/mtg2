@@ -267,10 +267,12 @@ data SrcDst = SrcDst
 
 data Src
 
-  = SrcStdin
+  = SrcBytes  LazyBytes
+  | SrcBytes' StrictBytes
+
+  | SrcStdin
   | SrcUri   URI
   | SrcFile  FilePath
-  | SrcLines [Text]
 
   deriving stock    (Show,Read,Eq,Ord)
   deriving stock    (Lift,Data,Generic)
@@ -458,70 +460,6 @@ instance (IsString t) => IsString (MTGHS t) where
 data FetchConfig (a :: *) where
 
   FetchMtgJsonGz :: URI -> FetchConfig (MTGJSON ByteString)
-
---------------------------------------------------
---------------------------------------------------
-
-{- | `Src`s to read.
-
--}
-
-data Source
-
-  = SourceStdin
-  | SourceFilePath    FilePath
-  | SourceStrictBytes StrictBytes
-  | SourceLazyBytes   LazyBytes
-
-  deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
-  deriving anyclass (NFData,Hashable)
-
---------------------------------------------------
---------------------------------------------------
-
-{- | Values (`Src`s) which this program knows how to /read/.
-
--}
-
-data ReadValue (a :: *) where
-
-  -- “values”:
-
-  HaskellValue    :: (Binary a)
-                  => LazyBytes
-                  -> ReadValue a
-
-  JSONValue       :: (FromJSON a)
-                  => JSON.Value
-                  -> ReadValue a
-
-  -- “paths”:
-
-  RemotePath      :: URI            -> ReadValue LazyBytes
-
-  ArchivedPath    :: FilePath       -> ReadValue LazyBytes
-  CompressedPath  :: FilePath       -> ReadValue LazyBytes
-
-  -- “strings”:
-
-  String          :: String         -> ReadValue String
-
-  LazyText        :: LazyText       -> ReadValue LazyText
-  StrictText      :: StrictText     -> ReadValue StrictText
-
-  LazyBytes       :: LazyBytes      -> ReadValue LazyBytes
-  StrictBytes     :: StrictBytes    -> ReadValue StrictBytes
-  CompressedBytes :: StrictBytes    -> ReadValue StrictBytes
-
---------------------------------------------------
---------------------------------------------------
-
-{- | Values (`Dst`s) which this program knows how to /write/.
-
--}
-
-data WriteValue (a :: *) where
 
 --------------------------------------------------
 -- Functions -------------------------------------
