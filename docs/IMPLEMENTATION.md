@@ -208,4 +208,45 @@ Formatting elimination combinators:
 
 * `plain :: Doc -> Doc`
 
+
+## `http-client`
+
+### `Network.HTTP.` module
+
+``` haskell
+httpLbs :: Request -> Manager -> IO (Response ByteString)
+```
+
+``` haskell
+withResponse :: Request -> Manager -> (Response BodyReader -> IO a) -> IO a
+```
+
+>Perform a Request using a connection acquired from the given Manager, and then provide the Response to the given function. This function is fully exception safe, guaranteeing that the response will be closed when the inner function exits. It is defined as:
+
+``` haskell
+withResponse req man f = bracket (responseOpen req man) responseClose f
+```
+
+>You will need to use functions such as `brRead` to consume the response body.
+
+``` haskell
+```
+
+
+## `http-client-tls`
+
+### `Network.HTTP.TLS` module
+
+``` haskell
+```
+
+
+## `http-types`
+
+### `Network.HTTP.Types` module
+
+``` haskell
+```
+
+
 ## 

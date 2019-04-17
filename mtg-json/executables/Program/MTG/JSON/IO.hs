@@ -10,7 +10,7 @@
 
 --------------------------------------------------
 
-{-|
+{- |
 
 -}
 
@@ -45,7 +45,18 @@ import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
 
 --------------------------------------------------
 
-import qualified "directory" System.Directory as Directory
+import qualified "http-conduit" Network.HTTP.Simple as HTTP.Conduit
+import           "http-conduit" Network.HTTP.Simple ( )
+
+--------------------------------------------------
+
+import qualified "conduit" Conduit as Conduit
+import           "conduit" Conduit ( ConduitM )
+
+--------------------------------------------------
+
+import qualified "resourcet" Control.Monad.Trans.Resource as Resource
+import           "resourcet" Control.Monad.Trans.Resource ( ResourceT )
 
 --------------------------------------------------
 
@@ -53,9 +64,17 @@ import qualified "formatting" Formatting as Format
 import           "formatting" Formatting ( (%) )
 
 --------------------------------------------------
+--- Imports --------------------------------------
+--------------------------------------------------
+
+import qualified "directory" System.Directory as Directory
+
+--------------------------------------------------
 
 import qualified "bytestring" Data.ByteString.Lazy       as Lazy
 import qualified "bytestring" Data.ByteString.Lazy.Char8 as ASCII
+
+import           "bytestring" Data.ByteString ( ByteString )
 
 --------------------------------------------------
 
@@ -134,7 +153,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  inputSrc :: IO (MTGJSON String)
+  inputSrc :: IO Source
   inputSrc = case src of
 
       SrcStdin -> do
@@ -185,9 +204,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
   ------------------------------
 
   fetchSrc :: URI -> IO (MTGJSON String)
-  fetchSrc uri = MTGJSON <$> do
-
-    IO.readFile uri  -- TODO -- download, decompress, read.
+  fetchSrc uri = fetch (FetchMtgJsonGz uri)
 
   ------------------------------
 
@@ -298,6 +315,8 @@ printLicense Options{..} = do
 {-# INLINEABLE printLicense #-}
 
 --------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
 
 {- | Download and decompress a @JSON@ file.
 
@@ -305,7 +324,7 @@ printLicense Options{..} = do
 
 May throw:
 
-* ``
+* `HTTP.HttpException`
 * ``
 
 -}
@@ -325,7 +344,7 @@ fetch config = do
 
 {- | (See `fetch`.) -}
 
-fetchWith :: forall a. HTTPS.Manager -> FetchConfig a -> IO a
+fetchWith :: forall a. HTTP.Manager -> FetchConfig a -> IO a
 fetchWith manager config = go config
   where
 
@@ -337,17 +356,102 @@ fetchWith manager config = go config
   fetchMtgJsonGz :: URI -> IO (MTGJSON a)
   fetchMtgJsonGz uri = do
 
-    _
+    request  <- HTTP.parseUrlThrow uri
+    response <- HTTP.httpLbs request manager
+
+    let body   = (response & HTTP.responseBody)
+    let status = (response & HTTP.responseStatus)
+
+    return body
 
 {-# INLINEABLE fetchWith #-}
+
+--------------------------------------------------
+
+readSource :: Source -> IO LazyBytes
+readSource = \case
+
+  SourceStdin          -> Lazy.getContents
+  SourceFilePath    fp -> Lazy.readFile fp
+  SourceStrictBytes bs -> return (Lazy.fromChunks [bs])
+  SourceLazyBytes   bs -> return bs
+
+--------------------------------------------------
+
+readValue :: ReadValue a -> IO a
+readValue = \case
+
+  HaskellValue b    -> return "TODO"
+  JSONValue    v    -> return "TODO"
+
+  RemotePath uri    -> return "TODO"
+
+  ArchivedPath   fp -> return "TODO"
+  CompressedPath fp -> return "TODO"
+
+  String     s      -> return s
+  LazyText   t      -> return t
+  StrictText t      -> return t
+
+  LazyBytes       b -> return b
+  StrictBytes     b -> return b
+  CompressedBytes b -> return "TODO"
 
 --------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
 
-mtgjson2mtghs :: MTGJSON t -> MTGHS t
-mtgjson2mtghs (MTGJSON s) = (MTGHS s) -- TODO
+mtgjson2mtghs :: MTGJSON a -> MTGHS a
+mtgjson2mtghs (MTGJSON x) = (MTGHS x) -- TODO
+
+--------------------------------------------------
+
+{- | Download a file.
+
+@download method uri fp@ downloads URI @uri@ to FilePath @fp@ (with optional request method @method@).
+
+The file contents being downloaded may be larger than available memory. @uri@ is streamed into @fp@.
+
+== Examples
+
+@
+>> download (Just "GET") "https://mtgjson.com/json/Vintage.json.gz" "/tmp/Vintage.json.gz"
+@
+
+-}
+
+download :: Maybe String -> String -> FilePath -> IO ()
+download method uri fp = do
+
+  request <- HTTP.parseRequest uri'
+
+  Resource.runResourceT (HTTP.Conduit.httpSink request consume)
+
+  where
+
+  method' = method & maybe "" (++ " ")
+  uri'    = method' <> uri
+
+  consume :: HTTP.Response () -> ConduitM ByteString Void (ResourceT IO) ()
+  consume response = do
+
+    Conduit.sinkFileCautious fp
+
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
+
+-- type Sink i = ConduitM i Void
+
+-- sinkFile :: MonadResource m => FilePath -> ConduitT ByteString o m ()
+-- sinkFile :: FilePath -> ConduitT ByteString o IO ()
+-- sinkFile :: FilePath -> ConduitT ByteString Void IO ()
+-- sinkFile :: FilePath -> Sink ByteString IO ()
+
+-- httpSink :: MonadUnliftIO m => Request -> (Response () -> ConduitM ByteString Void m a) -> m a
+
+-- runResourceT :: MonadUnliftIO m => ResourceT m a -> m a
 
 --------------------------------------------------
 -- EOF -------------------------------------------
---------------------------------------------------]
+--------------------------------------------------

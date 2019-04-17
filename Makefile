@@ -247,7 +247,6 @@ install-mtg-csv:
 
 checkdocs:
 	@printf "\n%s\n" "========================================"
-
 	@printf "%s\n\n" "Testing Documentation..."
 
 	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-types:test:doc"
@@ -256,7 +255,6 @@ checkdocs:
 	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-sql:test:doc"
 
 	@printf "\n%s\n" "========================================"
-
 	@printf "%s\n\n" "Generating Documentation..."
 
 	$(Cabal) new-haddock $(CabalTargets)

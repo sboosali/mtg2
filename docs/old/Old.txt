@@ -2819,6 +2819,308 @@ downloadImageFromMagicCardsInfo manager c = handleHttpErrors $ do
 
 
 
+{- | Values (`Src`s and `Dst`s) which this program can work with.
+
+-}
+
+data Value (a :: *) where
+
+  -- “values”:
+
+  HaskellValue    :: (Binary a) => a -> Value a
+
+  JavaScriptValue :: JSON.Value     -> Value JSON.Value
+
+  -- “paths”:
+
+  RemotePath      :: URI            -> Value URI
+
+  ArchivedPath    :: FilePath       -> Value FilePath
+  CompressedPath  :: FilePath       -> Value FilePath
+
+  -- “strings”:
+
+  String          :: String         -> Value String
+
+  LazyText        :: LazyText       -> Value LazyText
+  StrictText      :: StrictText     -> Value StrictText
+
+  LazyBytes       :: LazyBytes      -> Value LazyBytes
+  StrictBytes     :: StrictBytes    -> Value StrictBytes
+  CompressedBytes :: StrictBytes    -> Value StrictBytes
+
+
+
+
+
+
+
+============================================================
+
+
+
+
+export xxx_package_xxx="dictation-vocabulary"
+export xxx_program_xxx="haskell-vocabulary"
+export Xxx_Module_xxX="Language.Haskell.Dictation.Vocabulary"
+export __Synopsis__="Parse Haskell files for dictation vocabulary"
+export __Categories__="Dictation"
+export __GithubUser__="sboosali"
+export __GithubRepository__="configuration"
+export xxx_package_subdir_xxx="dictation/src"
+export __Project__="configuration"
+export __ProjectDirectory__="~/configuration/dictation/src/"
+export __Name__="Sam Boosalis"
+export __Email__="samboosalis@gmail.com"
+
+
+
+
+
+
+#!/bin/bash
+set -e
+set -u
+
+##################################################
+
+INPUT=./xxx-package-xxx.cabal
+OUTPUT=./dictation-vocabulary.cabal
+CONFIG=./skeletor.ini
+
+##################################################
+
+function _skeletor_for-dictation-vocabulary
+(
+
+echo ========================================
+echo
+
+echo "${INPUT}"
+echo "${OUTPUT}"
+echo "${CONFIG}"
+
+echo
+echo ========================================
+echo
+
+
+# shellcheck source=./skeletor.ini
+source "${CONFIG}"
+
+echo "xxx-package-xxx        = ${xxx_package_xxx}"
+echo "xxx-program-xxx        = ${xxx_program_xxx}"
+echo "Xxx_Module_xxX         = ${Xxx_Module_xxX}"
+echo "__Synopsis__           = ${__Synopsis__}"
+echo "__Categories__         = ${__Categories__}"
+echo "__GithubUser__         = ${__GithubUser__}"
+echo "__GithubRepository__   = ${__GithubRepository__}"
+echo "xxx-package-subdir-xxx = ${xxx_package_subdir_xxx}"
+echo "__Project__            = ${__Project__}"
+echo "__ProjectDirectory__   = ${__ProjectDirectory__}"
+echo "__Name__               = ${__Name__}"
+
+echo
+echo ========================================
+echo
+
+SUBSTITUTIONS=( )
+SUBSTITUTIONS+=( "s/xxx-package-xxx/${xxx_package_xxx}/g" )
+SUBSTITUTIONS+=( "s/xxx-program-xxx/${xxx_program_xxx}/g" )
+SUBSTITUTIONS+=( "s/Xxx_Module_xxX/${Xxx_Module_xxX}/g" )
+SUBSTITUTIONS+=( "s:__Categories__:${__Categories__}:g" )
+SUBSTITUTIONS+=( "s/__GithubUser__/${__GithubUser__}/g" )
+SUBSTITUTIONS+=( "s/__GithubRepository__/${__GithubRepository__}/g" )
+SUBSTITUTIONS+=( "s:xxx-package-subdir-xxx:${xxx_package_subdir_xxx}:g" )
+SUBSTITUTIONS+=( "s:__Project__:${__Project__}:g" )
+SUBSTITUTIONS+=( "s:__ProjectDirectory__:${__ProjectDirectory__}:g" )
+
+SUBSTITUTIONS+=( "s/__Name__/${__Name__}/g" )
+SUBSTITUTIONS+=( "s:__Synopsis__:${__Synopsis__}:g" )
+
+for SUBSTITUTION in "${SUBSTITUTIONS[@]}"
+do
+  printf "%s\n" "$SUBSTITUTION"
+done
+
+echo
+echo ========================================
+echo
+
+for SUBSTITUTION in "${SUBSTITUTIONS[@]}"; do printf " -e '%s' " "$SUBSTITUTION"; done
+
+echo
+
+#sed $(for SUBSTITUTION in "${SUBSTITUTIONS[@]}"; do printf " -e '%s' " "$SUBSTITUTION"; done) "${INPUT}"
+
+sed  -e 's/xxx-package-xxx/dictation-vocabulary/g'  -e 's/xxx-program-xxx/haskell-vocabulary/g'  -e 's/Xxx_Module_xxX/Language.Haskell.Dictation.Vocabulary/g'  -e 's:__Categories__:Dictation:g'  -e 's/__GithubUser__/sboosali/g'  -e 's/__GithubRepository__/configuration/g'  -e 's:xxx-package-subdir-xxx:dictation/src:g'  -e 's:__Project__:configuration:g'  -e 's:__ProjectDirectory__:~/configuration/dictation/src/:g'  -e 's/__Name__/Sam Boosalis/g'  -e 's:__Synopsis__:Parse Haskell files for dictation vocabulary:g'  "${INPUT}"  >   "${OUTPUT}"
+
+echo
+echo ========================================
+
+)
+
+##################################################
+
+_skeletor_for-dictation-vocabulary
+
+
+
+
+============================================================
+
+
+#!/usr/bin/env cabal
+
+{- cabal:
+
+  build-depends: base         ^>= 4.12
+               , bytestring   ^>= 0.10
+               , conduit      ^>= 1.3
+               , http-conduit ^>= 2.3
+               , resourcet    ^>= 1.2
+
+-}
+
+--------------------------------------------------
+--- Extensions -----------------------------------
+--------------------------------------------------
+
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PackageImports        #-}
+
+--------------------------------------------------
+
+{- | Example for the @http-conduit@ package.
+
+See:
+
+* <http://hackage.haskell.org/package/http-conduit/docs/Network.HTTP.Simple.html Network.HTTP.Simple>
+
+-}
+
+module Main where
+
+--------------------------------------------------
+--- Imports --------------------------------------
+--------------------------------------------------
+
+import qualified "http-conduit" Network.HTTP.Simple as HTTP
+import           "http-conduit" Network.HTTP.Simple ( )
+
+--------------------------------------------------
+
+import qualified "conduit" Conduit as Conduit
+import           "conduit" Conduit ( ConduitM )
+
+import qualified "resourcet" Control.Monad.Trans.Resource as Resource
+import           "resourcet" Control.Monad.Trans.Resource ( ResourceT )
+
+--------------------------------------------------
+--- Imports --------------------------------------
+--------------------------------------------------
+
+import qualified "bytestring" Data.ByteString as Bytes
+import           "bytestring" Data.ByteString ( ByteString )
+
+--------------------------------------------------
+
+import qualified "base" System.IO as IO
+
+import            "base" Data.Function ( (&) )
+import            "base" Data.Void     ( Void )
+
+--------------------------------------------------
+
+import "base" Prelude
+
+--------------------------------------------------
+--- Main -----------------------------------------
+--------------------------------------------------
+
+main :: IO ()
+main = do
+
+  download (Just "GET") "https://mtgjson.com/json/Vintage.json.gz" "/tmp/Vintage.json.gz"
+
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+{- | Download a file.
+
+@download method uri fp@ downloads URI @uri@ to FilePath @fp@ (with optional request method @method@).
+
+The file contents being downloaded may be larger than available memory. @uri@ is streamed into @fp@.
+
+== Examples
+
+@
+>> download (Just "GET") "https://mtgjson.com/json/Vintage.json.gz" "/tmp/Vintage.json.gz"
+@
+
+-}
+
+download :: Maybe String -> String -> FilePath -> IO ()
+download method uri fp = do
+
+  let method' = method & maybe "GET" id & (++ " ")
+  let uri'    = method' <> uri
+
+  request <- HTTP.parseRequest uri'
+
+  Resource.runResourceT (HTTP.httpSink request consume)
+
+  where
+
+  consume :: HTTP.Response () -> ConduitM ByteString Void (ResourceT IO) ()
+  consume response = do
+
+    Conduit.sinkFileCautious fp
+
+--------------------------------------------------
+-- Notes -----------------------------------------
+--------------------------------------------------
+
+-- type Sink i = ConduitM i Void
+
+-- sinkFile :: MonadResource m => FilePath -> ConduitT ByteString o m ()
+-- sinkFile :: FilePath -> ConduitT ByteString o IO ()
+-- sinkFile :: FilePath -> ConduitT ByteString Void IO ()
+-- sinkFile :: FilePath -> Sink ByteString IO ()
+
+-- httpSink :: MonadUnliftIO m => Request -> (Response () -> ConduitM ByteString Void m a) -> m a
+
+-- runResourceT :: MonadUnliftIO m => ResourceT m a -> m a
+
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------
+
+
+
+============================================================
+
+
+  let method' = method & maybe "GET" id & (++ " ")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -690,12 +690,16 @@ executable mtg-json
 
                , optparse-applicative ^>= 0.14
                , attoparsec           ^>= 0.13
+
+               -----------------
+
                , ansi-wl-pprint       ^>= 0.6
                , formatting           ^>= 6.3
 
                -----------------
 
-               , lens
+               , lens         ^>= 4.17
+               , generic-lens ^>= 1.1
 
                -----------------
 
@@ -710,10 +714,23 @@ executable mtg-json
                , http-types
                , wreq
 
+               , aeson
+               , modern-uri
+
+               -----------------
+
+               , conduit      ^>= 1.3
+               , http-conduit ^>= 2.3
+               , resourcet    ^>= 1.2
+
                -----------------
 
                , containers ^>= 0.6
-               , bytestring
+
+               , bytestring ^>= 0.10
+
+               , binary     ^>= 0.8
+
                , filepath
                , directory
 
