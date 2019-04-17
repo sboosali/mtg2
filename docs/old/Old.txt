@@ -3101,8 +3101,280 @@ download method uri fp = do
 
 ============================================================
 
+--------------------------------------------------
+--------------------------------------------------
+
+{- | `Src`s to read.
+
+-}
+
+data Source
+
+  = SourceStdin
+  | SourceFilePath    FilePath
+  | SourceStrictBytes StrictBytes
+  | SourceLazyBytes   LazyBytes
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Data,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Values (`Src`s) which this program knows how to /read/.
+
+-}
+
+data ReadValue (a :: *) where
+
+  -- “values”:
+
+  HaskellValue    :: (Binary a)
+                  => LazyBytes
+                  -> ReadValue a
+
+  JSONValue       :: (FromJSON a)
+                  => JSON.Value
+                  -> ReadValue a
+
+  -- “paths”:
+
+  RemotePath      :: URI            -> ReadValue LazyBytes
+
+  ArchivedPath    :: FilePath       -> ReadValue LazyBytes
+  CompressedPath  :: FilePath       -> ReadValue LazyBytes
+
+  -- “strings”:
+
+  String          :: String         -> ReadValue String
+
+  LazyText        :: LazyText       -> ReadValue LazyText
+  StrictText      :: StrictText     -> ReadValue StrictText
+
+  LazyBytes       :: LazyBytes      -> ReadValue LazyBytes
+  StrictBytes     :: StrictBytes    -> ReadValue StrictBytes
+  CompressedBytes :: StrictBytes    -> ReadValue StrictBytes
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Values (`Dst`s) which this program knows how to /write/.
+
+-}
+
+data WriteValue (a :: *) where
+
+
+
+
+
+
+
+--------------------------------------------------
+
+readSource :: Source -> IO LazyBytes
+readSource = \case
+
+  SourceStdin          -> Lazy.getContents
+  SourceFilePath    fp -> Lazy.readFile fp
+  SourceStrictBytes bs -> return (Lazy.fromChunks [bs])
+  SourceLazyBytes   bs -> return bs
+
+--------------------------------------------------
+
+readValue :: ReadValue a -> IO a
+readValue = \case
+
+  HaskellValue b    -> return "TODO"
+  JSONValue    v    -> return "TODO"
+
+  RemotePath uri    -> return "TODO"
+
+  ArchivedPath   fp -> return "TODO"
+  CompressedPath fp -> return "TODO"
+
+  String     s      -> return s
+  LazyText   t      -> return t
+  StrictText t      -> return t
+
+  LazyBytes       b -> return b
+  StrictBytes     b -> return b
+  CompressedBytes b -> return "TODO"
+
+
+============================================================
 
   let method' = method & maybe "GET" id & (++ " ")
+
+
+  let mtg_hs = mtgjson2mtghs mtg_json
+
+
+  ------------------------------
+
+  promptSrc :: IO (MTGJSON String)
+  promptSrc = MTGJSON <$> do
+
+    IO.hGetContents IO.stdin
+
+    -- IO.hGetContents IO.stdin
+
+  ------------------------------
+
+  readSrc :: FilePath -> IO (MTGJSON String)
+  readSrc fp = MTGJSON <$> do
+
+    IO.readFile fp
+
+  ------------------------------
+
+  fetchSrc :: URI -> IO (MTGJSON String)
+  fetchSrc uri = fetch (FetchMtgJsonGz uri)
+
+
+
+
+
+
+
+
+
+IO.hSetBinaryMode IO.stdin True >> Lazy.hGetContents IO.stdin
+
+
+
+
+
+
+
+
+
+
+
+  SrcUri uriSrc -> download Nothing uriSrc >>= (\fpSrc -> Directory.copyFile fpSrc fpDst)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+-- Utilities -------------------------------------
+--------------------------------------------------
+
+{- | an application-specific filepath to a temporary file.
+
+e.g.:
+
+@
+> newTemporaryFilePath "project.tar.gz"
+"/tmp/haskell-skeletor/2019-04-06-21h-43m-51s-852ms_project.tar.gz"
+@
+
+-}
+
+newTemporaryFilePath :: String -> IO FilePath
+newTemporaryFilePath name = do
+
+  directory <- Directory.getTemporaryDirectory
+  time      <- Time.getZonedTime
+
+  let timestamp = formatZonedTimeAsFilePath time
+
+  let dirname  = directory </> programExecutable
+  let basename = timestamp <> "_" <> name 
+
+  let path = dirname </> basename
+
+  return path
+
+--------------------------------------------------
+
+{- | Format a timestamp to be part of a filepath.
+
+e.g.:
+
+@
+> formatZonedTimeAsFilePath _
+"2019-04-06-21h-43m-51s-852ms"
+@
+
+-}
+
+formatZonedTimeAsFilePath :: Time.ZonedTime -> String
+formatZonedTimeAsFilePath t =
+
+  Time.formatTime locale timeFormatWithHyphensAndUnits t
+
+  where
+
+  locale = Time.defaultTimeLocale
+  -- NOTE even « Prelude.undefined » works as the locale for « ZonedTime » (it's ignored).
+
+--------------------------------------------------
+
+timeFormatWithHyphensAndUnits :: String
+timeFormatWithHyphensAndUnits = "%Y-%m-%d-%Hh-%Mm-%Ss-%03qms"
+
+-- NOTE given the meta-syntax « %<modifier><width><alternate><specifier> »,
+--      the syntax « %03q » means (0-padded) 3-width picoseconds (i.e. milliseconds).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    timestamp <- _
+    tmp <- Directory.getTemporaryDirectory
+
+    let dir = tmp </> "mtg-json"
+    let fp = dir </> ""
+
+    mkdir_p dir
+    download Nothing uri fp
+    Lazy.readFile fp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
