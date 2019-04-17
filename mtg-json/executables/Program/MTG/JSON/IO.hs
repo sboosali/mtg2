@@ -101,18 +101,18 @@ fetchJSON Options{..} SrcDst{src,dst} = do
   ------------------------------
 
   sSrc :: String
-  sSrc = runFormat ("\nFetching from: " % Format.string % "...\n") s
+  sSrc = runFormat ("\nFetching from: " % Format.string % " ...\n") s
       where
       s = prettySrc src
 
   sDst :: String
-  sDst = runFormat ("\nSaving to: " % Format.string % "...\n") s
+  sDst = runFormat ("\nSaving to:     " % Format.string % " ...\n") s
       where
       s = prettyDst dst
 
   ------------------------------
 
-  inputSrc :: IO MTGJSON
+  inputSrc :: IO (MTGJSON String)
   inputSrc = case src of
 
       SrcStdin -> do
@@ -133,7 +133,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  outputDst :: MTGHS -> IO ()
+  outputDst :: (MTGHS String) -> IO ()
   outputDst mtg_hs = case dst of
 
       DstStdout -> do
@@ -146,7 +146,7 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  promptSrc :: IO MTGJSON
+  promptSrc :: IO (MTGJSON String)
   promptSrc = MTGJSON <$> do
 
     IO.hGetContents IO.stdin
@@ -155,26 +155,26 @@ fetchJSON Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  readSrc :: FilePath -> IO MTGJSON
+  readSrc :: FilePath -> IO (MTGJSON String)
   readSrc fp = MTGJSON <$> do
 
     IO.readFile fp
 
   ------------------------------
 
-  fetchSrc :: URI -> IO MTGJSON
+  fetchSrc :: URI -> IO (MTGJSON String)
   fetchSrc uri = MTGJSON <$> do
 
     IO.readFile uri  -- TODO -- download, decompress, read.
 
   ------------------------------
 
-  printDst :: MTGHS -> IO ()
+  printDst :: (MTGHS String) -> IO ()
   printDst (MTGHS mtg) = putStdOut mtg
 
   ------------------------------
 
-  writeDst :: FilePath -> MTGHS -> IO ()
+  writeDst :: FilePath -> (MTGHS String) -> IO ()
   writeDst fp (MTGHS mtg) = case forcefulness of
 
       RespectExisting -> do
@@ -276,10 +276,23 @@ printLicense Options{..} = do
 {-# INLINEABLE printLicense #-}
 
 --------------------------------------------------
+
+{- | Download and decompress a @JSON@ file.
+
+-}
+
+fetchJsonGz :: () -> IO (MTGJSON ByteString)
+fetchJsonGz () = do
+
+  
+
+  return (MTGJSON "")
+
+--------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
 
-mtgjson2mtghs :: MTGJSON -> MTGHS
+mtgjson2mtghs :: MTGJSON t -> MTGHS t
 mtgjson2mtghs (MTGJSON s) = (MTGHS s) -- TODO
 
 --------------------------------------------------

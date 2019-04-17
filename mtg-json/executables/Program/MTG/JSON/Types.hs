@@ -386,9 +386,9 @@ data WhetherUnicode
 
 -}
 
-newtype MTGJSON = MTGJSON
+newtype MTGJSON t = MTGJSON
 
-  String                        -- TODO -- ByteString
+  t
 
   deriving stock    (Show,Read,Lift,Generic)
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
@@ -396,7 +396,10 @@ newtype MTGJSON = MTGJSON
 
 --------------------------------------------------
 
-instance IsString MTGJSON where fromString = coerce
+-- | Delegates 'fromString'.
+
+instance (IsString t) => IsString (MTGJSON t) where
+  fromString = (MTGJSON . fromString)
 
 --------------------------------------------------
 --------------------------------------------------
@@ -405,9 +408,9 @@ instance IsString MTGJSON where fromString = coerce
 
 -}
 
-newtype MTGHS = MTGHS
+newtype MTGHS t = MTGHS
 
-  String                        -- TODO -- ByteString
+  t
 
   deriving stock    (Show,Read,Lift,Generic)
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
@@ -415,7 +418,10 @@ newtype MTGHS = MTGHS
 
 --------------------------------------------------
 
-instance IsString MTGHS where fromString = coerce
+-- | Delegates 'fromString'.
+
+instance (IsString t) => IsString (MTGHS t) where
+  fromString = (MTGHS . fromString)
 
 --------------------------------------------------
 -- Functions -------------------------------------
