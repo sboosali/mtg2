@@ -36,6 +36,10 @@ import Prelude.SrcDst
 --- Imports --------------------------------------
 --------------------------------------------------
 
+import qualified "containers" Data.Map as Map
+
+--------------------------------------------------
+
 import qualified "bytestring" Data.ByteString.Char8            as StrictASCII
 import qualified "bytestring" Data.ByteString.Lazy.Char8       as LazyASCII
 
@@ -106,6 +110,38 @@ instance IsString Dst where fromString = parseDst
 --------------------------------------------------
 --------------------------------------------------
 
+{- | Multiple `SrcDst`s.
+
+Each destination has (exactly) one source; i.e.
+sources shouldn't collide.
+
+== Implementation
+
+`SrcDst` is represented “reversed”, into @( `Dst`, `Src` )@.
+This enforces the "unique destination" property.
+
+-}
+
+newtype DstSrcs = DstSrcs
+
+  ( Map Dst Src )
+
+  deriving stock    (Lift,Generic)
+  deriving newtype  (Show,Read)
+  deriving newtype  (Eq,Ord)
+  deriving newtype  (NFData)
+
+--------------------------------------------------
+
+-- | @`fromList` ≡ `toDstSrcs`@
+instance IsList DstSrcs where
+  type Item DstSrcs = SrcDst
+  fromList = toDstSrcs
+  toList   = fromDstSrcs
+
+--------------------------------------------------
+--------------------------------------------------
+
 {- | 
 
 -}
@@ -125,6 +161,27 @@ newtype URL = URL
 
 instance IsString URL where
   fromString = coerce
+
+--------------------------------------------------
+-- Functions: Conversion -------------------------
+--------------------------------------------------
+
+toDstSrcs :: [SrcDst] -> DstSrcs
+toDstSrcs srcdsts = DstSrcs (Map.fromList attributes)
+  where
+
+  attributes :: [( Dst, Src )]
+  attributes = switch <$> srcdsts
+
+  switch SrcDst{ src, dst } = ( dst, src )
+
+--------------------------------------------------
+
+fromDstSrcs :: DstSrcs -> [SrcDst]
+fromDstSrcs (DstSrcs kvs) = Map.toList kvs <&> switch
+  where
+
+  switch ( dst, src ) = SrcDst{ src, dst }
 
 --------------------------------------------------
 -- Functions: Printing / Parsing -----------------

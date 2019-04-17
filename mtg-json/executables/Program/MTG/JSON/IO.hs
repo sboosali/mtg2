@@ -132,10 +132,9 @@ fetchMTG :: Options -> SrcDst -> IO ()
 fetchMTG Options{..} SrcDst{src,dst} = do
 
   putStdErr sSrc
+  putStdErr sDst
 
   bytes <- inputSrc
-
-  putStdErr sDst
 
   outputDst bytes
 
@@ -324,7 +323,7 @@ fetchWith manager config = go config
 
     FetchMtgJsonGz uri -> fetchMtgJsonGz uri
 
-  fetchMtgJsonGz :: URI -> IO (MTGJSON a)
+  fetchMtgJsonGz :: URL -> IO (MTGJSON a)
   fetchMtgJsonGz uri = do
 
     request  <- HTTP.parseUrlThrow uri
