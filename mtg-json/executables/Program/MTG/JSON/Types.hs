@@ -70,7 +70,7 @@ data Command = Command
   }
 
   deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
+  deriving stock    (Lift,Generic)
   deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------
@@ -88,7 +88,7 @@ data Subcommand
   | FetchJSON SrcDst
 
   deriving stock    (Show,Read,Eq,Ord)
-  deriving stock    (Lift,Data,Generic)
+  deriving stock    (Lift,Generic)
   deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------

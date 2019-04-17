@@ -3374,6 +3374,29 @@ timeFormatWithHyphensAndUnits = "%Y-%m-%d-%Hh-%Mm-%Ss-%03qms"
 
 
 
+--------------------------------------------------
+-- Functions: Accessors --------------------------
+--------------------------------------------------
+
+-- | `URL` accessor.
+
+fromURL :: URL -> String
+fromURL (URL s) = s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

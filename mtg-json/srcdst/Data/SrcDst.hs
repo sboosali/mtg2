@@ -112,26 +112,19 @@ instance IsString Dst where fromString = parseDst
 
 newtype URL = URL
 
-  String
+  { fromURL ::
+      String
+  }
 
-  deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
   deriving newtype  (Eq,Ord)
+  deriving newtype  (Show,Read) -- NOTE -- hides accessor from printing.
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
 
 instance IsString URL where
   fromString = coerce
-
---------------------------------------------------
--- Functions: Accessors --------------------------
---------------------------------------------------
-
--- | `URL` accessor.
-
-fromURL :: URL -> String
-fromURL (URL s) = s
 
 --------------------------------------------------
 -- Functions: Printing / Parsing -----------------

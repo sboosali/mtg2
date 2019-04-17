@@ -6,6 +6,10 @@
 
 --------------------------------------------------
 
+{-# LANGUAGE OverloadedStrings #-}
+
+--------------------------------------------------
+
 {-| Program metadata:
 
 * name: `programName`, `programExecutable`.
@@ -45,6 +49,10 @@ module Program.MTG.JSON.Constants
 
 import Program.MTG.JSON.Types
 import Program.MTG.JSON.Prelude
+
+--------------------------------------------------
+
+import Data.SrcDst ( URL )
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -108,7 +116,7 @@ programExamples =
 
 -- | @≡ https://mtgjson.com/json/Vintage.json.gz@
 
-defaultSource :: String
+defaultSource :: URL
 defaultSource = "https://mtgjson.com/json/Vintage.json.gz"
 
 --------------------------------------------------
@@ -123,7 +131,7 @@ Most 'URI's are @"https://mtgjson.com/json/_.json.gz"@.
 
 -}
 
-knownSources :: [(String, URI)]
+knownSources :: [(String, URL)]
 knownSources =
 
   [ "default"   -: defaultSource

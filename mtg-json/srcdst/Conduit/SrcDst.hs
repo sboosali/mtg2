@@ -43,13 +43,13 @@ import           "conduit" Conduit ( ConduitM )
 --------------------------------------------------
 
 import qualified "http-conduit" Network.HTTP.Simple as HTTP.Conduit
-import           "http-conduit" Network.HTTP.Simple ( )
+-- import           "http-conduit" Network.HTTP.Simple ( )
 
 --------------------------------------------------
 
-import qualified "http-types"      Network.HTTP.Types.Status as HTTP
 import qualified "http-client"     Network.HTTP.Client       as HTTP
-import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
+-- import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
+-- import qualified "http-types"      Network.HTTP.Types.Status as HTTP
 
 --------------------------------------------------
 
@@ -58,14 +58,19 @@ import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, Resou
 
 --------------------------------------------------
 
-import qualified "zlib" Codec.Compression.GZip     as GZIP    -- GZIP format 
-import qualified "zlib" Codec.Compression.Zlib     as ZLIB    -- ZLIB format 
-import qualified "zlib" Codec.Compression.Zlib.Raw as DEFLATE -- DEFLATE format 
-import qualified "zlib" Codec.Compression.Zlib.Raw as Z
+-- import qualified "zlib" Codec.Compression.GZip     as GZIP    -- GZIP format 
+-- import qualified "zlib" Codec.Compression.Zlib     as ZLIB    -- ZLIB format 
+-- import qualified "zlib" Codec.Compression.Zlib.Raw as DEFLATE -- DEFLATE format 
+-- import qualified "zlib" Codec.Compression.Zlib.Raw as Z
+
+-- import qualified "tar" Codec.Archive.Tar as TAR
+
+-- import qualified "zip-archive" Codec.Archive.Zip as ZIP
 
 --------------------------------------------------
 
-import qualified "zip-archive" Codec.Archive.Zip as ZIP
+import qualified "time" Data.Time.LocalTime as Time
+import qualified "time" Data.Time.Format    as Time
 
 --------------------------------------------------
 --- Imports --------------------------------------
@@ -77,13 +82,13 @@ import qualified "directory" System.Directory as Directory
 
 import qualified "bytestring" Data.ByteString            as Strict
 import qualified "bytestring" Data.ByteString.Lazy       as Lazy
-import qualified "bytestring" Data.ByteString.Lazy.Char8 as ASCII
 
 --------------------------------------------------
 
 import qualified "base" System.IO as IO
+import qualified "base" Data.List as List
 
-import qualified "base" Prelude
+-- import qualified "base" Prelude
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -123,6 +128,7 @@ conduitSrc
   :: forall m.
     ( MonadResource m
     , MonadIO       m
+    , MonadThrow    m
     )
   => Src
   -> ConduitM () ByteString m ()
@@ -138,8 +144,8 @@ conduitSrc = \case
 
   where
 
-  download :: URL -> FilePath -> ConduitM () ByteString m ()
-  download (URL url) fp = do
+  download :: URL -> ConduitM () ByteString m ()
+  download (URL url) = do
 
       request <- HTTP.parseRequest url
 
@@ -150,7 +156,7 @@ conduitSrc = \case
       consume :: HTTP.Response (ConduitM () ByteString m ()) -> ConduitM () ByteString m ()
       consume response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
           -- liftIO $ putStdErr (show (HTTP.getResponseStatus response, HTTP.getResponseHeaders response))
-          HTTP.getResponseBody response
+          HTTP.Conduit.getResponseBody response
 
 -- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitM i ByteString n ()) -> ConduitM i o m r) -> ConduitM i o m r
 
@@ -161,7 +167,8 @@ conduitSrc = \case
 -}
 
 conduitDst
-  :: ( MonadIO m
+  :: ( MonadResource m
+    , MonadIO       m
     )
   => Dst
   -> ConduitM ByteString Void m ()
@@ -189,11 +196,11 @@ conduitDirectory
 
      -- ^ Follow directory symlinks
 
-  -> FilePath	
+  -> FilePath
 
      -- ^ Root directory
 
-  -> ConduitM i FilePath m ()	 
+  -> ConduitM i FilePath m ()
 
 conduitDirectory followSymlinks = Conduit.sourceDirectoryDeep (fromFollowSymlinks followSymlinks)
 
@@ -213,11 +220,11 @@ readSrc = \case
 
   SrcStdin   -> readSrcStdin
   SrcFile fp -> Lazy.readFile fp
-  SrcUri uri -> do
+  SrcUri url -> do
 
-    fp <- newTemporaryFilePath uri
+    fp <- newTemporaryFilePath Nothing (fromURL url)
 
-    fetch Nothing uri fp
+    fetch Nothing url fp
     Lazy.readFile fp
 
 --------------------------------------------------
@@ -226,7 +233,7 @@ readSrc = \case
 
 -}
 
-copySrc :: FilePath -> Src -> IO LazyBytes
+copySrc :: FilePath -> Src -> IO ()
 copySrc fpDst = \case
 
   SrcBytes  bsSrc -> Lazy.writeFile fpDst bsSrc
@@ -236,6 +243,30 @@ copySrc fpDst = \case
   SrcFile fpSrc -> Directory.copyFile fpSrc fpDst
   SrcUri uriSrc -> fetch Nothing uriSrc fpDst
 
+--------------------------------------------------
+-- Constants -------------------------------------
+--------------------------------------------------
+
+timeFormatWithHyphensAndUnits :: String
+timeFormatWithHyphensAndUnits = "%Y-%m-%d-%Hh-%Mm-%Ss-%03qms"
+
+-- NOTE given the meta-syntax « %<modifier><width><alternate><specifier> »,
+--      the syntax « %03q » means (0-padded) 3-width picoseconds (i.e. milliseconds).
+
+--------------------------------------------------
+
+replacedCharacters_escapeFilePath :: [Char]
+replacedCharacters_escapeFilePath = "/\\ _:;'\"!#$%^&*?|[]{}()"
+
+--------------------------------------------------
+
+replacementCharacter_escapeFilePath :: Char
+replacementCharacter_escapeFilePath = '_'
+
+--------------------------------------------------
+
+default_escapeFilePath :: FilePath
+default_escapeFilePath = "file"
 --------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
@@ -286,9 +317,124 @@ fetch method (URL url) fp = do
   url'    = method' <> url
 
   consume :: HTTP.Response () -> ConduitM ByteString Void (ResourceT IO) ()
-  consume response = do
+  consume _response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
 
     Conduit.sinkFileCautious fp
+
+--------------------------------------------------
+-- Utilities -------------------------------------
+--------------------------------------------------
+
+-- | @mkdir -p@
+
+mkdir_p :: FilePath -> IO ()
+mkdir_p = Directory.createDirectoryIfMissing True
+
+--------------------------------------------------
+
+{- | Application-specific filepath to a temporary file.
+
+Creates any missing parent directories.
+
+e.g.:
+
+@
+> newTemporaryFilePath (Just "mtg-json") "mtg.json.gz"
+"/tmp/mtg-json/2019-04-06-21h-43m-51s-852ms_mtg.json.gz"
+
+> newTemporaryFilePath Nothing ""
+"/tmp/2019-04-06-21h-43m-51s-852ms_file"
+@
+
+-}
+
+newTemporaryFilePath
+  :: Maybe String
+  -- ^ Optional directory name (for “namespacing”).
+  -> String
+  -- ^ File name (suffix).
+  -> IO FilePath
+  -- ^ Generated filepath.
+
+newTemporaryFilePath directoryName fileName = do
+
+  directory <- Directory.getTemporaryDirectory
+  time      <- Time.getZonedTime
+
+  let timestamp = formatZonedTimeAsFilePath time
+
+  let dirname  = (maybe directory (directory </>)) dName
+  let basename = timestamp <> "_" <> fName 
+
+  mkdir_p dirname
+
+  let path = dirname </> basename
+
+  return path
+
+  where
+
+  fName = escapeFilePath fileName
+  dName = escapeFilePath <$> directoryName
+
+--------------------------------------------------
+
+{- | Escape the given string as both a /valid/ and /idiomatic/ filepath.
+
+== Examples
+
+>>> escapeFilePath "https://mtgjson.com/json/Vintage.json.gz"
+"https_mtgjson.com_json_Vintage.json.gz"
+
+>>> escapeFilePath ""
+"file"
+
+-}
+
+escapeFilePath :: String -> FilePath
+escapeFilePath s = fp
+  where
+
+  fp :: FilePath
+  fp = case s of
+
+    "" -> default_escapeFilePath
+    _  -> go s
+
+  go
+    = replaceSubstring replacedCharacters_escapeFilePath [replacementCharacter_escapeFilePath]
+    > List.group
+    > fmap collapseReplacementCharacters
+    > concat
+
+  collapseReplacementCharacters :: String -> String
+  collapseReplacementCharacters t =
+    if   List.all (== replacementCharacter_escapeFilePath) t
+    then [replacementCharacter_escapeFilePath]
+    else t
+
+--------------------------------------------------
+
+{- | Format a timestamp to be part of a filepath.
+
+e.g.:
+
+@
+> formatZonedTimeAsFilePath _
+"2019-04-06-21h-43m-51s-852ms"
+@
+
+-}
+
+formatZonedTimeAsFilePath :: Time.ZonedTime -> String
+formatZonedTimeAsFilePath t =
+
+  Time.formatTime locale timeFormatWithHyphensAndUnits t
+
+  where
+
+  locale = Time.defaultTimeLocale
+  -- NOTE even « Prelude.undefined » works as the locale for « ZonedTime » (it's ignored).
 
 --------------------------------------------------
 -- Notes -----------------------------------------

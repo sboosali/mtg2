@@ -645,10 +645,10 @@ library srcdst
 
  -----------------------------
 
- if !flag(develop)
+ -- if !flag(develop)
 
-     extra-libraries: z
-                    , tar
+ --     extra-libraries: z
+ --                    , tar
 
  -----------------------------
 
@@ -691,9 +691,9 @@ library srcdst
   -- Tarball Libraries
   --------------------
 
-             , zlib
-             , tar
-             , zip-archive
+             -- , zlib
+             -- , tar
+             -- , zip-archive
 
   --------------------
 
@@ -719,7 +719,6 @@ executable mtg-json
                , Program.MTG.JSON.Constants
                , Program.MTG.JSON.Paths
 
-               , Program.MTG.JSON.SrcDst
                , Program.MTG.JSON.Prelude
 
   ----------------------------
