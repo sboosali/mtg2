@@ -143,12 +143,12 @@ fetchMTG Options{..} SrcDst{src,dst} = do
   ------------------------------
 
   sSrc :: String
-  sSrc = runFormat ("\nFetching from: " % Format.string % " ...\n") s
+  sSrc = runFormat ("\nFetching from: {{{ " % Format.string % " }}}...\n") s
       where
       s = prettySrc src
 
   sDst :: String
-  sDst = runFormat ("\nSaving to:     " % Format.string % " ...\n") s
+  sDst = runFormat ("\nSaving to:     {{{ " % Format.string % " }}}...\n") s
       where
       s = prettyDst dst
 

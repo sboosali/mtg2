@@ -13,9 +13,14 @@
 
 module Conduit.SrcDst
 
-  ( -- * `Conduit`s for `SrcDst`s
+  ( -- * `Conduit` for `SrcDst`s
 
     conduitSrcDst
+
+  -- * `IO` for `SrcDst`s
+
+  , runSrcDst
+  , runSrcDstM
 
   -- * `Conduit`s for `Src`s
 
@@ -76,7 +81,7 @@ import qualified "http-client"     Network.HTTP.Client       as HTTP
 --------------------------------------------------
 
 import qualified "resourcet" Control.Monad.Trans.Resource as Resource
-import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, ResourceT )
+import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, MonadUnliftIO, ResourceT )
 
 --------------------------------------------------
 
@@ -139,10 +144,65 @@ data FollowSymlinks
 instance Default FollowSymlinks where def = FollowSymlinks
 
 --------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+{- | “Run” a `SrcDst`, streaming the source `Src` towards the destination `Dst`.
+
+== Definition
+
+Specializes `runSrcDstM` at @(m ~ `IO`)@:
+
+@
+runSrcDst = `runSrcDstM`
+@
+
+-}
+
+runSrcDst :: SrcDst -> IO ()
+runSrcDst = runSrcDstM
+
+--------------------------------------------------
+
+{- | “Run” a `SrcDst`, streaming the source `Src` towards the destination `Dst`.
+
+Calls `Conduit.runConduitRes`, which is a @bracket@-like operation,
+thus the resource usage of `runSrcDstM` is exception-safe.
+That is, these resources are closed:
+
+* File @Handle@s
+* Sockets
+
+whether the operation:
+
+* finishes successfully,
+* or aborts unsuccessfully.
+
+-}
+
+runSrcDstM
+  :: forall m.
+    ( MonadIO       m
+    , MonadThrow    m
+    , MonadUnliftIO m
+    )
+  => SrcDst
+  -> m ()
+
+runSrcDstM srcdst = Conduit.runConduitRes mSrcDst
+  where
+
+  mSrcDst = conduitSrcDst srcdst
+
+--------------------------------------------------
 -- Functions: Conduit ----------------------------
 --------------------------------------------------
 
 {- | Create a “closed” @conduit@, from a source `Src` to a destination `Dst`.
+
+Fuses `conduitSrc` onto `conduitDst`.
+
+Generalizes `runSrcDstM`.
 
 -}
 
