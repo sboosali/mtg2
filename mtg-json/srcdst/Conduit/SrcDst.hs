@@ -13,16 +13,38 @@
 
 module Conduit.SrcDst
 
-  ( module Data.SrcDst
+  ( -- * `Conduit`s for `SrcDst`s
 
-  , FollowSymlinks(..)
+    conduitSrcDst
+
+  -- * `Conduit`s for `Src`s
 
   , conduitSrc
+  , conduitSrcBytes'
+  , conduitSrcBytes
+  , conduitSrcStdin
+  , conduitSrcFile
+  , conduitSrcUri
+
+  -- * `Conduit`s for `Dst`s
+
   , conduitDst
+  , conduitDstStdin
+  , conduitDstFile
+
+  -- * Miscellaneous `Conduit`s
+
   , conduitDirectory
+  , FollowSymlinks(..)
+
+  -- * `IO` actions for `SrcDst`s
 
   , readSrc
   , copySrc
+
+  -- * Re-export `SrcDst`, `Src`, and `Dst`
+
+  , module Data.SrcDst
 
   ) where
 
@@ -38,7 +60,7 @@ import Prelude.SrcDst
 --------------------------------------------------
 
 import qualified "conduit" Conduit as Conduit
-import           "conduit" Conduit ( ConduitM )
+import           "conduit" Conduit ( ConduitT, (.|) )
 
 --------------------------------------------------
 
@@ -120,7 +142,29 @@ instance Default FollowSymlinks where def = FollowSymlinks
 -- Functions: Conduit ----------------------------
 --------------------------------------------------
 
-{- | Create a @conduit@ /Source/, from the source `Src`.
+{- | Create a “closed” @conduit@, from a source `Src` to a destination `Dst`.
+
+-}
+
+conduitSrcDst
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => SrcDst
+  -> ConduitT () Void m ()
+
+conduitSrcDst SrcDst{ src, dst } = mSrc .| mDst
+  where
+
+  mSrc = conduitSrc src
+  mDst = conduitDst dst
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Create an “open” @conduit@ /Source/, from the source `Src`.
 
 -}
 
@@ -131,38 +175,72 @@ conduitSrc
     , MonadThrow    m
     )
   => Src
-  -> ConduitM () ByteString m ()
+  -> ConduitT () ByteString m ()
 
 conduitSrc = \case
 
-  SrcBytes  bs  -> Conduit.sourceLazy bs
-  SrcBytes' bs' -> Conduit.yield bs'
+  SrcBytes  bs  -> conduitSrcBytes  bs
+  SrcBytes' bs' -> conduitSrcBytes' bs'
 
-  SrcStdin   -> Conduit.stdinC
-  SrcFile fp -> Conduit.sourceFile fp
-  SrcUri url -> download url
-
-  where
-
-  download :: URL -> ConduitM () ByteString m ()
-  download (URL url) = do
-
-      request <- HTTP.parseRequest url
-
-      HTTP.Conduit.httpSource request consume
-
-      where
-
-      consume :: HTTP.Response (ConduitM () ByteString m ()) -> ConduitM () ByteString m ()
-      consume response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
-          -- liftIO $ putStdErr (show (HTTP.getResponseStatus response, HTTP.getResponseHeaders response))
-          HTTP.Conduit.getResponseBody response
-
--- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitM i ByteString n ()) -> ConduitM i o m r) -> ConduitM i o m r
+  SrcStdin   -> conduitSrcStdin
+  SrcFile fp -> conduitSrcFile fp
+  SrcUri url -> conduitSrcUri url
 
 --------------------------------------------------
 
-{- | Create a @conduit@ /Sink/, into the destination `Dst`.
+{- | (See `conduitSrc`.) -}
+
+conduitSrcBytes'
+  :: ( MonadResource m, MonadIO m ) => Strict.ByteString -> ConduitT () ByteString m ()
+conduitSrcBytes' = Conduit.yield
+
+--------------------------------------------------
+
+{- | (See `conduitSrc`.) -}
+
+conduitSrcBytes
+  :: ( MonadResource m, MonadIO m ) => Lazy.ByteString -> ConduitT () ByteString m ()
+conduitSrcBytes = Conduit.sourceLazy
+
+--------------------------------------------------
+
+{- | (See `conduitSrc`.) -}
+
+conduitSrcStdin
+  :: ( MonadResource m, MonadIO m ) => ConduitT () ByteString m ()
+conduitSrcStdin = Conduit.stdinC
+
+--------------------------------------------------
+
+{- | (See `conduitSrc`.) -}
+
+conduitSrcFile
+  :: ( MonadResource m, MonadIO m ) => FilePath -> ConduitT () ByteString m ()
+conduitSrcFile = Conduit.sourceFile
+
+--------------------------------------------------
+
+{- | (See `conduitSrc`.) -}
+
+conduitSrcUri
+  :: ( MonadResource m, MonadIO m, MonadThrow m ) => URL -> ConduitT () ByteString m ()
+conduitSrcUri (URL url) = do
+
+  request <- HTTP.parseRequest url
+
+  HTTP.Conduit.httpSource request consume
+
+  where
+
+  consume :: HTTP.Response (ConduitT () ByteString m ()) -> ConduitT () ByteString m ()
+  consume response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
+      -- liftIO $ putStdErr (show (HTTP.getResponseStatus response, HTTP.getResponseHeaders response))
+      HTTP.Conduit.getResponseBody response
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Create an “open” @conduit@ /Sink/, into the destination `Dst`.
 
 -}
 
@@ -171,12 +249,28 @@ conduitDst
     , MonadIO       m
     )
   => Dst
-  -> ConduitM ByteString Void m ()
+  -> ConduitT ByteString Void m ()
 
 conduitDst = \case
 
-  DstStdout  -> Conduit.stdoutC
-  DstFile fp -> Conduit.sinkFileCautious fp
+  DstStdout  -> conduitDstStdin
+  DstFile fp -> conduitDstFile fp
+
+--------------------------------------------------
+
+{- | (See `conduitDst`.) -}
+
+conduitDstStdin
+  :: ( MonadResource m, MonadIO m ) => ConduitT ByteString Void m ()
+conduitDstStdin = Conduit.stdoutC
+
+--------------------------------------------------
+
+{- | (See `conduitDst`.) -}
+
+conduitDstFile
+  :: ( MonadResource m, MonadIO m ) => FilePath -> ConduitT ByteString Void m ()
+conduitDstFile = Conduit.sinkFileCautious
 
 --------------------------------------------------
 
@@ -200,7 +294,7 @@ conduitDirectory
 
      -- ^ Root directory
 
-  -> ConduitM i FilePath m ()
+  -> ConduitT i FilePath m ()
 
 conduitDirectory followSymlinks = Conduit.sourceDirectoryDeep (fromFollowSymlinks followSymlinks)
 
@@ -316,7 +410,7 @@ fetch method (URL url) fp = do
   method' = method & maybe "" (++ " ")
   url'    = method' <> url
 
-  consume :: HTTP.Response () -> ConduitM ByteString Void (ResourceT IO) ()
+  consume :: HTTP.Response () -> ConduitT ByteString Void (ResourceT IO) ()
   consume _response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
 
     Conduit.sinkFileCautious fp
@@ -446,9 +540,9 @@ formatZonedTimeAsFilePath t =
 
 -- stdoutC :: MonadIO m => ConduitT ByteString o m ()
 
--- httpSink :: (MonadUnliftIO m) => Request -> (Response () -> ConduitM ByteString Void m a) -> m a
+-- httpSink :: (MonadUnliftIO m) => Request -> (Response () -> ConduitT ByteString Void m a) -> m a
 
--- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitM i ByteString n ()) -> ConduitM i o m r) -> ConduitM i o m r
+-- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitT i ByteString n ()) -> ConduitT i o m r) -> ConduitT i o m r
 
 --------------------------------------------------
 -- EOF -------------------------------------------

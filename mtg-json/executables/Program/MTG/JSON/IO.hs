@@ -54,7 +54,7 @@ import           "http-conduit" Network.HTTP.Simple ( )
 --------------------------------------------------
 
 import qualified "conduit" Conduit as Conduit
-import           "conduit" Conduit ( ConduitM )
+import           "conduit" Conduit ( ConduitT )
 
 --------------------------------------------------
 
@@ -347,14 +347,14 @@ mtgjson2mtghs (MTGJSON x) = (MTGHS x) -- TODO
 -- Notes -----------------------------------------
 --------------------------------------------------
 
--- type Sink i = ConduitM i Void
+-- type Sink i = ConduitT i Void
 
 -- sinkFile :: MonadResource m => FilePath -> ConduitT ByteString o m ()
 -- sinkFile :: FilePath -> ConduitT ByteString o IO ()
 -- sinkFile :: FilePath -> ConduitT ByteString Void IO ()
 -- sinkFile :: FilePath -> Sink ByteString IO ()
 
--- httpSink :: MonadUnliftIO m => Request -> (Response () -> ConduitM ByteString Void m a) -> m a
+-- httpSink :: MonadUnliftIO m => Request -> (Response () -> ConduitT ByteString Void m a) -> m a
 
 -- runResourceT :: MonadUnliftIO m => ResourceT m a -> m a
 
