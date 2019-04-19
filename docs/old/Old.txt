@@ -3761,6 +3761,133 @@ escapeFilePath s = fp
 
 
 
+{- | Create a “closed” @conduit@, from multiple `Src`s to multiple `Dst`s.
+
+`(conduitDstSrcs ...)` is similar to `(traverse conduitDstSrc ...)`.
+Except, for multiple `SrcUri`s, the different files are downloaded under a single `HTTP.Manager`;
+this is useful ① for faster downloads (especially when downloading from the same subdomain)
+via @keep-alive@, and ② for rate-limiting (I think).
+
+-}
+
+conduitDstSrcs
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => DstSrcs
+  -> ConduitT () Void m ()
+
+conduitDstSrcs (DstSrcs dstsrcs)
+
+  = go `Map.traverseWithKey` dstsrcs
+
+  where
+
+  go :: Dst -> Src -> m ()
+  go dst src = _ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  srcProducers :: Map Src (ConduitT () ByteString m ())
+  srcProducers = _
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  httpSrcs  = _
+
+  httpsSrcs = _
+
+  localSrcs = _
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
