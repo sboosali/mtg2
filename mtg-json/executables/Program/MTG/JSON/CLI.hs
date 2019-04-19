@@ -12,6 +12,21 @@
 
 {-| Command-Line Interface.
 
+Command:
+
+* `mtg-json`
+
+Subcommands:
+
+* @fetch@ — download, then decompress and/or dearchive.
+* @parse@ — parse into JSON (`CardObject`). also `fetch`es.
+* @check@ — parse into Haskell (`Card`). also `parse`s.
+* @merge@ — merge `Set`s /and\/or/ `Card`s /and\/or/ `Format`s into one `Format` (recursively). also `check`s.
+
+Options:
+
+
+
 -}
 
 module Program.MTG.JSON.CLI where

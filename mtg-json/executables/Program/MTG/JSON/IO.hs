@@ -287,54 +287,6 @@ printLicense Options{..} = do
 -- Functions -------------------------------------
 --------------------------------------------------
 
-{- | Download and decompress a @JSON@ file.
-
-== Exceptions
-
-May throw:
-
-* `HTTP.HttpException`
-* ``
-
--}
-
-fetch :: forall a. FetchConfig a -> IO a
-fetch config = do
-
-  let settings = HTTPS.tlsManagerSettings
-
-  manager <- HTTPS.newTlsManagerWith settings
-
-  fetchWith manager config
-
-{-# INLINEABLE fetch #-}
-
---------------------------------------------------
-
-{- | (See `fetch`.) -}
-
-fetchWith :: forall a. HTTP.Manager -> FetchConfig a -> IO a
-fetchWith manager config = go config
-  where
-
-  go :: FetchConfig a -> IO a
-  go = \case
-
-    FetchMtgJsonGz uri -> fetchMtgJsonGz uri
-
-  fetchMtgJsonGz :: URL -> IO (MTGJSON a)
-  fetchMtgJsonGz uri = do
-
-    request  <- HTTP.parseUrlThrow uri
-    response <- HTTP.httpLbs request manager
-
-    let body   = (response & HTTP.responseBody)
-    let status = (response & HTTP.responseStatus)
-
-    return body
-
-{-# INLINEABLE fetchWith #-}
-
 --------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
@@ -356,6 +308,15 @@ mtgjson2mtghs (MTGJSON x) = (MTGHS x) -- TODO
 -- httpSink :: MonadUnliftIO m => Request -> (Response () -> ConduitT ByteString Void m a) -> m a
 
 -- runResourceT :: MonadUnliftIO m => ResourceT m a -> m a
+
+-- Format.bytes:
+--
+-- >>> format (bytes shortest) 1024
+-- "1KB"
+--
+-- >>> format (bytes (fixed 2 % " ")) (1024*1024*5)
+-- "5.00 MB"
+--
 
 --------------------------------------------------
 -- EOF -------------------------------------------

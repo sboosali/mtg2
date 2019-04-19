@@ -47,12 +47,7 @@ module Conduit.SrcDst
   , conduitDirectory
   , FollowSymlinks(..)
 
-  -- * `IO` actions for `SrcDst`s
-
-  , readSrc
-  , copySrc
-
-  -- * Re-export `SrcDst`, `Src`, and `Dst`
+  -- * Re-export `SrcDst` types.
 
   , module Data.SrcDst
 
@@ -101,11 +96,6 @@ import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, Monad
 -- import qualified "zip-archive" Codec.Archive.Zip as ZIP
 
 --------------------------------------------------
-
-import qualified "time" Data.Time.LocalTime as Time
-import qualified "time" Data.Time.Format    as Time
-
---------------------------------------------------
 --- Imports --------------------------------------
 --------------------------------------------------
 
@@ -123,7 +113,6 @@ import qualified "bytestring" Data.ByteString.Lazy       as Lazy
 
 --------------------------------------------------
 
-import qualified "base" System.IO as IO
 import qualified "base" Data.List as List
 
 -- import qualified "base" Prelude
@@ -430,151 +419,6 @@ conduitRemoteSrcs (RemoteSrcs srcs) = do
     RemoteSrcUri url -> conduitSrcUriWith manager url
 
 --------------------------------------------------
---------------------------------------------------
-
-{- |
-
-== Examples
-
-@conduitDirectory `FollowSymlinks` "./"@ acts like @find -L ./@
-
--}
-
-conduitDirectory
-  :: ( MonadResource m
-    )
-
-  => FollowSymlinks
-
-     -- ^ Follow directory symlinks
-
-  -> FilePath
-
-     -- ^ Root directory
-
-  -> ConduitT i FilePath m ()
-
-conduitDirectory followSymlinks = Conduit.sourceDirectoryDeep (fromFollowSymlinks followSymlinks)
-
---------------------------------------------------
--- Functions: IO ---------------------------------
---------------------------------------------------
-
-{- | Read bytes “lazily” (`LazyBytes`) from a given source (`Src`).
-
--}
-
-readSrc :: Src -> IO LazyBytes
-readSrc = \case
-
-  SrcBytes  bs -> return bs
-  SrcBytes' bs -> return (Lazy.fromChunks [bs])
-
-  SrcStdin   -> readSrcStdin
-  SrcFile fp -> Lazy.readFile fp
-  SrcUri url -> do
-
-    fp <- newTemporaryFilePath Nothing (fromURL url)
-
-    fetch Nothing url fp
-    Lazy.readFile fp
-
---------------------------------------------------
-
-{- | Copy the given source (`Src`) to a file (`FilePath`).
-
--}
-
-copySrc :: FilePath -> Src -> IO ()
-copySrc fpDst = \case
-
-  SrcBytes  bsSrc -> Lazy.writeFile fpDst bsSrc
-  SrcBytes' bsSrc -> Strict.writeFile fpDst bsSrc
-
-  SrcStdin      -> readSrcStdin >>= Lazy.writeFile fpDst
-  SrcFile fpSrc -> Directory.copyFile fpSrc fpDst
-  SrcUri uriSrc -> fetch Nothing uriSrc fpDst
-
---------------------------------------------------
--- Constants -------------------------------------
---------------------------------------------------
-
-timeFormatWithHyphensAndUnits :: String
-timeFormatWithHyphensAndUnits = "%Y-%m-%d-%Hh-%Mm-%Ss-%03qms"
-
--- NOTE given the meta-syntax « %<modifier><width><alternate><specifier> »,
---      the syntax « %03q » means (0-padded) 3-width picoseconds (i.e. milliseconds).
-
---------------------------------------------------
-
-replacedCharacters_escapeFilePath :: Set Char
-replacedCharacters_escapeFilePath = Set.fromList "/\\ _:;'\"!#$%^&*?|[]{}()"
-
---------------------------------------------------
-
-replacementCharacter_escapeFilePath :: Char
-replacementCharacter_escapeFilePath = '_'
-
---------------------------------------------------
-
-default_escapeFilePath :: FilePath
-default_escapeFilePath = "file"
-
---------------------------------------------------
--- Utilities -------------------------------------
---------------------------------------------------
-
-fromFollowSymlinks :: FollowSymlinks -> Bool
-fromFollowSymlinks = \case
-
-  FollowSymlinks   -> True
-  ConcludeSymlinks -> False
-  
---------------------------------------------------
-
-{- | Read bytes “lazily” (`LazyBytes`) from @stdin@ (`IO.stdin`).
-
--}
-
-readSrcStdin :: IO LazyBytes
-readSrcStdin = do
-  IO.hSetBinaryMode IO.stdin True
-  Lazy.hGetContents IO.stdin
-
---------------------------------------------------
-
-{- | Download a file.
-
-@fetch method uri fp@ downloads URI @uri@ to FilePath @fp@ (with optional request method @method@).
-
-The file contents being downloaded may be larger than available memory. @uri@ is streamed into @fp@.
-
-== Examples
-
-@
->> fetch (Just "GET") "https://mtgjson.com/json/Vintage.json.gz" "/tmp/Vintage.json.gz"
-@
-
--}
-
-fetch :: Maybe String -> URL -> FilePath -> IO ()
-fetch method (URL url) fp = do
-
-  request <- HTTP.parseRequest url'
-
-  Resource.runResourceT (HTTP.Conduit.httpSink request consume)
-
-  where
-
-  method' = method & maybe "" (++ " ")
-  url'    = method' <> url
-
-  consume :: HTTP.Response () -> ConduitT ByteString Void (ResourceT IO) ()
-  consume _response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
-
-    Conduit.sinkFileCautious fp
-
---------------------------------------------------
 
 {- | Download and decompress a @JSON@ file.
 
@@ -603,7 +447,7 @@ conduitRemoteSrc url = do
 
   manager <- HTTPS.newTlsManagerWith settings
 
-  producer <__conduitRemoteSrcWith manager url
+  producer <- conduitRemoteSrcWith manager url
 
   return ( manager, producer )
 
@@ -637,155 +481,41 @@ conduitRemoteSrcWith manager = go
 {-# INLINEABLE conduitRemoteSrcWith #-}
 
 --------------------------------------------------
+--------------------------------------------------
+
+{- |
+
+== Examples
+
+@conduitDirectory `FollowSymlinks` "./"@ acts like @find -L ./@
+
+-}
+
+conduitDirectory
+  :: ( MonadResource m
+    )
+
+  => FollowSymlinks
+
+     -- ^ Follow directory symlinks
+
+  -> FilePath
+
+     -- ^ Root directory
+
+  -> ConduitT i FilePath m ()
+
+conduitDirectory followSymlinks = Conduit.sourceDirectoryDeep (fromFollowSymlinks followSymlinks)
+
+--------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
 
--- | @mkdir -p@
+fromFollowSymlinks :: FollowSymlinks -> Bool
+fromFollowSymlinks = \case
 
-mkdir_p :: FilePath -> IO ()
-mkdir_p = Directory.createDirectoryIfMissing True
-
---------------------------------------------------
-
-invertMap :: (Ord k, Ord v) => Map k v -> Map v (NonEmpty k)
-invertMap kvs = vkss
-  where
-
-  vkss = go kvs
-
-  go
-    = Map.toList
-    > fmap (\(k, v) -> (v, k:|[]))
-    > Map.fromListWith (<>)
-
---------------------------------------------------
--- Utilities: Time -------------------------------
---------------------------------------------------
-
-{- | Application-specific filepath to a temporary file.
-
-Creates any missing parent directories.
-
-e.g.:
-
-@
-> newTemporaryFilePath (Just "mtg-json") "mtg.json.gz"
-"/tmp/mtg-json/2019-04-06-21h-43m-51s-852ms_mtg.json.gz"
-
-> newTemporaryFilePath Nothing ""
-"/tmp/2019-04-06-21h-43m-51s-852ms_file"
-@
-
--}
-
-newTemporaryFilePath
-  :: Maybe String
-  -- ^ Optional directory name (for “namespacing”).
-  -> String
-  -- ^ File name (suffix).
-  -> IO FilePath
-  -- ^ Generated filepath.
-
-newTemporaryFilePath directoryName fileName = do
-
-  directory <- Directory.getTemporaryDirectory
-  time      <- Time.getZonedTime
-
-  let timestamp = formatZonedTimeAsFilePath time
-
-  let dirname  = (maybe directory (directory </>)) dName
-  let basename = timestamp <> "_" <> fName 
-
-  mkdir_p dirname
-
-  let path = dirname </> basename
-
-  return path
-
-  where
-
-  fName = escapeFilePath fileName
-  dName = escapeFilePath <$> directoryName
-
---------------------------------------------------
-
-{- | Escape the given string as both a /valid/ and /idiomatic/ filepath.
-
-== Examples
-
->>> escapeFilePath ""
-"file"
-
->>> escapeFilePath "https://mtgjson.com/json/Vintage.json.gz"
-"https_mtgjson.com_json_Vintage.json.gz"
-
--}
-
-escapeFilePath :: String -> FilePath
-escapeFilePath s = fp
-  where
-
-  fp :: FilePath
-  fp = case s of
-
-    "" -> default_escapeFilePath
-    _  -> go s
-
-  go
-    = applyReplacements
-    > List.group
-    > fmap collapseReplacementCharacters
-    > concat
-
-  applyReplacements :: String -> String
-  applyReplacements = fmap applyReplacement
-
-  applyReplacement :: Char -> Char
-  applyReplacement c =
-    if   c `Set.member` replacedCharacters_escapeFilePath
-    then replacementCharacter_escapeFilePath
-    else c
-
-  collapseReplacementCharacters :: String -> String
-  collapseReplacementCharacters t =
-
-    if   List.all (== replacementCharacter_escapeFilePath) t
-    then [replacementCharacter_escapeFilePath]
-    else t
-
---------------------------------------------------
-
-{- | Format a timestamp to be part of a filepath.
-
-e.g.:
-
-@
-> formatZonedTimeAsFilePath _
-"2019-04-06-21h-43m-51s-852ms"
-@
-
-== Examples
-
->>> import Data.Time.LocalTime ( ZonedTime(..), TimeZone(..), LocalTime(..), TimeOfDay(..) )
->>> import Data.Time.Calendar ( Day(..), fromGregorian )
->>> zone = TimeZone { timeZoneMinutes = -420, timeZoneSummerOnly = True, timeZoneName = "PDT" }
->>> time = LocalTime { localDay = fromGregorian 1991 02 28, localTimeOfDay = TimeOfDay { todHour = 13, todMin = 37, todSec = 59 }}
->>> time' = ZonedTime{ zonedTimeToLocalTime = time, zonedTimeZone = zone }
->>> formatZonedTimeAsFilePath time'
-"1991-02-28-13h-37m-59s-000ms"
-
--}
-
-formatZonedTimeAsFilePath :: Time.ZonedTime -> String
-formatZonedTimeAsFilePath t =
-
-  Time.formatTime locale timeFormatWithHyphensAndUnits t
-
-  where
-
-  locale = Time.defaultTimeLocale
-
-  -- NOTE even « Prelude.undefined » works as the locale for « ZonedTime » (it's ignored).
+  FollowSymlinks   -> True
+  ConcludeSymlinks -> False
 
 --------------------------------------------------
 -- Utilities: Conduit ----------------------------

@@ -637,6 +637,7 @@ library srcdst
  -----------------------------
 
  exposed-modules: Data.SrcDst
+                , IO.SrcDst
                 , Conduit.SrcDst
 
  -----------------------------
@@ -673,8 +674,6 @@ library srcdst
              , filepath   ^>= 1.4
              , directory  ^>= 1.3
 
-             , time        >= 1.8
-
   --------------------
   -- Conduit Libraries
   --------------------
@@ -694,6 +693,13 @@ library srcdst
              -- , zlib
              -- , tar
              -- , zip-archive
+
+  --------------------
+  -- Other Libraries -
+  --------------------
+
+             , time        >= 1.8
+             , formatting ^>= 6.3
 
   --------------------
 
