@@ -16,7 +16,7 @@ module Conduit.SrcDst
   ( -- * `Conduit` for `SrcDst`s (and `DstSrc`)
 
     conduitSrcDst
-  --, conduitDstSrcs
+  , conduitDstSrcs
 
   -- * `IO` for `SrcDst`s
 
@@ -37,6 +37,10 @@ module Conduit.SrcDst
   , conduitDst
   , conduitDstStdin
   , conduitDstFile
+
+  -- * `Conduit`s for `RemoteSrc`s
+
+  , conduitRemoteSrcs
 
   -- * Miscellaneous `Conduit`s
 
@@ -65,12 +69,8 @@ import Prelude.SrcDst
 -- Imports (External) ----------------------------
 --------------------------------------------------
 
-import qualified "conduit" Conduit as Conduit
-import           "conduit" Conduit ( ConduitT, (.|), ZipSink(..) )
-
---------------------------------------------------
-
-import qualified "http-conduit" Network.HTTP.Simple as HTTP.Conduit
+import qualified "http-conduit" Network.HTTP.Conduit as HTTP.Conduit
+import qualified "http-conduit" Network.HTTP.Simple  as HTTP.Conduit
 -- import           "http-conduit" Network.HTTP.Simple ( )
 
 --------------------------------------------------
@@ -78,6 +78,11 @@ import qualified "http-conduit" Network.HTTP.Simple as HTTP.Conduit
 import qualified "http-client"     Network.HTTP.Client       as HTTP
 import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
 -- import qualified "http-types"      Network.HTTP.Types.Status as HTTP
+
+--------------------------------------------------
+
+import qualified "conduit" Conduit as Conduit
+import           "conduit" Conduit ( ConduitT, Sink, (.|), ZipSink(..) )
 
 --------------------------------------------------
 
@@ -108,12 +113,13 @@ import qualified "directory" System.Directory as Directory
 
 --------------------------------------------------
 
-import qualified "bytestring" Data.ByteString            as Strict
-import qualified "bytestring" Data.ByteString.Lazy       as Lazy
+import qualified "containers" Data.Map as Map
+import qualified "containers" Data.Set as Set
 
 --------------------------------------------------
 
-import qualified "containers" Data.Set as Set
+import qualified "bytestring" Data.ByteString            as Strict
+import qualified "bytestring" Data.ByteString.Lazy       as Lazy
 
 --------------------------------------------------
 
@@ -198,33 +204,6 @@ runSrcDstM srcdst = Conduit.runConduitRes mSrcDst
   where
 
   mSrcDst = conduitSrcDst srcdst
-
---------------------------------------------------
--- Functions: Conduit ----------------------------
---------------------------------------------------
-
-{- | Create a “closed” @conduit@, from multiple `Src`s to multiple `Dst`s.
-
-`(conduitDstSrcs ...)` is similar to `(traverse conduitDstSrc ...)`.
-Except, for multiple `SrcUri`s, the different files are downloaded under a single `HTTP.Manager`;
-this is useful ① for faster downloads (especially when downloading from the same subdomain)
-via @keep-alive@, and ② for rate-limiting (I think).
-
-
-conduitDstSrcs
-  :: forall m.
-    ( MonadResource m
-    , MonadIO       m
-    , MonadThrow    m
-    )
-  => DstSrcs
-  -> ConduitT () Void m ()
-
-conduitDstSrcs (DstSrcs dstsrcs) = go dstsrcs
-  where
-
-  go _ = ()
--}
 
 --------------------------------------------------
 -- Functions: Conduit ----------------------------
@@ -364,6 +343,93 @@ conduitDstFile
   :: ( MonadResource m, MonadIO m ) => FilePath -> ConduitT ByteString Void m ()
 conduitDstFile = Conduit.sinkFileCautious
 
+--------------------------------------------------
+-- Functions: Conduit ----------------------------
+--------------------------------------------------
+
+{- | Create a “closed” @conduit@, from multiple `Src`s to multiple `Dst`s.
+
+`(conduitDstSrcs ...)` is similar to `(traverse conduitDstSrc ...)`, except:
+
+* HTTP Connection Management — For multiple `SrcUri`s, the different files are downloaded under a single `HTTP.Manager`;
+this is useful ① for faster downloads (especially when downloading from the same subdomain)
+via @keep-alive@, and ② for rate-limiting (I think).
+* Source Caching — When fetching the same `Src` to *multiple* `Dst`s, the input bytes are forked to each output
+(not re-fetched individually) via `ZipSink`.
+
+-}
+
+conduitDstSrcs
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => DstSrcs
+  -> ConduitT () Void m ()
+
+conduitDstSrcs (DstSrcs dstsrcs) = _
+
+  where
+
+  ------------------------------
+
+  srcdsts :: Map Src (NonEmpty Dst)
+  srcdsts = dstsrcs & invertMap
+
+  srcdsts1 :: [( Src, ConduitT ByteString Void m () )]
+  srcdsts1 = srcdsts
+    & Map.map dstConsumer
+    & Map.toList
+
+  srcdsts2 :: [( ConduitT () ByteString m (), ConduitT ByteString Void m () )]
+  srcdsts2 = srcdsts1
+    & _
+
+  ------------------------------
+
+  dstConsumer :: NonEmpty Dst -> ConduitT ByteString Void m ()
+  dstConsumer
+    = fmap conduitDst
+    > toList
+    > sequenceSinks_
+
+    -- cache `Src`s by zipping `Dst`s.
+
+  ( remoteSrcs, localSrcs ) = partitionSrcs srcs
+
+  remoteSrcProducers = remoteSrcs
+    & conduitRemoteSrcs
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Create an “producer” for each remote sources.
+
+For /HTTP/ sources, all producers share the same /manager/.
+
+-}
+
+conduitRemoteSrcs
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => RemoteSrcs
+  -> m (Map RemoteSrc (ConduitT () ByteString m ()))
+
+conduitRemoteSrcs (RemoteSrcs srcs) = do
+
+  (go manager) srcs
+
+  where
+
+  go manager = \case
+
+    RemoteSrcUri url -> conduitSrcUriWith manager url
+
+--------------------------------------------------
 --------------------------------------------------
 
 {- |
@@ -520,42 +586,55 @@ May throw:
 
 == Related
 
-* `fetchUrlWith`
+* `conduitRemoteSrcWith`
 * `conduitDstSrcs`
 
 -}
 
-fetchUrl :: URL -> IO Lazy.ByteString
-fetchUrl url = do
+conduitRemoteSrc
+
+  :: forall m. ( MonadResource m, MonadIO m, MonadThrow m )
+  => URL
+  -> m (HTTP.Manager, ConduitT () ByteString m ())
+
+conduitRemoteSrc url = do
 
   let settings = HTTPS.tlsManagerSettings
 
   manager <- HTTPS.newTlsManagerWith settings
 
-  fetchUrlWith manager url
+  producer <__conduitRemoteSrcWith manager url
 
-{-# INLINEABLE fetchUrl #-}
+  return ( manager, producer )
+
+{-# INLINEABLE conduitRemoteSrc #-}
 
 --------------------------------------------------
 
-{- | (See `fetchUrl`.) -}
+{- | (See `conduitRemoteSrc`.) -}
 
-fetchUrlWith :: HTTP.Manager -> URL -> IO Lazy.ByteString
-fetchUrlWith manager url = go url
+conduitRemoteSrcWith
+
+  :: forall m. ( MonadResource m, MonadIO m, MonadThrow m )
+  => HTTP.Manager
+  -> URL
+  -> m (ConduitT () ByteString m ())
+
+conduitRemoteSrcWith manager = go
   where
 
-  go :: URL -> IO Lazy.ByteString
+  go :: URL -> m (ConduitT () ByteString m ())
   go (URL url) = do
 
     request  <- HTTP.parseUrlThrow url
-    response <- HTTP.httpLbs request manager
+    response <- HTTP.Conduit.http request manager
 
-    let body   = (response & HTTP.responseBody)
-    let status = (response & HTTP.responseStatus)
+    let producer = (response & HTTP.Conduit.getResponseBody)
+    let status   = (response & HTTP.Conduit.getResponseStatus)
 
-    return body
+    return producer
 
-{-# INLINEABLE fetchUrlWith #-}
+{-# INLINEABLE conduitRemoteSrcWith #-}
 
 --------------------------------------------------
 -- Utilities -------------------------------------
@@ -566,6 +645,21 @@ fetchUrlWith manager url = go url
 mkdir_p :: FilePath -> IO ()
 mkdir_p = Directory.createDirectoryIfMissing True
 
+--------------------------------------------------
+
+invertMap :: (Ord k, Ord v) => Map k v -> Map v (NonEmpty k)
+invertMap kvs = vkss
+  where
+
+  vkss = go kvs
+
+  go
+    = Map.toList
+    > fmap (\(k, v) -> (v, k:|[]))
+    > Map.fromListWith (<>)
+
+--------------------------------------------------
+-- Utilities: Time -------------------------------
 --------------------------------------------------
 
 {- | Application-specific filepath to a temporary file.
@@ -694,6 +788,42 @@ formatZonedTimeAsFilePath t =
   -- NOTE even « Prelude.undefined » works as the locale for « ZonedTime » (it's ignored).
 
 --------------------------------------------------
+-- Utilities: Conduit ----------------------------
+--------------------------------------------------
+
+{- | n-ary `Conduit.zipSinks` (via `ZipSink`).
+
+== Usage
+
+Stream a single input to multiple outputs.
+
+-}
+
+sequenceSinks :: (Monad m) => [Sink i m r] -> Sink i m [r]
+sequenceSinks
+
+  = fmap ZipSink
+  > sequenceA
+  > getZipSink
+
+--------------------------------------------------
+
+{- | Like `sequenceSinks`, but ignoring the results.
+
+== Usage
+
+Stream a single input to multiple outputs.
+
+-}
+
+sequenceSinks_ :: (Monad m) => [Sink i m ()] -> Sink i m ()
+sequenceSinks_
+
+  = fmap ZipSink
+  > sequenceA_
+  > getZipSink
+
+--------------------------------------------------
 -- Notes -----------------------------------------
 --------------------------------------------------
 
@@ -714,6 +844,43 @@ formatZonedTimeAsFilePath t =
 -- zipSinks :: Monad m => Sink i m r -> Sink i m r' -> Sink i m (r, r')
 --
 -- >Combines two sinks. The new sink will complete when both input sinks have completed.
+
+-- traverseWithKey :: Applicative t => (k -> a -> t b) -> Map k a -> t (Map k b)
+--
+-- traverseMaybeWithKey :: Applicative f => (k -> a -> f (Maybe b)) -> Map k a -> f (Map k b)
+
+-- mapKeysWith :: Ord k2 => (a -> a -> a) -> (k1 -> k2) -> Map k1 a -> Map k2 a
+
+--- Network.HTTP.Conduit:
+--
+-- http :: MonadResource m => Request -> Manager -> m (Response (ConduitT i ByteString m ()))
+--
+-- getRedirectedRequest :: Request -> ResponseHeaders -> CookieJar -> Int -> Maybe Request
+--
+-- getResponseHeader :: HeaderName -> Response a -> [ByteString]
+--
+-- multipleChoices300 :: Status
+-- movedPermanently301 :: Status
+-- found302 :: Status
+-- seeOther303 :: Status
+-- notModified304 :: Status
+-- useProxy305 :: Status
+-- -- 306
+-- temporaryRedirect307 :: Status
+-- permanentRedirect308 :: Status
+-- 
+-- https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+--
+-- The HyperText Transfer Protocol (HTTP) 301 Moved Permanently redirect status response code indicates that the resource requested has been definitively moved to the URL given by the Location headers. A browser redirects to this page and search engines update their links to the resource (in 'SEO-speak', it is said that the 'link-juice' is sent to the new URL).
+-- It's recommended to use the 301 code only as a response for GET or HEAD methods and to use the 308 Permanent Redirect for POST methods instead.
+-- 
+-- The HyperText Transfer Protocol (HTTP) 302 Found redirect status response code indicates that the resource requested has been temporarily moved to the URL given by the Location header.
+-- It's recommended to set the 302 code only as a response for GET or HEAD methods and to use 307 Temporary Redirect instead.
+-- 
+-- 
+-- 
+-- 
+-- 
 
 --------------------------------------------------
 -- EOF -------------------------------------------

@@ -18,11 +18,13 @@ module Data.SrcDst
   -- * Types
 
     SrcDst(..)
-
-  , DstSrcs(..)
-
   , Src(..)
   , Dst(..)
+
+  , DstSrcs(..)
+  , RemoteSrc(..)
+  , RemoteSrcs(..)
+  , LocalSrc(..)
 
   , URL(..)
 
@@ -31,14 +33,24 @@ module Data.SrcDst
   , toDstSrcs
   , toDstSrcsM
 
-  , prettySrc
   , parseSrc
+  , parseDst
+  , parseLocalSrc
+  , parseRemoteSrc
+
+  -- * Transformers
+
+  , partitionSrcs
+  , fromSrc
+
+  , fromLocalSrc
+  , fromRemoteSrc 
 
   -- * Eliminators
 
   , fromDstSrcs
 
-  , parseDst
+  , prettySrc
   , prettyDst
 
   ) where
@@ -54,9 +66,11 @@ import Prelude.SrcDst
 --------------------------------------------------
 
 import qualified "containers" Data.Map as Map
+import qualified "containers" Data.Set as Set
 
 --------------------------------------------------
 
+import qualified "bytestring" Data.ByteString.Lazy             as Lazy
 import qualified "bytestring" Data.ByteString.Char8            as StrictASCII
 import qualified "bytestring" Data.ByteString.Lazy.Char8       as LazyASCII
 
@@ -159,6 +173,75 @@ instance IsList DstSrcs where
   type Item DstSrcs = SrcDst
   fromList = toDstSrcs
   toList   = fromDstSrcs
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | A set of remote sources.
+
+-}
+
+newtype RemoteSrcs = RemoteSrcs
+
+  (Set RemoteSrc)
+
+  deriving stock    (Generic)
+  deriving stock    (Show, Read)
+  deriving newtype  (Eq, Ord)
+
+  deriving newtype  (Semigroup, Monoid)
+  deriving newtype  (NFData{-, Hashable-})
+
+--------------------------------------------------
+
+instance IsList RemoteSrcs where
+
+  type Item RemoteSrcs = RemoteSrc
+
+  fromList = Set.fromList > coerce
+  toList   = coerce > Set.toList
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | A “remote” data source.
+
+-}
+
+data RemoteSrc
+
+  = RemoteSrcUri URL
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'parseRemoteSrc'@
+instance IsString RemoteSrc where fromString = parseRemoteSrc
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | A “local” data source.
+
+-}
+
+data LocalSrc
+
+  = LocalSrcBytes LazyBytes
+  | LocalSrcStdin
+  | LocalSrcFile FilePath
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Lift,Generic)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'parseLocalSrc'@
+instance IsString LocalSrc where fromString = parseLocalSrc
 
 --------------------------------------------------
 --------------------------------------------------
@@ -287,6 +370,52 @@ toDstSrcsM srcdsts = do
   allSingletons = List.all (\xs -> length xs <= 1)
 
 --------------------------------------------------
+
+{- | Distinguish `LocalSrc`s from `RemoteSrc`s. -}
+
+partitionSrcs :: [Src] -> ( [RemoteSrc], [LocalSrc] )
+partitionSrcs sources = ( remotes, locals )
+  where
+
+  ( remotes, locals ) = partitionEithers sources'
+
+  sources' = fromSrc <$> sources
+
+--------------------------------------------------
+
+{- | A `Src` is either *local* or *remote*. -}
+
+fromSrc :: Src -> Either RemoteSrc LocalSrc
+fromSrc = \case
+
+  SrcBytes  bs  -> Right (LocalSrcBytes bs)
+  SrcBytes' bs' -> Right (LocalSrcBytes (Lazy.fromChunks [bs']))
+  SrcStdin      -> Right LocalSrcStdin
+  SrcFile   fp  -> Right (LocalSrcFile fp)
+
+  SrcUri url -> Left (RemoteSrcUri url)
+
+--------------------------------------------------
+
+{- | Generalize a `LocalSrc`. -}
+
+fromLocalSrc :: LocalSrc -> Src
+fromLocalSrc = \case
+
+  LocalSrcBytes bs  -> SrcBytes bs
+  LocalSrcStdin      -> SrcStdin
+  LocalSrcFile  fp  -> SrcFile fp
+
+--------------------------------------------------
+
+{- | Generalize a `RemoteSrc`. -}
+
+fromRemoteSrc :: RemoteSrc -> Src
+fromRemoteSrc = \case
+
+  RemoteSrcUri url -> SrcUri url
+
+--------------------------------------------------
 -- Functions: Printing / Parsing -----------------
 --------------------------------------------------
 
@@ -333,6 +462,45 @@ parseDst = munge > \case
   "-" -> DstStdout
 
   s -> DstFile s
+
+  where
+
+  munge = lrstrip
+
+--------------------------------------------------
+
+{- | 
+== Examples
+
+>>> parseLocalSrc "-"
+LocalSrcStdin
+>>> parseLocalSrc "./mtg.json"
+LocalSrcFile "./mtg.json"
+>>> parseLocalSrc "          ./mtg.json          "
+LocalSrcFile "./mtg.json"
+
+-}
+
+parseLocalSrc :: String -> LocalSrc
+parseLocalSrc = munge > \case
+
+  "-" -> LocalSrcStdin
+
+  s -> LocalSrcFile s
+
+  where
+
+  munge = lrstrip
+
+--------------------------------------------------
+
+{- | 
+== Examples
+
+-}
+
+parseRemoteSrc :: String -> RemoteSrc
+parseRemoteSrc = munge > fromString > RemoteSrcUri
 
   where
 
