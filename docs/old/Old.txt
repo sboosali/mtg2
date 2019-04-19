@@ -3397,6 +3397,414 @@ fromURL (URL s) = s
 
 
 
+{- | Create a `DstSrcs` from multiple `Dst`s and `Src`s.
+
+`toDstSrcs` vs `toDstSrcsM`:
+
+* `toDstSrcs` ignores collisions.
+* `toDstSrcsM` fails on any collision (reporting all collisions, not just the first).
+
+-}
+
+toDstSrcsM :: ( MonadThrow m ) => [SrcDst] -> m DstSrcs
+toDstSrcsM srcdsts = do
+
+  if   noCollision
+  then return dstsrcs
+  else throwM e
+
+  where
+
+  dstsrcs = Map.toList (switch <$> srcdsts)
+
+  switch ( dst, src ) = SrcDst{ src, dst }
+
+  noCollision = not (List.any _ srcdsts)
+
+  e = _
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+toDstSrcsM :: ( MonadThrow m ) => [SrcDst] -> m DstSrcs
+toDstSrcsM srcdsts = do
+
+  if   noCollision
+  then return dstsrcs
+  else throwM e
+
+  where
+
+  dstsrcs :: DstSrcs
+  dstsrcs = toDstSrcs srcdsts
+
+  noCollision :: Bool
+  noCollision = allSingletons groupedDstsBySrc
+
+  groupedDstsBySrc :: [[Dst]]
+  groupedDstsBySrc
+    = srcdsts
+    & List.groupBy (\SrcDst{ dst = x } SrcDst{ dst = y } -> x == y)
+    & (fmap . fmap) (\SrcDst{ dst } -> dst)
+
+  -- group `Dst`s by their `Src`, then check for only singletons.
+
+  e = _
+
+  allSingletons :: (Eq a) => [[a]] -> Bool
+  allSingletons = List.all (\xs -> length xs <= 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+toDstSrcs :: [SrcDst] -> DstSrcs
+toDstSrcs srcdsts = DstSrcs (Map.fromList addAttribute attributes)
+  where
+
+  attributes :: [( Dst, Src )]
+  attributes = switch <$> srcdsts
+
+  switch SrcDst{ src, dst } = ( dst, src )
+
+  addAttribute :: (Ord a) => a -> Set a -> Set a
+  addAttribute x xs = Set.singleton x `Set.union` xs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Multiple `SrcDst`s.
+
+Each destination has (exactly) one source; i.e.
+sources shouldn't collide.
+
+== Implementation
+
+`SrcDst` is represented “reversed”, into @( `Dst`, `Src` )@.
+This enforces the "unique destination" property.
+
+-}
+
+newtype DstSrcs = DstSrcs
+
+  ( Map Dst (Set Src) )
+
+  deriving stock    (Lift,Generic)
+  deriving newtype  (Show,Read)
+  deriving newtype  (Eq,Ord)
+  deriving newtype  (NFData)
+
+{- | Create a `DstSrcs` from multiple `Dst`s and `Src`s.
+
+Identical `SrcDst`s are redundant.
+
+-}
+
+toDstSrcs :: [SrcDst] -> DstSrcs
+toDstSrcs srcdsts = DstSrcs inversion
+  where
+
+  inversion :: Map Dst (Set Src)
+  inversion
+    = attributes
+    & fmap (bimap id Set.singleton)
+    & Map.fromListWith Set.union
+
+  attributes :: [( Dst, Src )]
+  attributes = switch <$> srcdsts
+
+  switch SrcDst{ src, dst } = ( dst, src )
+
+--------------------------------------------------
+
+{- | 
+
+>>> DstSrcs (Map.fromList [( DstFile "vintage.json", Set.fromList [SrcFile "./a", SrcFile "./b"
+
+-}
+
+fromDstSrcs :: DstSrcs -> [SrcDst]
+fromDstSrcs (DstSrcs kvs) = vks
+  where
+
+  vks
+    = kvs
+    & Map.toList
+    & concatMap go
+    & fmap toSrcDst
+
+  go :: (b, Set a) -> [(b, a)]
+  go (y, xs) = fmap (y ,) (Set.toList xs)
+
+  toSrcDst ( dst, src ) = SrcDst{ src, dst }
+
+--------------------------------------------------
+
+{- | Create a `DstSrcs` from multiple `Dst`s and `Src`s.
+
+`toDstSrcs` vs `toDstSrcsM`:
+
+* `toDstSrcs` ignores collisions.
+* `toDstSrcsM` fails on any collision (reporting all collisions, not just the first).
+
+-}
+
+toDstSrcsM :: ( MonadThrow m ) => [SrcDst] -> m DstSrcs
+toDstSrcsM srcdsts = do
+
+  if   noCollision
+  then return dstsrcs
+  else errorM e
+
+  where
+
+  dstsrcs :: DstSrcs
+  dstsrcs = toDstSrcs srcdsts
+
+  noCollision :: Bool
+  noCollision = allSingletons groupedDstsBySrc
+
+  groupedDstsBySrc :: [[SrcDst]]
+  groupedDstsBySrc
+    = srcdsts
+    & List.groupBy (\SrcDst{ dst = x } SrcDst{ dst = y } -> x == y)
+
+  -- group `Dst`s by their `Src`, then check for only singletons.
+
+  e :: String
+  e = "Colliding destinations"  -- TODO format.
+
+  allSingletons :: (Eq a) => [[a]] -> Bool
+  allSingletons = List.all (\xs -> length xs <= 1)
+
+
+
+
+
+
+
+
+
+
+
+
+== Examples
+
+>>> :set -XOverloadedLists
+>>> dstsrcs = [( DstFile "vintage.json", SrcUri (URL "https://mtgjson.com/json/Vintage.json.gz") ), ( DstStdout, SrcStdin ), ( DstFile "mtg.json", SrcUri (URL "https://mtgjson.com/json/Vintage.json.gz") )] :: DstSrcs
+>>> dsts = (Map.keys dstsrcs)
+>>> srcs = (Map.elems dstsrcs)
+>>> length dsts
+3
+>>> length srcs
+2
+>>> dstsrcs
+[]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+escapeFilePath :: String -> FilePath
+escapeFilePath s = fp
+  where
+
+  fp :: FilePath
+  fp = case s of
+
+    "" -> default_escapeFilePath
+    _  -> go s
+
+  go
+    = replaceSubstring replacedCharacters_escapeFilePath [replacementCharacter_escapeFilePath]
+    > List.group
+    > fmap collapseReplacementCharacters
+    > concat
+
+  collapseReplacementCharacters :: String -> String
+  collapseReplacementCharacters t =
+
+    if   List.all (== replacementCharacter_escapeFilePath) t
+    then [replacementCharacter_escapeFilePath]
+    else t
+
+
+
+
+
+
+
+  applyReplacements :: String -> String
+  applyReplacements = fmap applyReplacement ) [replacementCharacter_escapeFilePath]
+
+  applyReplacement :: Char -> String -> String
+  applyReplacement = fmap  replacedCharacters_escapeFilePath [replacementCharacter_escapeFilePath]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
