@@ -4083,6 +4083,42 @@ fetchUrl url = do
 
 
 
+conduitRemoteSrcs (RemoteSrcs srcs) = do
+
+  manager <- newManager
+
+  let mIOs = Map.fromSet (go manager) srcs
+
+  mConduits <- Map.traverseMaybeWithKey go mIOs
+
+  return mConduits
+
+  where
+
+  go :: HTTP.Manager -> (RemoteSrc -> BytesSource m -> m (Maybe (BytesSource m)))
+  go manager = \case
+
+    RemoteSrcUri url -> Just (conduitRemoteSrcWith manager url)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

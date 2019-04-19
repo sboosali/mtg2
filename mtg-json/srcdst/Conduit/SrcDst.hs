@@ -144,6 +144,18 @@ data FollowSymlinks
 instance Default FollowSymlinks where def = FollowSymlinks
 
 --------------------------------------------------
+
+-- | a `Conduit.Source` of `BytesString`.
+
+type BytesSource m = ConduitT () ByteString m ()
+  
+--------------------------------------------------
+
+-- | a `Conduit.Sink` for `BytesString`.
+
+type BytesSink m = ConduitT ByteString Void m ()
+
+--------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
@@ -410,13 +422,32 @@ conduitRemoteSrcs
 
 conduitRemoteSrcs (RemoteSrcs srcs) = do
 
-  (go manager) srcs
+  manager <- newManager
+
+  let
+    mIOs :: Map RemoteSrc (m (BytesSource m))
+    mIOs = mSrcs & Map.map (go manager)
+
+  mConduits :: Map RemoteSrc (BytesSource m) <- sequenceA mIOs
+
+  return mConduits
 
   where
 
+  ------------------------------
+
+  mSrcs :: Map RemoteSrc RemoteSrc
+  mSrcs = srcs & Map.fromSet id
+
+  ------------------------------
+
+  go
+    :: HTTP.Manager
+    -> RemoteSrc -> m (BytesSource m)
+
   go manager = \case
 
-    RemoteSrcUri url -> conduitSrcUriWith manager url
+    RemoteSrcUri url -> (conduitRemoteSrcWith manager url)
 
 --------------------------------------------------
 
@@ -443,9 +474,7 @@ conduitRemoteSrc
 
 conduitRemoteSrc url = do
 
-  let settings = HTTPS.tlsManagerSettings
-
-  manager <- HTTPS.newTlsManagerWith settings
+  manager <- newManager
 
   producer <- conduitRemoteSrcWith manager url
 
@@ -467,7 +496,7 @@ conduitRemoteSrcWith
 conduitRemoteSrcWith manager = go
   where
 
-  go :: URL -> m (ConduitT () ByteString m ())
+  go :: URL -> m (BytesSource m)
   go (URL url) = do
 
     request  <- HTTP.parseUrlThrow url
@@ -518,6 +547,22 @@ fromFollowSymlinks = \case
   ConcludeSymlinks -> False
 
 --------------------------------------------------
+-- Utilities: HTTP -------------------------------
+--------------------------------------------------
+
+newManager
+  :: forall m. ( MonadResource m, MonadIO m, MonadThrow m )
+  => m HTTP.Manager
+
+newManager = do
+
+  let settings = HTTPS.tlsManagerSettings
+
+  manager <- HTTPS.newTlsManagerWith settings
+
+  return manager
+
+--------------------------------------------------
 -- Utilities: Conduit ----------------------------
 --------------------------------------------------
 
@@ -557,14 +602,16 @@ sequenceSinks_
 -- Notes -----------------------------------------
 --------------------------------------------------
 
+--- « Data.Conduit »
+--
 -- data ConduitT i o m r
-
+--
 -- stdinC :: MonadIO m => ConduitT i ByteString m ()
-
+--
 -- stdoutC :: MonadIO m => ConduitT ByteString o m ()
 
 -- httpSink :: (MonadUnliftIO m) => Request -> (Response () -> ConduitT ByteString Void m a) -> m a
-
+--
 -- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitT i ByteString n ()) -> ConduitT i o m r) -> ConduitT i o m r
 
 -- TimeZone { timeZoneMinutes = , timeZoneSummerOnly = False, timeZoneName = "PST" }
@@ -608,7 +655,12 @@ sequenceSinks_
 -- It's recommended to set the 302 code only as a response for GET or HEAD methods and to use 307 Temporary Redirect instead.
 -- 
 -- 
+
+-- « Data.Map »
 -- 
+-- fromSet :: (k -> a) -> Set k -> Map k a
+-- 
+-- traverseMaybeWithKey :: Applicative f => (k -> a -> f (Maybe b)) -> Map k a -> f (Map k b)
 -- 
 -- 
 
