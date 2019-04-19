@@ -22,23 +22,30 @@ main :: IO ()
 main = do
 
   putStrLn "----------------------------------------"
-  putStrLn "-- DocTest: Library --------------------"
+  putStrLn "-- DocTest: Librarie -------------------"
   putStrLn "----------------------------------------"
 
-  doctestLib
+  doctestLib1
+
+  doctestLib2
 
   putStrLn "----------------------------------------"
-  putStrLn "-- DocTest: Executable -----------------"
+  putStrLn "-- DocTest: Executables ----------------"
   putStrLn "----------------------------------------"
 
-  doctestExe
+--  doctestExe
 
   putStrLn "----------------------------------------"
 
 --------------------------------------------------
 
-doctestLib :: IO ()
-doctestLib = doctest (sourcesLib ++ flagsLib)
+doctestLib1 :: IO ()
+doctestLib1 = doctest (sourcesLib1 ++ flagsLib)
+
+--------------------------------------------------
+
+doctestLib2 :: IO ()
+doctestLib2 = doctest (sourcesLib2 ++ flagsLib)
 
 --------------------------------------------------
 
@@ -49,9 +56,15 @@ doctestExe = doctest (sourcesExe ++ flagsExe)
 -- Utilities -------------------------------------
 --------------------------------------------------
 
-sourcesLib = modules2filepaths "hs" "library" $
+sourcesLib1 = modules2filepaths "hs" "library" $
 
   "MTG.JSON MTG.JSON.Prelude MTG.JSON.UUID MTG.JSON.Schema.Set MTG.JSON.Schema.Card"
+
+--------------------------------------------------
+
+sourcesLib2 = modules2filepaths "hs" "srcdst" $
+
+  "Prelude.SrcDst Data.SrcDst Conduit.SrcDst"
 
 --------------------------------------------------
 
@@ -84,7 +97,7 @@ flagsExe = concat
 optionsLib :: [String]
 optionsLib =
 
-  [ "-fdefer-type-errors"
+  [ -- "-fdefer-type-errors"
   ]
 
 --------------------------------------------------

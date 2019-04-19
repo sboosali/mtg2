@@ -13,9 +13,10 @@
 
 module Conduit.SrcDst
 
-  ( -- * `Conduit` for `SrcDst`s
+  ( -- * `Conduit` for `SrcDst`s (and `DstSrc`)
 
     conduitSrcDst
+  --, conduitDstSrcs
 
   -- * `IO` for `SrcDst`s
 
@@ -65,7 +66,7 @@ import Prelude.SrcDst
 --------------------------------------------------
 
 import qualified "conduit" Conduit as Conduit
-import           "conduit" Conduit ( ConduitT, (.|) )
+import           "conduit" Conduit ( ConduitT, (.|), ZipSink(..) )
 
 --------------------------------------------------
 
@@ -75,7 +76,7 @@ import qualified "http-conduit" Network.HTTP.Simple as HTTP.Conduit
 --------------------------------------------------
 
 import qualified "http-client"     Network.HTTP.Client       as HTTP
--- import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
+import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
 -- import qualified "http-types"      Network.HTTP.Types.Status as HTTP
 
 --------------------------------------------------
@@ -109,6 +110,10 @@ import qualified "directory" System.Directory as Directory
 
 import qualified "bytestring" Data.ByteString            as Strict
 import qualified "bytestring" Data.ByteString.Lazy       as Lazy
+
+--------------------------------------------------
+
+import qualified "containers" Data.Set as Set
 
 --------------------------------------------------
 
@@ -193,6 +198,33 @@ runSrcDstM srcdst = Conduit.runConduitRes mSrcDst
   where
 
   mSrcDst = conduitSrcDst srcdst
+
+--------------------------------------------------
+-- Functions: Conduit ----------------------------
+--------------------------------------------------
+
+{- | Create a “closed” @conduit@, from multiple `Src`s to multiple `Dst`s.
+
+`(conduitDstSrcs ...)` is similar to `(traverse conduitDstSrc ...)`.
+Except, for multiple `SrcUri`s, the different files are downloaded under a single `HTTP.Manager`;
+this is useful ① for faster downloads (especially when downloading from the same subdomain)
+via @keep-alive@, and ② for rate-limiting (I think).
+
+
+conduitDstSrcs
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => DstSrcs
+  -> ConduitT () Void m ()
+
+conduitDstSrcs (DstSrcs dstsrcs) = go dstsrcs
+  where
+
+  go _ = ()
+-}
 
 --------------------------------------------------
 -- Functions: Conduit ----------------------------
@@ -409,8 +441,8 @@ timeFormatWithHyphensAndUnits = "%Y-%m-%d-%Hh-%Mm-%Ss-%03qms"
 
 --------------------------------------------------
 
-replacedCharacters_escapeFilePath :: [Char]
-replacedCharacters_escapeFilePath = "/\\ _:;'\"!#$%^&*?|[]{}()"
+replacedCharacters_escapeFilePath :: Set Char
+replacedCharacters_escapeFilePath = Set.fromList "/\\ _:;'\"!#$%^&*?|[]{}()"
 
 --------------------------------------------------
 
@@ -421,6 +453,7 @@ replacementCharacter_escapeFilePath = '_'
 
 default_escapeFilePath :: FilePath
 default_escapeFilePath = "file"
+
 --------------------------------------------------
 -- Utilities -------------------------------------
 --------------------------------------------------
@@ -474,6 +507,55 @@ fetch method (URL url) fp = do
   consume _response = do    -- TODO -- print response status to stderr (and headache content heading too?) given verbosity.
 
     Conduit.sinkFileCautious fp
+
+--------------------------------------------------
+
+{- | Download and decompress a @JSON@ file.
+
+== Exceptions
+
+May throw:
+
+* `HTTP.HttpException`
+
+== Related
+
+* `fetchUrlWith`
+* `conduitDstSrcs`
+
+-}
+
+fetchUrl :: URL -> IO Lazy.ByteString
+fetchUrl url = do
+
+  let settings = HTTPS.tlsManagerSettings
+
+  manager <- HTTPS.newTlsManagerWith settings
+
+  fetchUrlWith manager url
+
+{-# INLINEABLE fetchUrl #-}
+
+--------------------------------------------------
+
+{- | (See `fetchUrl`.) -}
+
+fetchUrlWith :: HTTP.Manager -> URL -> IO Lazy.ByteString
+fetchUrlWith manager url = go url
+  where
+
+  go :: URL -> IO Lazy.ByteString
+  go (URL url) = do
+
+    request  <- HTTP.parseUrlThrow url
+    response <- HTTP.httpLbs request manager
+
+    let body   = (response & HTTP.responseBody)
+    let status = (response & HTTP.responseStatus)
+
+    return body
+
+{-# INLINEABLE fetchUrlWith #-}
 
 --------------------------------------------------
 -- Utilities -------------------------------------
@@ -537,11 +619,11 @@ newTemporaryFilePath directoryName fileName = do
 
 == Examples
 
->>> escapeFilePath "https://mtgjson.com/json/Vintage.json.gz"
-"https_mtgjson.com_json_Vintage.json.gz"
-
 >>> escapeFilePath ""
 "file"
+
+>>> escapeFilePath "https://mtgjson.com/json/Vintage.json.gz"
+"https_mtgjson.com_json_Vintage.json.gz"
 
 -}
 
@@ -556,13 +638,23 @@ escapeFilePath s = fp
     _  -> go s
 
   go
-    = replaceSubstring replacedCharacters_escapeFilePath [replacementCharacter_escapeFilePath]
+    = applyReplacements
     > List.group
     > fmap collapseReplacementCharacters
     > concat
 
+  applyReplacements :: String -> String
+  applyReplacements = fmap applyReplacement
+
+  applyReplacement :: Char -> Char
+  applyReplacement c =
+    if   c `Set.member` replacedCharacters_escapeFilePath
+    then replacementCharacter_escapeFilePath
+    else c
+
   collapseReplacementCharacters :: String -> String
   collapseReplacementCharacters t =
+
     if   List.all (== replacementCharacter_escapeFilePath) t
     then [replacementCharacter_escapeFilePath]
     else t
@@ -578,6 +670,16 @@ e.g.:
 "2019-04-06-21h-43m-51s-852ms"
 @
 
+== Examples
+
+>>> import Data.Time.LocalTime ( ZonedTime(..), TimeZone(..), LocalTime(..), TimeOfDay(..) )
+>>> import Data.Time.Calendar ( Day(..), fromGregorian )
+>>> zone = TimeZone { timeZoneMinutes = -420, timeZoneSummerOnly = True, timeZoneName = "PDT" }
+>>> time = LocalTime { localDay = fromGregorian 1991 02 28, localTimeOfDay = TimeOfDay { todHour = 13, todMin = 37, todSec = 59 }}
+>>> time' = ZonedTime{ zonedTimeToLocalTime = time, zonedTimeZone = zone }
+>>> formatZonedTimeAsFilePath time'
+"1991-02-28-13h-37m-59s-000ms"
+
 -}
 
 formatZonedTimeAsFilePath :: Time.ZonedTime -> String
@@ -588,6 +690,7 @@ formatZonedTimeAsFilePath t =
   where
 
   locale = Time.defaultTimeLocale
+
   -- NOTE even « Prelude.undefined » works as the locale for « ZonedTime » (it's ignored).
 
 --------------------------------------------------
@@ -603,6 +706,14 @@ formatZonedTimeAsFilePath t =
 -- httpSink :: (MonadUnliftIO m) => Request -> (Response () -> ConduitT ByteString Void m a) -> m a
 
 -- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitT i ByteString n ()) -> ConduitT i o m r) -> ConduitT i o m r
+
+-- TimeZone { timeZoneMinutes = , timeZoneSummerOnly = False, timeZoneName = "PST" }
+
+-- "duplicateConsumer" is called `zipSinks`:
+--
+-- zipSinks :: Monad m => Sink i m r -> Sink i m r' -> Sink i m (r, r')
+--
+-- >Combines two sinks. The new sink will complete when both input sinks have completed.
 
 --------------------------------------------------
 -- EOF -------------------------------------------

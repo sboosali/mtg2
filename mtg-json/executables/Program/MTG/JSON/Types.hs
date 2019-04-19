@@ -52,8 +52,8 @@ import           "aeson" Data.Aeson.Types (FromJSON, ToJSON)
 
 --------------------------------------------------
 
-import qualified "binary" Data.Binary as Binary
-import           "binary" Data.Binary (Binary)
+-- import qualified "binary" Data.Binary as Binary
+-- import           "binary" Data.Binary (Binary)
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -85,7 +85,7 @@ data Subcommand
   = PrintVersion
   | PrintLicense
 
-  | FetchJSON SrcDst
+  | Fetch SrcDst
 
   deriving stock    (Show,Read,Eq,Ord)
   deriving stock    (Lift,Generic)

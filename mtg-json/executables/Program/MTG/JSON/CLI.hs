@@ -232,7 +232,7 @@ pSubcommand = P.hsubparser (mconcat ps)
 -- | 
 
 pFetch :: P.Parser Subcommand
-pFetch = FetchJSON <$> do
+pFetch = Fetch <$> do
 
   src <- pSrc
   dst <- pDst

@@ -54,12 +54,12 @@ import           "http-conduit" Network.HTTP.Simple ( )
 --------------------------------------------------
 
 import qualified "conduit" Conduit as Conduit
-import           "conduit" Conduit ( ConduitT )
+import           "conduit" Conduit ( ConduitT, (.|) )
 
 --------------------------------------------------
 
 import qualified "resourcet" Control.Monad.Trans.Resource as Resource
-import           "resourcet" Control.Monad.Trans.Resource ( ResourceT )
+import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, MonadUnliftIO, ResourceT )
 
 --------------------------------------------------
 
@@ -107,7 +107,7 @@ runCommand Command{ subcommand, options } = go subcommand
   go :: Subcommand -> IO ()
   go = \case
 
-      FetchJSON srcdst -> do
+      Fetch srcdst -> do
         fetchMTG options srcdst
 
       PrintVersion -> do
@@ -134,11 +134,39 @@ fetchMTG Options{..} SrcDst{src,dst} = do
   putStdErr sSrc
   putStdErr sDst
 
-  bytes <- inputSrc
+  case dryrun of
 
-  outputDst bytes
+      DryRun  -> runDryly
+      TrueRun -> runTruly
 
   where
+
+  ------------------------------
+
+  runTruly :: IO ()
+  runTruly = do
+
+      Conduit.runConduitRes mSrcDst
+
+  ------------------------------
+
+  mSrcDst = mSrc .| mDst
+
+  mSrc = conduitSrc src
+  mDst = conduitDst dst
+
+  ------------------------------
+
+  runDryly :: IO ()
+  runDryly = do
+
+      when (verbose >= Verbose) do
+          putStdErr e
+
+      nothing
+
+      where
+      e = runFormat ("\n[INFO] Nothing will be fetched (or written), because this invocation is a “Dry-Run”. Rerun <<< " % Format.string % " fetch ... >>> WITHOUT the <<< --dry-run >>> option to truly fetch.\n") programExecutable
 
   ------------------------------
 
@@ -154,41 +182,12 @@ fetchMTG Options{..} SrcDst{src,dst} = do
 
   ------------------------------
 
-  inputSrc :: IO LazyBytes
-  inputSrc = case dryrun of
-
-    DryRun  -> return ""
-    TrueRun -> readSrc src
-
-  ------------------------------
-
-  outputDst :: (MTGHS String) -> IO ()
-  outputDst bytes = case dryrun of
-
-    DryRun  -> return ""
-    TrueRun -> case dst of
-
-      DstStdout -> do
-
-          printDst mtg_hs
-
-      DstFile fp -> do
-
-          writeDst fp mtg_hs
-
-  ------------------------------
-
-  printDst :: (MTGHS String) -> IO ()
-  printDst (MTGHS mtg) = putStdOut mtg
-
-  ------------------------------
-
   writeDst :: FilePath -> (MTGHS String) -> IO ()
   writeDst fp (MTGHS mtg) = case forcefulness of
 
       RespectExisting -> do
 
-        let e = runFormat ("\n[Error] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< " % Format.string % " >>> with the <<< --force >>> option to overwrite.\n") fp programExecutable -- TODO -- prompt user to confirm.
+        let e = runFormat ("\n[ERROR] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< " % Format.string % " >>> with the <<< --force >>> option to overwrite.\n") fp programExecutable -- TODO -- prompt user to confirm.
 
         bExists <- Directory.doesPathExist fp
         if   bExists
