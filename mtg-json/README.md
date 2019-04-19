@@ -1,5 +1,29 @@
 # `mtg-json`
 
+## Examples
+
+``` sh
+$ mtg-json TODO
+
+```
+
+## CLI
+
+Subcommands (for the `mtg-json` command):
+
+* `fetch` — download, then decompress and/or dearchive.
+* `parse` — parse into JSON (`CardObject`). also `fetch`es.
+* `check` — parse into Haskell (`Card`). also `parse`s.
+* `merge` — merge `Set`s *and\/or* `Card`s *and\/or* `Format`s into one `Format` (recursively). also `check`s.
+
+See:
+
+``` sh
+$ mtg-json --help
+
+TODO
+```
+
 ## Resources
 
 Resources (files, environment variables, websites, port numbers, etc) which this program depends on or makes use of.

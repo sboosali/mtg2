@@ -3834,6 +3834,71 @@ conduitDstSrcs (DstSrcs dstsrcs)
 
 
 
+{- | Download and decompress a @JSON@ file.
+
+== Exceptions
+
+May throw:
+
+* `HTTP.HttpException`
+
+== Related
+
+* `conduitRemoteSrcWith`
+* `conduitDstSrcs`
+
+-}
+
+conduitRemoteSrc
+
+  :: forall m. ( MonadResource m, MonadIO m, MonadThrow m )
+  => URL
+  -> m (HTTP.Manager, ConduitT () ByteString m ())
+
+conduitRemoteSrc url = do
+
+  let settings = HTTPS.tlsManagerSettings
+
+  manager <- HTTPS.newTlsManagerWith settings
+
+  producer <- conduitRemoteSrcWith manager url
+
+  return ( manager, producer )
+
+{-# INLINEABLE conduitRemoteSrc #-}
+
+--------------------------------------------------
+
+{- | (See `conduitRemoteSrc`.) -}
+
+conduitRemoteSrcWith
+
+  :: forall m. ( MonadResource m, MonadIO m, MonadThrow m )
+  => HTTP.Manager
+  -> URL
+  -> m (ConduitT () ByteString m ())
+
+conduitRemoteSrcWith manager = go
+  where
+
+  go :: URL -> m (ConduitT () ByteString m ())
+  go (URL url) = do
+
+    request  <- HTTP.parseUrlThrow url
+    response <- HTTP.Conduit.http request manager
+
+    let producer = (response & HTTP.Conduit.getResponseBody)
+    let status   = (response & HTTP.Conduit.getResponseStatus)
+
+    return producer
+
+{-# INLINEABLE conduitRemoteSrcWith #-}
+
+
+
+
+
+
 
 
 
@@ -3850,6 +3915,173 @@ conduitDstSrcs (DstSrcs dstsrcs)
   httpsSrcs = _
 
   localSrcs = _
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{- | Download the file at `URL`.
+
+@fetchUrl method uri fp@ downloads URI @uri@ to FilePath @fp@ (with optional request method @method@).
+
+The file contents being downloaded may be larger than available memory. @uri@ is streamed into @fp@.
+
+== Examples
+
+@
+>> fetchUrl (Just "GET") "https://mtgjson.com/json/Vintage.json.gz" "/tmp/Vintage.json.gz"
+@
+
+== Definition
+
+@
+`fetchUrl` url ≡ `fetchUrls` [url]
+@
+
+-}
+
+fetchUrl :: URL -> IO ByteString
+fetchUrl url = do
+
+  downloads <- fetchUrls` urls
+
+  let download = downloads & Map.lookup url
+
+  download & maybe (errorM s) (either (const (errorM s)) return)
+
+  where
+
+  urls = [url]
+
+  s =  (fromURL url)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int64_to_int :: Int64 -> Int
+#if WORD_SIZE_IN_BITS == 64
+int64_to_int (GHC.I# i) = GHC.I64# i
+#else
+int64_to_int (GHC.I# i) = GHC.I64# (GHC.intToInt64# i)
+#endif
+
+{-# INLINEABLE int64_to_int #-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fetchUrl :: URL -> IO Lazy.ByteString
+fetchUrl url = do
+
+  downloads <- fetchUrls urls
+
+  let download = downloads & Map.lookup url
+
+  download & maybe (errorM message) (either (errorM . toMessage) return)
+
+  where
+
+  urls = [url]
+
+  message = runFormat ("{{{ fetchUrl }}}: Can't download {{{ " % Format.string % " }}}.")
+    (fromURL url)
+
+  toMessage Status{statusCode,statusMessage} = runFormat ("{{{ fetchUrl }}}: Can't download {{{ " % Format.string % " }}}; got HTTP Status Code {{{ " % Format.int % " }}} with message “" % Format.string % "”")
+    (fromURL url)
+    statusCode
+    (ASCII.unpack statusMessage `E.catch` handleNonAsciiBytes statusMessage)
+
+  handleNonAsciiBytes :: Lazy.ByteString -> IOException -> String
+  handleNonAsciiBytes bytes _ = List.replicate (int64_to_int (Lazy.length bytes)) '?'
+
+
+
+
+
+
+
+
+
+
+
+
+
+  handleFetchError :: HTTP.HttpException -> IO FetchResult
+  handleFetchError e = do
+
+    let result = Left HTTP.status500 -- TODO
+
+    return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
