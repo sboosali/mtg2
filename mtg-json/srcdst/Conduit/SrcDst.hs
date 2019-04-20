@@ -367,9 +367,13 @@ conduitDstSrcs
     , MonadThrow    m
     )
   => DstSrcs
-  -> ConduitT () Void m ()
+  -> m (ConduitT () Void m ())
 
-conduitDstSrcs (DstSrcs dstsrcs) = _
+conduitDstSrcs (DstSrcs dstsrcs) = do
+
+  produceRemoteSrs <- remoteSrcs & conduitRemoteSrcs
+
+  return produceRemoteSrs
 
   where
 
@@ -397,17 +401,40 @@ conduitDstSrcs (DstSrcs dstsrcs) = _
 
     -- cache `Src`s by zipping `Dst`s.
 
-  ( remoteSrcs, localSrcs ) = partitionSrcs srcs
+  ------------------------------
 
-  remoteSrcProducers = remoteSrcs
-    & conduitRemoteSrcs
+  srcProducers :: [ Src ] -> m (Map Src (ConduitT () ByteString m ()))
+  srcProducers srcs = do
+
+    remoteProducers <- conduitRemoteSrcs remoteSrcs
+
+    let localProducers = conduitLocalSrcs localSrcs
+
+    let remoteProducers' = remoteProducers & Map.mapKeys fromRemoteSrc
+    let localProducers'  = localProducers  & Map.mapKeys fromLocalSrc
+
+    let allProducers = localProducers' `Map.union` remoteProducers'
+
+    return allProducers
+
+    where
+
+    ( remoteSrcs, localSrcs ) = partitionSrcs srcs
+
+  ------------------------------
 
 --------------------------------------------------
 --------------------------------------------------
 
-{- | Create an “producer” for each remote sources.
+{- | Create a “producer” for each remote sources.
 
 For /HTTP/ sources, all producers share the same /manager/.
+
+== Laws
+
+@
+∀ (RemoteSrcs xs).  xs ≡ Map.keysSet (conduitRemoteSrcs (RemoteSrcs xs))
+@
 
 -}
 
@@ -508,6 +535,34 @@ conduitRemoteSrcWith manager = go
     return producer
 
 {-# INLINEABLE conduitRemoteSrcWith #-}
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | Create a “producer” for each local sources.
+
+For /HTTP/ sources, all producers share the same /manager/.
+
+== Laws
+
+@
+∀ (LocalSrcs xs).  xs ≡ Map.keysSet (conduitLocalSrcs (LocalSrcs xs))
+@
+
+-}
+
+conduitLocalSrcs
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => LocalSrcs
+  -> m (Map LocalSrc (ConduitT () ByteString m ()))
+
+conduitLocalSrcs (LocalSrcs srcs) = do
+
+{-# INLINEABLE conduitLocalSrcs #-}
 
 --------------------------------------------------
 --------------------------------------------------

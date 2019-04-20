@@ -4,6 +4,7 @@
 
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 --------------------------------------------------
 
@@ -29,10 +30,11 @@ module Data.SrcDst
 
   , URL(..)
 
+
   -- * Introducers
 
-  , toDstSrcs
   , toDstSrcsM
+  , toDstSrcs
 
   , parseSrc
   , parseDst
@@ -54,6 +56,20 @@ module Data.SrcDst
 
   , prettySrc
   , prettyDst
+
+  -- * Validation
+
+  , CheckDstSrcs(..)
+  , CheckCollisions(..)
+  , CheckHandles(..)
+
+  , defaultCheckDstSrcs
+  , lenientCheckDstSrcs
+  , stringentCheckDstSrcs 
+
+  , toDstSrcsWithM
+  , toDstSrcsLenientlyM
+  , toDstSrcsStringentlyM
 
   ) where
 
@@ -296,6 +312,183 @@ instance IsString URL where
   fromString = coerce
 
 --------------------------------------------------
+--------------------------------------------------
+
+{- | Validation of `SrcDst`s (by `toDstSrcsM`).
+
+== Values
+
+Include:
+
+* `defaultCheckDstSrcs`
+* `lenientCheckDstSrcs`
+* `stringentCheckDstSrcs`
+
+== Uses
+
+`toDstSrcs` (and thus the `IsList` instance of `SrcDst`) behaves like
+`lenientCheckDstSrcs`, which is /maximally lenient/.
+
+`toDstSrcsM` uses `defaultCheckDstSrcs`, which is /stringent/
+(but not /maximally stringent/).
+
+-}
+
+data CheckDstSrcs = CheckDstSrcs
+
+  { dstCollision :: CheckCollisions
+  , dstUniquenes :: CheckHandles
+  , srcSecurity  :: CheckURLs
+  }
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'defaultCheckDstSrcs'@
+
+instance Default CheckDstSrcs where def = defaultCheckDstSrcs
+
+--------------------------------------------------
+
+{- | Prohibits multiple (different) sources from writing to the same destination.
+
+Fields:
+
+* @`dstCollision` = `ProhibitCollisions`@
+* @`dstUniquenes` = `RequireUniqueHandles`@
+* @`srcSecurity`  = `AllowHTTP`@
+
+-}
+
+defaultCheckDstSrcs :: CheckDstSrcs
+defaultCheckDstSrcs = CheckDstSrcs{..}
+  where
+
+  dstCollision = ProhibitCollisions
+  dstUniquenes = RequireUniqueHandles
+  srcSecurity  = AllowHTTP
+
+--------------------------------------------------
+
+{- | Check leniently. -}
+
+lenientCheckDstSrcs :: CheckDstSrcs
+lenientCheckDstSrcs = CheckDstSrcs{..}
+  where
+
+  dstCollision = IgnoreCollisions
+  dstUniquenes = IgnoreDuplicateHandles
+  srcSecurity  = AllowHTTP
+
+--------------------------------------------------
+
+{- | Check stringently. -}
+
+stringentCheckDstSrcs :: CheckDstSrcs
+stringentCheckDstSrcs = CheckDstSrcs{..}
+  where
+
+  dstCollision = ProhibitCollisions
+  dstUniquenes = RequireUniqueHandles
+  srcSecurity  = RequireHTTPS
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | 
+
+-}
+
+data CheckCollisions
+
+  = IgnoreCollisions
+  | ProhibitCollisions
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'defaultCheckCollisions'@
+
+instance Default CheckCollisions where def = defaultCheckCollisions
+
+--------------------------------------------------
+
+-- | @= 'IgnoreCollisions'@
+
+defaultCheckCollisions :: CheckCollisions
+defaultCheckCollisions = IgnoreCollisions
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | 
+
+-}
+
+data CheckHandles
+
+  = IgnoreDuplicateHandles
+  | AllowDuplicateHandles
+  | RequireUniqueHandles
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'defaultCheckHandles'@
+
+instance Default CheckHandles where def = defaultCheckHandles
+
+--------------------------------------------------
+
+-- | @= 'AllowDuplicateHandles'@
+
+defaultCheckHandles :: CheckHandles
+defaultCheckHandles = AllowDuplicateHandles
+
+--------------------------------------------------
+
+{- | 
+
+-}
+
+data CheckURLs
+
+  = AllowHTTP
+  | RequireHTTPS
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+{- | @≡ 'defaultCheckURLs'@ -}
+
+instance Default CheckURLs where def = defaultCheckURLs
+
+--------------------------------------------------
+
+{- | @≡ 'AllowHTTP'@ -}
+
+defaultCheckURLs :: CheckURLs
+defaultCheckURLs = AllowHTTP
+
+--------------------------------------------------
 -- Functions: Conversion -------------------------
 --------------------------------------------------
 
@@ -315,6 +508,10 @@ Identical `SrcDst`s are redundant.
 2
 >>> DstSrcs kvs
 DstSrcs (fromList [(DstStdout,SrcStdin),(DstFile "mtg.json",SrcUri "https://mtgjson.com/json/Vintage.json.gz"),(DstFile "vintage.json",SrcUri "https://mtgjson.com/json/Vintage.json.gz")])
+
+== Definition
+
+`toDstSrcs` should be equivalent to @(`toDstSrcsM` `defaultCheckDstSrcs`)@.
 
 -}
 
@@ -355,29 +552,99 @@ fromDstSrcs (DstSrcs kvs) = vks
   toSrcDst ( dst, src ) = SrcDst{ src, dst }
 
 --------------------------------------------------
+--------------------------------------------------
 
 {- | Create a `DstSrcs` from multiple `Dst`s and `Src`s.
 
-`toDstSrcs` vs `toDstSrcsM`:
-
-* `toDstSrcs` ignores collisions.
-* `toDstSrcsM` fails on any collision (reporting all collisions, not just the first).
+See `toDstSrcsWithM`.
 
 == Examples
 
->>> toDstSrcsM []
+>>> toDstSrcsM defaultCheckDstSrcs []
 DstSrcs (fromList [])
+
+== Definition
+
+@
+≡ `toDstSrcsWithM` `defaultCheckDstSrcs`
+@
 
 -}
 
 toDstSrcsM :: ( MonadThrow m ) => [SrcDst] -> m DstSrcs
-toDstSrcsM srcdsts = do
+toDstSrcsM = toDstSrcsWithM defaultCheckDstSrcs
 
-  if   noCollision
-  then return dstsrcs
-  else errorM e
+--------------------------------------------------
+
+{- | Create a `DstSrcs` from multiple `Dst`s and `Src`s, with /lenient/ checking.
+
+See `toDstSrcsWithM`.
+
+== Definition
+
+@
+≡ `toDstSrcsWithM` `lenientCheckDstSrcs`
+@
+
+-}
+
+toDstSrcsLenientlyM :: ( MonadThrow m ) => [SrcDst] -> m DstSrcs
+toDstSrcsLenientlyM = toDstSrcsWithM lenientCheckDstSrcs
+
+--------------------------------------------------
+
+{- | Create a `DstSrcs` from multiple `Dst`s and `Src`s, with /stringent/ checking.
+
+See `toDstSrcsWithM`.
+
+== Definition
+
+@
+≡ `toDstSrcsWithM` `stringentCheckDstSrcs`
+@
+
+-}
+
+toDstSrcsStringentlyM :: ( MonadThrow m ) => [SrcDst] -> m DstSrcs
+toDstSrcsStringentlyM = toDstSrcsWithM stringentCheckDstSrcs
+
+--------------------------------------------------
+
+{- | Create a `DstSrcs` from multiple `Dst`s and `Src`s, checking `CheckDstSrcs`.
+
+== Validation
+
+`toDstSrcsWithM` validates the `SrcDst`s by:
+
+* Whether collisions are invalid or ignored.
+* Whether the standard handles (i.e. `SrcStdin` and `DstStdout`) are unique.
+
+== Examples
+
+>>> toDstSrcsWithM defaultCheckDstSrcs []
+DstSrcs (fromList [])
+>>> toDstSrcsWithM lenientCheckDstSrcs []
+DstSrcs (fromList [])
+>>> toDstSrcsWithM stringentCheckDstSrcs []
+DstSrcs (fromList [])
+
+
+-}
+
+toDstSrcsWithM :: ( MonadThrow m ) => CheckDstSrcs -> [SrcDst] -> m DstSrcs
+toDstSrcsWithM CheckDstSrcs{..} srcdsts = do
+
+  case dstCollision of
+
+      IgnoreCollisions   -> return dstsrcs
+      ProhibitCollisions -> do
+          if   noCollision
+          then return dstsrcs
+          else errorM sCollisions
 
   where
+
+  ------------------------------
 
   dstsrcs :: DstSrcs
   dstsrcs = toDstSrcs srcdsts
@@ -392,12 +659,26 @@ toDstSrcsM srcdsts = do
 
   -- group `Dst`s by their `Src`, then check for only singletons.
 
-  e :: String
-  e = "Colliding destinations"  -- TODO format.
+  ------------------------------
 
   allSingletons :: (Eq a) => [[a]] -> Bool
   allSingletons = List.all (\xs -> length xs <= 1)
 
+  ------------------------------
+
+  sCollisions :: String
+  sCollisions = "Colliding destinations"  -- TODO format.
+
+  sDuplicates :: String
+  sDuplicates = "Duplicate destination handles"  -- TODO format.
+
+  bU = case dstUniquenes of
+
+         IgnoreDuplicateHandles -> _
+         AllowDuplicateHandles  -> _
+         RequireUniqueHandles   -> _
+
+--------------------------------------------------
 --------------------------------------------------
 
 {- | Distinguish `LocalSrc`s from `RemoteSrc`s.

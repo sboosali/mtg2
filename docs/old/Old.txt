@@ -4154,6 +4154,50 @@ unifySrcs (RemoteSrcs remotes) (LocalSrcs locals) = sources
 
 
 
+  bC = case dstCollision of
+
+         IgnoreCollisions   -> _
+         ProhibitCollisions -> _
+
+  bU = case dstUniquenes of
+
+         IgnoreDuplicateHandles -> _
+         AllowDuplicateHandles  -> _
+         RequireUniqueHandles   -> _
+
+
+
+
+
+
+
+
+
+
+
+
+{- | Pairwise `def`aults. -}
+
+defaultCheckDstSrcs :: CheckDstSrcs
+defaultCheckDstSrcs = CheckDstSrcs{..}
+  where
+
+  dstCollision = def
+  dstUniquenes = def
+  srcSecurity  = def
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
