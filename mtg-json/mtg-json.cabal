@@ -668,6 +668,7 @@ library srcdst
              , containers ^>= 0.6
 
              , bytestring ^>= 0.10
+             , text       ^>= 1.2
 
              , binary     ^>= 0.8
 

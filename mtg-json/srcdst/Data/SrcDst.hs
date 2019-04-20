@@ -2,6 +2,10 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
+{-# LANGUAGE OverloadedStrings #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE DuplicateRecordFields #-}
@@ -30,7 +34,6 @@ module Data.SrcDst
 
   , URL(..)
 
-
   -- * Introducers
 
   , toDstSrcsM
@@ -40,6 +43,8 @@ module Data.SrcDst
   , parseDst
   , parseLocalSrc
   , parseRemoteSrc
+
+  , toUrl
 
   -- * Transformers
 
@@ -71,6 +76,8 @@ module Data.SrcDst
   , toDstSrcsLenientlyM
   , toDstSrcsStringentlyM
 
+  , isUrlHttps
+
   ) where
 
 --------------------------------------------------
@@ -88,12 +95,17 @@ import qualified "containers" Data.Set as Set
 
 --------------------------------------------------
 
+import qualified "text" Data.Text as Text
+
+--------------------------------------------------
+
 import qualified "bytestring" Data.ByteString.Lazy             as Lazy
 import qualified "bytestring" Data.ByteString.Char8            as StrictASCII
 import qualified "bytestring" Data.ByteString.Lazy.Char8       as LazyASCII
 
 --------------------------------------------------
 
+import qualified "base" Data.Char as Char
 import qualified "base" Data.List as List
 
 --------------------------------------------------
@@ -291,14 +303,19 @@ instance IsString LocalSrc where fromString = parseLocalSrc
 --------------------------------------------------
 --------------------------------------------------
 
-{- | 
+{- | @URL@ is a “/Uniform Resource Locator/”.
+
+== Construct
+
+* `toUrl`
+* `fromString`
 
 -}
 
 newtype URL = URL
 
   { fromURL ::
-      String
+      Text
   }
 
   deriving stock    (Lift,Data,Generic)
@@ -308,8 +325,9 @@ newtype URL = URL
 
 --------------------------------------------------
 
-instance IsString URL where
-  fromString = coerce
+-- | @≡ `toUrl`@
+
+instance IsString URL where fromString = toUrl
 
 --------------------------------------------------
 --------------------------------------------------
@@ -337,7 +355,7 @@ Include:
 data CheckDstSrcs = CheckDstSrcs
 
   { dstCollision :: CheckCollisions
-  , dstUniquenes :: CheckHandles
+  , dstUniqueness :: CheckHandles
   , srcSecurity  :: CheckURLs
   }
 
@@ -358,7 +376,7 @@ instance Default CheckDstSrcs where def = defaultCheckDstSrcs
 Fields:
 
 * @`dstCollision` = `ProhibitCollisions`@
-* @`dstUniquenes` = `RequireUniqueHandles`@
+* @`dstUniqueness` = `RequireUniqueHandles`@
 * @`srcSecurity`  = `AllowHTTP`@
 
 -}
@@ -368,7 +386,7 @@ defaultCheckDstSrcs = CheckDstSrcs{..}
   where
 
   dstCollision = ProhibitCollisions
-  dstUniquenes = RequireUniqueHandles
+  dstUniqueness = RequireUniqueHandles
   srcSecurity  = AllowHTTP
 
 --------------------------------------------------
@@ -380,7 +398,7 @@ lenientCheckDstSrcs = CheckDstSrcs{..}
   where
 
   dstCollision = IgnoreCollisions
-  dstUniquenes = IgnoreDuplicateHandles
+  dstUniqueness = IgnoreDuplicateHandles
   srcSecurity  = AllowHTTP
 
 --------------------------------------------------
@@ -392,7 +410,7 @@ stringentCheckDstSrcs = CheckDstSrcs{..}
   where
 
   dstCollision = ProhibitCollisions
-  dstUniquenes = RequireUniqueHandles
+  dstUniqueness = RequireUniqueHandles
   srcSecurity  = RequireHTTPS
 
 --------------------------------------------------
@@ -554,6 +572,81 @@ fromDstSrcs (DstSrcs kvs) = vks
 --------------------------------------------------
 --------------------------------------------------
 
+{- | Distinguish `LocalSrc`s from `RemoteSrc`s.
+
+Inverted by `unifySrcs`.
+
+== Laws
+
+@
+∀ xs.  sort xs ≡ sort ((uncurry unifySrcs) (partitionSrcs xs))
+@
+
+-}
+
+partitionSrcs :: [Src] -> ( RemoteSrcs, LocalSrcs )
+partitionSrcs sources = ( fromList remotes, fromList locals )
+  where
+
+  ( remotes, locals ) = partitionEithers sources'
+
+  sources' = fromSrc <$> sources
+
+--------------------------------------------------
+
+{- | Generalize `LocalSrc`s and `RemoteSrc`s (to `Src`s).
+
+Inverts `partitionSrcs`.
+
+-}
+
+unifySrcs :: RemoteSrcs -> LocalSrcs -> [Src]
+unifySrcs (RemoteSrcs remotes) (LocalSrcs locals) = sources
+  where
+
+  sources = locals' <> remotes'
+
+  remotes' = (fromRemoteSrc <$> Set.toList remotes)
+  locals'  = (fromLocalSrc  <$> Set.toList locals)
+
+--------------------------------------------------
+
+{- | A `Src` is either *local* or *remote*. -}
+
+fromSrc :: Src -> Either RemoteSrc LocalSrc
+fromSrc = \case
+
+  SrcBytes  bs  -> Right (LocalSrcBytes bs)
+  SrcBytes' bs' -> Right (LocalSrcBytes (Lazy.fromChunks [bs']))
+  SrcStdin      -> Right LocalSrcStdin
+  SrcFile   fp  -> Right (LocalSrcFile fp)
+
+  SrcUri url -> Left (RemoteSrcUri url)
+
+--------------------------------------------------
+
+{- | Generalize a `LocalSrc`. -}
+
+fromLocalSrc :: LocalSrc -> Src
+fromLocalSrc = \case
+
+  LocalSrcBytes bs  -> SrcBytes bs
+  LocalSrcStdin     -> SrcStdin
+  LocalSrcFile  fp  -> SrcFile fp
+
+--------------------------------------------------
+
+{- | Generalize a `RemoteSrc`. -}
+
+fromRemoteSrc :: RemoteSrc -> Src
+fromRemoteSrc = \case
+
+  RemoteSrcUri url -> SrcUri url
+
+--------------------------------------------------
+-- Functions: Validation -------------------------
+--------------------------------------------------
+
 {- | Create a `DstSrcs` from multiple `Dst`s and `Src`s.
 
 See `toDstSrcsWithM`.
@@ -628,29 +721,108 @@ DstSrcs (fromList [])
 >>> toDstSrcsWithM stringentCheckDstSrcs []
 DstSrcs (fromList [])
 
-
 -}
 
-toDstSrcsWithM :: ( MonadThrow m ) => CheckDstSrcs -> [SrcDst] -> m DstSrcs
-toDstSrcsWithM CheckDstSrcs{..} srcdsts = do
+toDstSrcsWithM
 
-  case dstCollision of
+  :: forall m. ( MonadThrow m
+         )
+  => CheckDstSrcs
+  -> [SrcDst]
+  -> m DstSrcs
 
-      IgnoreCollisions   -> return dstsrcs
-      ProhibitCollisions -> do
-          if   noCollision
-          then return dstsrcs
-          else errorM sCollisions
+toDstSrcsWithM CheckDstSrcs{..} srcdsts' = do
+
+  check dstsrcs
 
   where
 
   ------------------------------
 
+  -- remove redundant « SrcDst »s:
+
+  srcdsts :: [SrcDst]
+  srcdsts = srcdsts' & ordNub
+
   dstsrcs :: DstSrcs
   dstsrcs = toDstSrcs srcdsts
 
+  ------------------------------
+
+  srcsList :: [Src]
+  srcsList = srcdsts & fmap (\SrcDst{ src } -> src)
+
+  dstsList :: [Dst]
+  dstsList = srcdsts & fmap (\SrcDst{ dst } -> dst)
+
+  -- srcsSet :: Set Src
+  -- srcsSet = srcsList & Set.fromList
+
+  -- dstsSet :: Set Dst 
+  -- dstsSet = dstsList & Set.fromList
+
+  ------------------------------
+
+  check = checkCollisions >=> checkDuplicates >=> checkSecurity -- TODO convert these kleisli arrows to simple predicates, and return all errors [not just the first] via « SrcDstError », a custom exception.
+
+  checkCollisions :: DstSrcs -> m DstSrcs
+  checkCollisions dss = case dstCollision of
+
+      IgnoreCollisions   -> return dss
+      ProhibitCollisions -> do
+
+          if   noCollision
+          then return dss
+          else errorM sCollisions
+
+  checkDuplicates :: DstSrcs -> m DstSrcs
+  checkDuplicates dss = case dstUniqueness of
+
+         IgnoreDuplicateHandles -> return dss
+         AllowDuplicateHandles  -> return dss -- TODO don't use « dss », use a different pipeline that doesn't remove duplicates.
+         RequireUniqueHandles   -> do
+
+             if   noDuplicateHandle
+             then return dss
+             else errorM sDuplicates
+
+  checkSecurity :: DstSrcs -> m DstSrcs
+  checkSecurity dss = case srcSecurity of
+
+      AllowHTTP    -> return dss
+      RequireHTTPS -> do
+
+          if   allHTTPS
+          then return dss
+          else errorM sSecurity
+
+  ------------------------------
+
   noCollision :: Bool
   noCollision = allSingletons groupedDstsBySrc
+
+  noDuplicateHandle :: Bool
+  noDuplicateHandle = case dstStdouts of
+
+      []          -> True
+      [DstStdout] -> True
+      _           -> False
+
+      where
+
+      dstStdouts  = dstsList & filter isDstStdout
+      isDstStdout = \case
+         DstStdout -> True
+         _         -> False
+
+  allHTTPS :: Bool
+  allHTTPS
+    = srcsList
+    & all (\case
+            SrcUri url -> isUrlHttps url
+            _          -> True)
+
+  ------------------------------
 
   groupedDstsBySrc :: [[SrcDst]]
   groupedDstsBySrc
@@ -672,85 +844,8 @@ toDstSrcsWithM CheckDstSrcs{..} srcdsts = do
   sDuplicates :: String
   sDuplicates = "Duplicate destination handles"  -- TODO format.
 
-  bU = case dstUniquenes of
-
-         IgnoreDuplicateHandles -> _
-         AllowDuplicateHandles  -> _
-         RequireUniqueHandles   -> _
-
---------------------------------------------------
---------------------------------------------------
-
-{- | Distinguish `LocalSrc`s from `RemoteSrc`s.
-
-Inverted by `unifySrcs`.
-
-== Laws
-
-@
-∀ xs.  sort xs ≡ sort ((uncurry unifySrcs) (partitionSrcs xs))
-@
-
--}
-
-partitionSrcs :: [Src] -> ( RemoteSrcs, LocalSrcs )
-partitionSrcs sources = ( fromList remotes, fromList locals )
-  where
-
-  ( remotes, locals ) = partitionEithers sources'
-
-  sources' = fromSrc <$> sources
-
---------------------------------------------------
-
-{- | Generalize `LocalSrc`s and `RemoteSrc`s (to `Src`s).
-
-Inverts `partitionSrcs`.
-
--}
-
-unifySrcs :: RemoteSrcs -> LocalSrcs -> [Src]
-unifySrcs (RemoteSrcs remotes) (LocalSrcs locals) = sources
-  where
-
-  sources = locals' <> remotes'
-
-  remotes' = (fromRemoteSrc <$> Set.toList remotes)
-  locals'  = (fromLocalSrc  <$> Set.toList locals)
-
---------------------------------------------------
-
-{- | A `Src` is either *local* or *remote*. -}
-
-fromSrc :: Src -> Either RemoteSrc LocalSrc
-fromSrc = \case
-
-  SrcBytes  bs  -> Right (LocalSrcBytes bs)
-  SrcBytes' bs' -> Right (LocalSrcBytes (Lazy.fromChunks [bs']))
-  SrcStdin      -> Right LocalSrcStdin
-  SrcFile   fp  -> Right (LocalSrcFile fp)
-
-  SrcUri url -> Left (RemoteSrcUri url)
-
---------------------------------------------------
-
-{- | Generalize a `LocalSrc`. -}
-
-fromLocalSrc :: LocalSrc -> Src
-fromLocalSrc = \case
-
-  LocalSrcBytes bs  -> SrcBytes bs
-  LocalSrcStdin     -> SrcStdin
-  LocalSrcFile  fp  -> SrcFile fp
-
---------------------------------------------------
-
-{- | Generalize a `RemoteSrc`. -}
-
-fromRemoteSrc :: RemoteSrc -> Src
-fromRemoteSrc = \case
-
-  RemoteSrcUri url -> SrcUri url
+  sSecurity :: String
+  sSecurity = "Insecure protocol"  -- TODO format.
 
 --------------------------------------------------
 -- Functions: Printing / Parsing -----------------
@@ -845,23 +940,76 @@ parseRemoteSrc = munge > fromString > RemoteSrcUri
 
 --------------------------------------------------
 
-prettySrc :: Src -> String
-prettySrc = \case
+prettySrc :: (IsString string) => Src -> string
+prettySrc = go > fromString
+  where
 
-  SrcBytes  bs -> LazyASCII.unpack   bs
-  SrcBytes' bs -> StrictASCII.unpack bs
+  go = \case
 
-  SrcStdin   -> "<<stdin>>"
-  SrcFile fp -> "" <> fp
-  SrcUri url -> "" <> fromURL url
+   SrcBytes  bs -> LazyASCII.unpack   bs
+   SrcBytes' bs -> StrictASCII.unpack bs
+
+   SrcStdin   -> "<<stdin>>"
+   SrcFile fp -> "" <> fp
+   SrcUri url -> "" <> Text.unpack (fromURL url)
 
 --------------------------------------------------
 
-prettyDst :: Dst -> String
-prettyDst = \case
+prettyDst :: (IsString string) => Dst -> string
+prettyDst = go > fromString
+  where
 
-  DstStdout  -> "<<stdout>>"
-  DstFile fp -> "" <> fp
+  go = \case
+
+   DstStdout  -> "<<stdout>>"
+   DstFile fp -> "" <> fp
+
+--------------------------------------------------
+-- Functions: URLs -------------------------------
+--------------------------------------------------
+
+{- | /Smart Constructor/ for `URL`s. -}
+
+toUrl :: String -> URL
+toUrl s = URL t
+  where
+
+  t = mungeUrl (Text.pack s)
+
+  mungeUrl :: Text -> Text
+  mungeUrl = Text.strip
+
+--------------------------------------------------
+
+{- |
+
+== Examples
+
+>>> isUrlHttps "https://mtgjson.com/json/Vintage.json.gz"
+True
+>>> isUrlHttps "GET https://mtgjson.com/json/Vintage.json.gz"
+True
+
+>>> isUrlHttps "mtgjson.com"
+False
+>>> isUrlHttps "http://mtgjson.com"
+False
+>>> isUrlHttps "GET http://mtgjson.com"
+False
+
+-}
+
+isUrlHttps :: URL -> Bool
+isUrlHttps (URL t) = hasHttpsPrefix t || hasHttpsPrefix t'
+  where
+
+  t' = t & Text.dropWhile isWithinUrlMethod
+
+  hasHttpsPrefix :: Text -> Bool
+  hasHttpsPrefix = Text.isPrefixOf "https://"
+
+  isWithinUrlMethod :: Char -> Bool
+  isWithinUrlMethod c = Char.isUpper c || Char.isSpace c 
 
 --------------------------------------------------
 -- Utilities -------------------------------------

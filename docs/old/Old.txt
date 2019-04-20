@@ -4197,6 +4197,223 @@ defaultCheckDstSrcs = CheckDstSrcs{..}
 
 
 
+{- | /Smart Constructor/ for `URL`s. -}
+
+toUrl :: ( IsString s ) => s -> URL
+toUrl x = URL t
+  where
+
+  t = mungeUrl (Text.pack s)
+  s = fromString x
+
+  mungeUrl :: Text -> Text
+  mungeUrl = Text.strip
+
+
+
+
+
+
+
+
+
+toDstSrcsWithM
+
+  :: forall m. ( MonadThrow m
+         )
+  => CheckDstSrcs
+  -> [SrcDst]
+  -> m DstSrcs
+
+toDstSrcsWithM CheckDstSrcs{..} srcdsts = do
+
+  check dstsrcs
+
+  where
+
+  ------------------------------
+
+  dstsrcs :: DstSrcs
+  dstsrcs = toDstSrcs srcdsts
+
+  dstsrcs' :: Map Dst Src
+  DstSrcs dstsrcs' = dstsrcs
+
+  srcs :: [Src]
+  srcs = dstsrcs' & Map.elems
+
+  dsts :: Set Dst
+  dsts = dstsrcs' & Map.keysSet
+
+  ------------------------------
+
+  check = checkCollisions >=> checkDuplicates >=> checkSecurity
+
+  checkCollisions :: DstSrcs -> m DstSrcs
+  checkCollisions dss = case dstCollision of
+
+      IgnoreCollisions   -> return dss
+      ProhibitCollisions -> do
+
+          if   noCollision
+          then return dss
+          else errorM sCollisions
+
+  checkDuplicates :: DstSrcs -> m DstSrcs
+  checkDuplicates dss = case dstUniqueness of
+
+         IgnoreDuplicateHandles -> return dss
+         AllowDuplicateHandles  -> return dss -- TODO don't use « dss », use a different pipeline that doesn't remove duplicates.
+         RequireUniqueHandles   -> do
+
+             if   noDuplicateHandle
+             then return dss
+             else errorM sDuplicates
+
+  checkSecurity :: DstSrcs -> m DstSrcs
+  checkSecurity dss = case srcSecurity of
+
+      AllowHTTP    -> return dss
+      RequireHTTPS -> do
+
+          if   allHTTPS
+          then return dss
+          else errorM sSecurity
+
+  ------------------------------
+
+  noCollision :: Bool
+  noCollision = allSingletons groupedDstsBySrc
+
+  noDuplicateHandle  :: Bool
+  noDuplicateHandle = True
+
+  allHTTPS :: Bool
+  allHTTPS
+    = srcs
+    & all (\case
+            SrcUri url -> isUrlHttps url
+            _          -> True)
+
+  ------------------------------
+
+  groupedDstsBySrc :: [[SrcDst]]
+  groupedDstsBySrc
+    = srcdsts
+    & List.groupBy (\SrcDst{ dst = x } SrcDst{ dst = y } -> x == y)
+
+  -- group `Dst`s by their `Src`, then check for only singletons.
+
+  ------------------------------
+
+  allSingletons :: (Eq a) => [[a]] -> Bool
+  allSingletons = List.all (\xs -> length xs <= 1)
+
+  ------------------------------
+
+  sCollisions :: String
+  sCollisions = "Colliding destinations"  -- TODO format.
+
+  sDuplicates :: String
+  sDuplicates = "Duplicate destination handles"  -- TODO format.
+
+  sSecurity :: String
+  sSecurity = "Insecure protocol"  -- TODO format.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  noDuplicateHandle  :: Bool
+  noDuplicateHandle
+     = True
+    && srcsList 
+    && dstsList
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  -- remove redundant « SrcDst »s:
+
+  srcdsts :: Set SrcDst
+  srcdsts = srcdsts & Set.fromList
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

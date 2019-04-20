@@ -74,6 +74,10 @@ import qualified "containers" Data.Map as Map
 
 --------------------------------------------------
 
+import qualified "text" Data.Text as Text
+
+--------------------------------------------------
+
 import qualified "bytestring" Data.ByteString            as Strict
 import qualified "bytestring" Data.ByteString.Lazy       as Lazy
 import qualified "bytestring" Data.ByteString.Char8      as ASCII
@@ -239,11 +243,11 @@ fetchUrl url = do
 
   toMessage = \case
 
-    Nothing -> runFormat ("{{{ fetchUrl }}}: Can't download {{{ " % Format.string % " }}.")
+    Nothing -> runFormat ("{{{ fetchUrl }}}: Can't download {{{ " % Format.stext % " }}.")
 
         (fromURL url)
 
-    Just Status{statusCode,statusMessage} -> runFormat ("{{{ fetchUrl }}}: Can't download {{{ " % Format.string % " }}}; got HTTP Status Code {{{ " % Format.int % " }}} with message “" % Format.string % "”.")
+    Just Status{statusCode,statusMessage} -> runFormat ("{{{ fetchUrl }}}: Can't download {{{ " % Format.stext % " }}}; got HTTP Status Code {{{ " % Format.int % " }}} with message “" % Format.string % "”.")
 
         (fromURL url)
         statusCode
@@ -268,7 +272,9 @@ fetchUrlWith manager = go
   where
 
   go :: URL -> IO FetchResult
-  go url@(URL sUrl) = do
+  go url@(URL tUrl) = do
+
+    let sUrl = Text.unpack tUrl
 
     request  <- HTTP.parseUrlThrow sUrl
     response <- HTTP.httpLbs request manager
