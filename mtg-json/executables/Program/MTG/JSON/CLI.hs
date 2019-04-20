@@ -40,6 +40,10 @@ import Program.MTG.JSON.Constants
 import Program.MTG.JSON.Prelude
 
 --------------------------------------------------
+
+import Data.SrcDst
+
+--------------------------------------------------
 -- Imports (External) ----------------------------
 --------------------------------------------------
 
@@ -60,6 +64,14 @@ import           "formatting" Formatting ( (%) )
 
 --------------------------------------------------
 -- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "containers" Data.Map as Map
+
+--------------------------------------------------
+
+import qualified "base" Data.List as List
+
 --------------------------------------------------
 
 import qualified "base" Prelude
@@ -259,7 +271,7 @@ pFetch = Fetch <$> do
   ------------------------------
 
   pSrc :: P.Parser Src
-  pSrc = (P.option (parseSrc <$> P.str)) (mconcat
+  pSrc = (P.option (parseMtgSrc <$> P.str)) (mconcat
 
         [ P.long    "input"
         , P.short   'i'
@@ -272,7 +284,7 @@ pFetch = Fetch <$> do
         ])
 
   pDst :: P.Parser Dst
-  pDst = (P.option (parseDst <$> P.str)) (mconcat
+  pDst = (P.option (parseMtgDst <$> P.str)) (mconcat
 
         [ P.long    "output"
         , P.short   'o'
@@ -285,6 +297,25 @@ pFetch = Fetch <$> do
         ])
 
   ------------------------------
+
+  parseMtgSrc :: String -> Src
+  parseMtgSrc s
+    = parseKnownMtgSrc s
+    & maybe (parseSrc s) id
+
+  parseKnownMtgSrc :: String -> Maybe Src
+  parseKnownMtgSrc s
+    = Map.lookup s knownSrcs
+
+  ------------------------------
+
+  parseMtgDst :: String -> Dst
+  parseMtgDst s = parseDst s
+
+  ------------------------------
+
+  knownSrcs :: Map String Src
+  knownSrcs = SrcUri `Map.map` (Map.fromList knownSources)
 
   defaultSrc :: Src
   defaultSrc = SrcUri defaultSource

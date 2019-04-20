@@ -126,6 +126,23 @@ runCommand Command{ subcommand, options } = go subcommand
 $ mtg-json fetch --input ... --output ... (all | vintage | ...)
 @
 
+TODO: multiple inputs/outputs:
+
+@
+$ mtg-json fetch --input=vintage --output=stdout --output=/tmp/vintage.json --input="https://mtgjson.com/json/AllCards.json.gz" --output=/tmp/mtg.json --output=./mtg.json.gz
+
+  # is equivalent to this command (with explicitly paired options):
+
+$ mtg-json fetch  --input=vintage --output=stdout  --input=vintage --output=/tmp/vintage.json  --input="https://mtgjson.com/json/AllCards.json.gz" --output=/tmp/mtg.json  --input="https://mtgjson.com/json/AllCards.json.gz" --output=./mtg.json.gz
+
+  # is equivalent to these commands (though the single command would be faster, as it reuses connections and caches intermediate archives and\/or compressions):
+
+$ mtg-json fetch --input=vintage                                     --output=stdout 
+$ mtg-json fetch --input=vintage                                     --output=/tmp/vintage.json
+$ mtg-json fetch --input="https://mtgjson.com/json/AllCards.json.gz" --output=/tmp/mtg.json
+$ mtg-json fetch --input="https://mtgjson.com/json/AllCards.json.gz" --output=./mtg.json.gz
+@
+
 -}
 
 fetchMTG :: Options -> SrcDst -> IO ()

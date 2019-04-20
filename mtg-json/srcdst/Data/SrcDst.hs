@@ -154,7 +154,10 @@ instance IsString Src where fromString = parseSrc
 --------------------------------------------------
 --------------------------------------------------
 
-{- | A local destination for some data.
+{- | A destination for some data.
+
+/NOTE/ ALl `Dst`s are “local”, thus there is no @LocalDst@
+(as there is a `LocalSrc`).
 
 -}
 
@@ -863,36 +866,152 @@ toDstSrcsWithM CheckDstSrcs{..} srcdsts' = do
 -- Functions: Printing / Parsing -----------------
 --------------------------------------------------
 
-{- | 
+{- | Parse a (human-readable) `Src`.
+
+`parseSrc` tries these parsers (from top to bottom):
+
+* `parseSrcAsHandle`
+* `parseSrcAsFile`
+* `parseSrcAsUrl`
+
+`parseSrc` defaults to a `SrcFile`:
+
+* `defaultSrc`
+
 == Examples
+
+e.g. /handle/s:
 
 >>> parseSrc "-"
 SrcStdin
+>>> parseSrc "stdin"
+SrcStdin
+
+e.g. /filepath/s:
+
 >>> parseSrc "./mtg.json"
 SrcFile "./mtg.json"
 >>> parseSrc "          ./mtg.json          "
 SrcFile "./mtg.json"
 
+e.g. /URI/s:
+
+>>> parseSrc "https://mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+>>> parseSrc "http://mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "http://mtgjson.com/json/AllCards.json.gz")
+>>> parseSrc "mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+
+e.g. Guess whether a suffix a /File Extension/ or a /Top-Level Domain/ (“TLD”):
+
+>>> parseSrc "mtg.json"         -- guess a File ("json" is an uncommon TLD)
+SrcFile "./mtg.json"
+>>> parseSrc "mtg.org"          -- guess a URI ("com" is a common TLD)
+SrcUri (URL "GET https://mtg.org")
+
+e.g. Unabmiguous parsing (no guessing) via /URI Protocol/:
+
+>>> parseSrc "file://mtgjson.com/json/AllCards.json.gz"
+SrcFile "mtgjson.com/json/AllCards.json.gz"
+>>> parseSrc "https://./mtg.json"
+SrcUri (URL "https://mtg.json")
+
+e.g. Unabmiguous parsing (no guessing) via /Filepath Literals/:
+
+>>> parseSrc "mtg.org"
+SrcUri (URL "https://mtg.org")
+>>> parseSrc "./mtg.org"
+SrcFile "./mtg.org"
+
 -}
 
 parseSrc :: String -> Src
-parseSrc = munge > \case
-
-  "-" -> SrcStdin
-
-  s -> SrcFile s
+parseSrc = munge > go
 
   where
+
+  go s = guess s & maybe (defaultSrc s) id
+
+  guess s = parseSrcAsHandle s <|> parseSrcAsFile s <|> parseSrcAsUrl s
+
+  -- NOTE: --
+  -- « instance Alternative (Maybe _) » picks the first (leftmost) « Just ».
 
   munge = lrstrip
 
 --------------------------------------------------
 
-{- | 
+{- | Parse a `SrcFile` (if able).
+
+Guesses are based on the:
+
+* Prefix — looks like a /filepath literal/ (e.g. @"./_"@ org @"C:\\_"@).
+* Suffix — is a (common) /file extension/ (e.g. @"_.tar.gz"@).
+
+-}
+
+parseSrcAsFile :: String -> Maybe Src
+parseSrcAsFile s = Just _
+
+  _ -> Nothing
+
+--------------------------------------------------
+
+{- | Parse a `SrcUri` (if able).
+
+Guesses are based on the:
+
+* Prefix — is a (standard) /HTTP Method/, separated by whitespace (e.g. @"GET _"@).
+* Prefix — is a (common) /URI Scheme/ for the Internet (e.g. @"http://_"@).
+* Suffix — is a (common) /Top-Level Domain/ (e.g. @"_.com"@).
+
+-}
+
+parseSrcAsUrl :: String -> Maybe Src
+parseSrcAsUrl s = Just _
+
+  _ -> Nothing
+
+--------------------------------------------------
+
+{- | Parse a `SrcStdin` (if able).
+
+-}
+
+parseSrcAsHandle :: String -> Maybe Src
+parseSrcAsHandle = toLower > \case
+
+  "-"     -> Just SrcStdin
+  "stdin" -> Just SrcStdin
+
+  _ -> Nothing
+
+  where
+
+  toLower = fmap Char.toLower
+
+--------------------------------------------------
+
+{- | -}
+
+defaultSrc :: String -> Src
+defaultSrc = SrcFile
+
+-- defaultSrc = toFile > SrcFile
+-- defaultSrc = toUrl > SrcUri
+
+--------------------------------------------------
+
+{- | Parse a (human-readable) `Dst`.
+
 == Examples
 
 >>> parseDst "-"
 DstStdout
+>>> parseDst "stdout"
+DstStdout
+
 >>> parseDst "./mtg.hs"
 DstFile "./mtg.hs"
 >>> parseDst "          ./mtg.hs          "
@@ -903,7 +1022,8 @@ DstFile "./mtg.hs"
 parseDst :: String -> Dst
 parseDst = munge > \case
 
-  "-" -> DstStdout
+  "-"      -> DstStdout
+  "stdout" -> DstStdout
 
   s -> DstFile s
 
@@ -913,11 +1033,15 @@ parseDst = munge > \case
 
 --------------------------------------------------
 
-{- | 
+{- | Like `parseSrc`, but doesn't parse @URL@s.
+
 == Examples
 
 >>> parseLocalSrc "-"
 LocalSrcStdin
+>>> parseLocalSrc "stdin"
+LocalSrcStdin
+
 >>> parseLocalSrc "./mtg.json"
 LocalSrcFile "./mtg.json"
 >>> parseLocalSrc "          ./mtg.json          "
@@ -928,7 +1052,8 @@ LocalSrcFile "./mtg.json"
 parseLocalSrc :: String -> LocalSrc
 parseLocalSrc = munge > \case
 
-  "-" -> LocalSrcStdin
+  "-"     -> LocalSrcStdin
+  "stdin" -> LocalSrcStdin
 
   s -> LocalSrcFile s
 
@@ -938,8 +1063,19 @@ parseLocalSrc = munge > \case
 
 --------------------------------------------------
 
-{- | 
+{- | Like `parseSrc`, but doesn't parse @filepath@s / @handle@s.
+
 == Examples
+
+>>> parseRemoteSrc "-"
+RemoteSrcUri (URL "-")
+>>> parseRemoteSrc "./mtg.json"
+RemoteSrcUri (URL "./mtg.json")
+
+>>> parseRemoteSrc ""
+RemoteSrcUri (URL "")
+>>> parseRemoteSrc ""
+RemoteSrcUri (URL "")
 
 -}
 
