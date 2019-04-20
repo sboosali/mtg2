@@ -4391,8 +4391,13 @@ toDstSrcsWithM CheckDstSrcs{..} srcdsts = do
 
 
 
+conduitDstSrcs (DstSrcs dstsrcs) = do
 
+  produceRemoteSrcs <- remoteSrcs & conduitRemoteSrcs
 
+  let produceLocalSrcs = localSrcs & conduitLocalSrcs
+
+  return (produceLocalSrcs, produceRemoteSrcs)
 
 
 

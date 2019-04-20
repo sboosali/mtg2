@@ -702,6 +702,9 @@ library srcdst
              , time        >= 1.8
              , formatting ^>= 6.3
 
+  --         , ordered-containers   ^>= 0.2
+  --         , unordered-containers ^>= 0.2
+
   --------------------
 
 --------------------------------------------------

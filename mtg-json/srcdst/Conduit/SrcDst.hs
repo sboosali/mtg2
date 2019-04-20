@@ -41,11 +41,15 @@ module Conduit.SrcDst
   -- * `Conduit`s for `RemoteSrc`s
 
   , conduitRemoteSrcs
+  , conduitRemoteSrc
 
   -- * Miscellaneous `Conduit`s
 
   , conduitDirectory
   , FollowSymlinks(..)
+
+  , BytesSource
+  , BytesSink
 
   -- * Re-export `SrcDst` types.
 
@@ -77,12 +81,15 @@ import qualified "http-client-tls" Network.HTTP.Client.TLS   as HTTPS
 --------------------------------------------------
 
 import qualified "conduit" Conduit as Conduit
-import           "conduit" Conduit ( ConduitT, Sink, (.|), ZipSink(..) )
+import           "conduit" Conduit ( ConduitT )
+import           "conduit" Conduit ( (.|) )
 
 --------------------------------------------------
 
-import qualified "resourcet" Control.Monad.Trans.Resource as Resource
-import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, MonadUnliftIO, ResourceT )
+import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, MonadUnliftIO )
+
+-- import qualified "resourcet" Control.Monad.Trans.Resource as Resource
+-- import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, MonadUnliftIO, ResourceT )
 
 --------------------------------------------------
 
@@ -99,23 +106,16 @@ import           "resourcet" Control.Monad.Trans.Resource ( MonadResource, Monad
 --- Imports --------------------------------------
 --------------------------------------------------
 
-import qualified "directory" System.Directory as Directory
+import qualified "containers" Data.Map as Map
 
 --------------------------------------------------
 
-import qualified "containers" Data.Map as Map
-import qualified "containers" Data.Set as Set
+import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 
 import qualified "bytestring" Data.ByteString            as Strict
 import qualified "bytestring" Data.ByteString.Lazy       as Lazy
-
---------------------------------------------------
-
-import qualified "base" Data.List as List
-
--- import qualified "base" Prelude
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -296,9 +296,11 @@ conduitSrcFile = Conduit.sourceFile
 
 conduitSrcUri
   :: ( MonadResource m, MonadIO m, MonadThrow m ) => URL -> ConduitT () ByteString m ()
-conduitSrcUri (URL url) = do
+conduitSrcUri (URL tUrl) = do
 
-  request <- HTTP.parseRequest url
+  let sUrl = Text.unpack tUrl
+
+  request <- HTTP.parseRequest sUrl
 
   HTTP.Conduit.httpSource request consume
 
@@ -369,27 +371,63 @@ conduitDstSrcs
   => DstSrcs
   -> m (ConduitT () Void m ())
 
-conduitDstSrcs (DstSrcs dstsrcs) = do
-
-  produceRemoteSrs <- remoteSrcs & conduitRemoteSrcs
-
-  return produceRemoteSrs
-
+conduitDstSrcs (DstSrcs dstsrcs) = srcdsts4
   where
 
   ------------------------------
 
-  srcdsts :: Map Src (NonEmpty Dst)
-  srcdsts = dstsrcs & invertMap
+  srcdsts4 :: m (ConduitT () Void m ())
+  srcdsts4 = srcdsts3
+    <&> sequenceConduits_        -- TODO -- parallelism?
+
+  ------------------------------
+
+  srcdsts3 :: m [ConduitT () Void m ()]
+  srcdsts3 = srcdsts2
+    <&> fmap fuse'Conduits
+
+    where
+
+    fuse'Conduits (producer, consumer) = producer .| consumer
+
+  ------------------------------
+
+  srcdsts2 :: m [( ConduitT () ByteString m (), ConduitT ByteString Void m () )]
+  srcdsts2 = srcdsts1
+    & fmap fst
+    & mkSrcs
+
+    where
+
+    mkSrcs srcs = do
+
+        mSrcs <- srcs & srcProducers
+
+        let
+          getProducer :: Src -> ConduitT () ByteString m () 
+          getProducer src
+            = Map.lookup src mSrcs
+            & maybe unproductive id -- NOTE -- should never be « Nothing » anyways.
+
+        let mSrcDsts = srcdsts1 <&> bimap getProducer id
+
+        return mSrcDsts
+
+    unproductive :: ConduitT () ByteString m () 
+    unproductive = nothing
+
+  ------------------------------
 
   srcdsts1 :: [( Src, ConduitT ByteString Void m () )]
-  srcdsts1 = srcdsts
+  srcdsts1 = srcdsts0
     & Map.map dstConsumer
     & Map.toList
 
-  srcdsts2 :: [( ConduitT () ByteString m (), ConduitT ByteString Void m () )]
-  srcdsts2 = srcdsts1
-    & _
+  ------------------------------
+
+  srcdsts0 :: Map Src (NonEmpty Dst)
+  srcdsts0 = dstsrcs
+    & invertMap
 
   ------------------------------
 
@@ -406,9 +444,9 @@ conduitDstSrcs (DstSrcs dstsrcs) = do
   srcProducers :: [ Src ] -> m (Map Src (ConduitT () ByteString m ()))
   srcProducers srcs = do
 
-    remoteProducers <- conduitRemoteSrcs remoteSrcs
+    remoteProducers <- remoteSrcs & conduitRemoteSrcs
 
-    let localProducers = conduitLocalSrcs localSrcs
+    let localProducers = localSrcs & conduitLocalSrcs
 
     let remoteProducers' = remoteProducers & Map.mapKeys fromRemoteSrc
     let localProducers'  = localProducers  & Map.mapKeys fromLocalSrc
@@ -524,13 +562,15 @@ conduitRemoteSrcWith manager = go
   where
 
   go :: URL -> m (BytesSource m)
-  go (URL url) = do
+  go (URL tUrl) = do
 
-    request  <- HTTP.parseUrlThrow url
+    let sUrl = Text.unpack tUrl
+
+    request  <- HTTP.parseUrlThrow sUrl
     response <- HTTP.Conduit.http request manager
 
     let producer = (response & HTTP.Conduit.getResponseBody)
-    let status   = (response & HTTP.Conduit.getResponseStatus)
+ -- let status   = (response & HTTP.Conduit.getResponseStatus)
 
     return producer
 
@@ -558,11 +598,33 @@ conduitLocalSrcs
     , MonadThrow    m
     )
   => LocalSrcs
-  -> m (Map LocalSrc (ConduitT () ByteString m ()))
+  -> Map LocalSrc (ConduitT () ByteString m ())
 
-conduitLocalSrcs (LocalSrcs srcs) = do
+conduitLocalSrcs (LocalSrcs srcs) = mSrcs
+  where
+
+  mSrcs = srcs & Map.fromSet conduitLocalSrc
 
 {-# INLINEABLE conduitLocalSrcs #-}
+
+--------------------------------------------------
+
+{- | (Like `conduitSrc`.) -}
+
+conduitLocalSrc
+  :: forall m.
+    ( MonadResource m
+    , MonadIO       m
+    , MonadThrow    m
+    )
+  => LocalSrc
+  -> ConduitT () ByteString m ()
+
+conduitLocalSrc = \case
+
+  LocalSrcBytes bs -> conduitSrcBytes bs
+  LocalSrcStdin    -> conduitSrcStdin
+  LocalSrcFile  fp -> conduitSrcFile  fp
 
 --------------------------------------------------
 --------------------------------------------------
@@ -621,69 +683,56 @@ newManager = do
 -- Utilities: Conduit ----------------------------
 --------------------------------------------------
 
-{- | n-ary `Conduit.zipSinks` (via `ZipSink`).
-
-== Usage
-
-Stream a single input to multiple outputs.
+{- | Run each conduit /sequentially/, ignoring any results.
 
 -}
 
-sequenceSinks :: (Monad m) => [Sink i m r] -> Sink i m [r]
-sequenceSinks
-
-  = fmap ZipSink
-  > sequenceA
-  > getZipSink
+sequenceConduits_ :: (Traversable f, Monad m) => f (ConduitT i o m ()) -> ConduitT i o m ()
+sequenceConduits_ = Conduit.sequenceConduits > fmap (const ())
 
 --------------------------------------------------
 
-{- | Like `sequenceSinks`, but ignoring the results.
+{- | Stream a single input to multiple outputs.
 
-== Usage
+n-ary `Conduit.zipSinks` (via `ZipSink`).
 
-Stream a single input to multiple outputs.
+Like `Conduit.sequenceSinks`, but ignoring the results.
 
 -}
 
-sequenceSinks_ :: (Monad m) => [Sink i m ()] -> Sink i m ()
-sequenceSinks_
-
-  = fmap ZipSink
-  > sequenceA_
-  > getZipSink
+sequenceSinks_ :: (Monad m) => [ConduitT i Void m ()] -> ConduitT i Void m ()
+sequenceSinks_ = Conduit.sequenceSinks > fmap (const ())
 
 --------------------------------------------------
 -- Notes -----------------------------------------
 --------------------------------------------------
 
---- « Data.Conduit »
+--------------------------------
+-- « Data.Conduit »
 --
 -- data ConduitT i o m r
 --
 -- stdinC :: MonadIO m => ConduitT i ByteString m ()
 --
 -- stdoutC :: MonadIO m => ConduitT ByteString o m ()
-
+--
 -- httpSink :: (MonadUnliftIO m) => Request -> (Response () -> ConduitT ByteString Void m a) -> m a
 --
 -- httpSource :: (MonadResource m, MonadIO n) => Request -> (Response (ConduitT i ByteString n ()) -> ConduitT i o m r) -> ConduitT i o m r
-
--- TimeZone { timeZoneMinutes = , timeZoneSummerOnly = False, timeZoneName = "PST" }
-
+--
 -- "duplicateConsumer" is called `zipSinks`:
 --
 -- zipSinks :: Monad m => Sink i m r -> Sink i m r' -> Sink i m (r, r')
 --
 -- >Combines two sinks. The new sink will complete when both input sinks have completed.
-
--- traverseWithKey :: Applicative t => (k -> a -> t b) -> Map k a -> t (Map k b)
 --
--- traverseMaybeWithKey :: Applicative f => (k -> a -> f (Maybe b)) -> Map k a -> f (Map k b)
+-- sequenceConduits :: (Traversable f, Monad m) => f (ConduitT i o m r) -> ConduitT i o m (f r)
+--
+-- >Apply each conduit, /sequentially/.
+--
 
--- mapKeysWith :: Ord k2 => (a -> a -> a) -> (k1 -> k2) -> Map k1 a -> Map k2 a
-
---- Network.HTTP.Conduit:
+--------------------------------
+-- Network.HTTP.Conduit:
 --
 -- http :: MonadResource m => Request -> Manager -> m (Response (ConduitT i ByteString m ()))
 --
@@ -711,12 +760,24 @@ sequenceSinks_
 -- 
 -- 
 
+--------------------------------
+-- « time »
+--
+-- TimeZone { timeZoneMinutes = , timeZoneSummerOnly = False, timeZoneName = "PST" }
+--
+
+--------------------------------
 -- « Data.Map »
 -- 
 -- fromSet :: (k -> a) -> Set k -> Map k a
 -- 
 -- traverseMaybeWithKey :: Applicative f => (k -> a -> f (Maybe b)) -> Map k a -> f (Map k b)
 -- 
+-- mapKeysWith :: Ord k2 => (a -> a -> a) -> (k1 -> k2) -> Map k1 a -> Map k2 a
+-- 
+-- traverseWithKey :: Applicative t => (k -> a -> t b) -> Map k a -> t (Map k b)
+--
+-- traverseMaybeWithKey :: Applicative f => (k -> a -> f (Maybe b)) -> Map k a -> f (Map k b)
 -- 
 
 --------------------------------------------------
