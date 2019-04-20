@@ -517,6 +517,7 @@ Identical `SrcDst`s are redundant.
 == Examples
 
 >>> :set -XOverloadedLists
+>>> :set -XOverloadedStrings
 >>> DstSrcs kvs = [ SrcDst{ src = SrcUri (URL "https://mtgjson.com/json/Vintage.json.gz"), dst = DstFile "vintage.json" }, SrcDst{ dst = DstStdout, src = SrcStdin }, SrcDst{ src = SrcUri (URL "https://mtgjson.com/json/Vintage.json.gz"), dst = DstFile "mtg.json" } ]
 >>> destinations = Map.keys  kvs
 >>> sources      = Map.elems kvs
@@ -553,6 +554,7 @@ toDstSrcs srcdsts = DstSrcs kvs
 
 == Examples
 
+>>> :set -XOverloadedStrings
 >>> fromDstSrcs (DstSrcs (Map.fromList [( DstFile "vintage.json", SrcUri (URL "https://mtgjson.com/json/Vintage.json.gz") ), ( DstStdout, SrcStdin ), ( DstFile "mtg.json", SrcUri (URL "https://mtgjson.com/json/Vintage.json.gz") )]))
 [SrcDst {src = SrcStdin, dst = DstStdout},SrcDst {src = SrcUri "https://mtgjson.com/json/Vintage.json.gz", dst = DstFile "mtg.json"},SrcDst {src = SrcUri "https://mtgjson.com/json/Vintage.json.gz", dst = DstFile "vintage.json"}]
 
@@ -653,7 +655,7 @@ See `toDstSrcsWithM`.
 
 == Examples
 
->>> toDstSrcsM defaultCheckDstSrcs []
+>>> toDstSrcsM []
 DstSrcs (fromList [])
 
 == Definition
@@ -673,6 +675,11 @@ toDstSrcsM = toDstSrcsWithM defaultCheckDstSrcs
 
 See `toDstSrcsWithM`.
 
+== Examples
+
+>>> toDstSrcsM []
+DstSrcs (fromList [])
+
 == Definition
 
 @
@@ -689,6 +696,11 @@ toDstSrcsLenientlyM = toDstSrcsWithM lenientCheckDstSrcs
 {- | Create a `DstSrcs` from multiple `Dst`s and `Src`s, with /stringent/ checking.
 
 See `toDstSrcsWithM`.
+
+== Examples
+
+>>> toDstSrcsM []
+DstSrcs (fromList [])
 
 == Definition
 
@@ -985,11 +997,13 @@ toUrl s = URL t
 
 == Examples
 
+>>> :set -XOverloadedStrings
 >>> isUrlHttps "https://mtgjson.com/json/Vintage.json.gz"
 True
 >>> isUrlHttps "GET https://mtgjson.com/json/Vintage.json.gz"
 True
 
+>>> :set -XOverloadedStrings
 >>> isUrlHttps "mtgjson.com"
 False
 >>> isUrlHttps "http://mtgjson.com"
