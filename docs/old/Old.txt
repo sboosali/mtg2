@@ -4422,6 +4422,126 @@ conduitDstSrcs (DstSrcs dstsrcs) = do
 
 
 
+{- | Parse a (human-readable) `Src`.
+
+== Examples
+
+e.g. /handle/s:
+
+>>> parseSrc "-"
+SrcStdin
+>>> parseSrc "stdin"
+SrcStdin
+
+e.g. /filepath/s:
+
+>>> parseSrc "./mtg.json"
+SrcFile "./mtg.json"
+>>> parseSrc "          ./mtg.json          "
+SrcFile "./mtg.json"
+
+e.g. /URI/s:
+
+>>> parseSrc "https://mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+>>> parseSrc "http://mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "http://mtgjson.com/json/AllCards.json.gz")
+>>> parseSrc "mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+
+e.g. Guess whether a suffix a /File Extension/ or a /Top-Level Domain/ (“TLD”):
+
+>>> parseSrc "mtg.json"         -- guess a File ("json" is an uncommon TLD)
+SrcFile "./mtg.json"
+>>> parseSrc "mtg.org"          -- guess a URI ("com" is a common TLD)
+SrcUri (URL "GET https://mtg.org")
+
+e.g. Unabmiguous parsing (no guessing) via /URI Protocol/:
+
+>>> parseSrc "file://mtgjson.com/json/AllCards.json.gz"
+SrcFile "mtgjson.com/json/AllCards.json.gz"
+>>> parseSrc "https://./mtg.json"
+SrcUri (URL "https://mtg.json")
+
+e.g. Unabmiguous parsing (no guessing) via /Filepath Literals/:
+
+>>> parseSrc "mtg.org"
+SrcUri (URL "https://mtg.org")
+>>> parseSrc "./mtg.org"
+SrcFile "./mtg.org"
+
+-}
+
+parseSrc :: String -> Src
+parseSrc = munge > go
+
+  where
+
+  go s = guess s & maybe (defaultSrc s) id
+
+  guess s = parseSrcAsHandle s <|> parseSrcAsFile s <|> parseSrcAsUrl s
+
+  -- NOTE: --
+  -- « instance Alternative (Maybe _) » picks the first (leftmost) « Just ».
+
+  defaultSrc = SrcFile
+
+  munge = lrstrip
+
+--------------------------------------------------
+
+{- | 
+
+-}
+
+parseSrcAsFile :: String -> Maybe Src
+parseSrcAsFile s = Just _
+
+--------------------------------------------------
+
+{- | 
+
+-}
+
+parseSrcAsUrl :: String -> Maybe Src
+parseSrcAsUrl s = Just _
+
+--------------------------------------------------
+
+{- | 
+
+-}
+
+parseSrcAsHandle :: String -> Maybe Src
+parseSrcAsHandle s = \case
+
+  "-"     -> SrcStdin
+  "stdin" -> SrcStdin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
