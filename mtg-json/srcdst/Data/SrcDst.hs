@@ -20,11 +20,12 @@ module Data.SrcDst
     SrcDst(..)
   , Src(..)
   , Dst(..)
+  , RemoteSrc(..)
+  , LocalSrc(..)
 
   , DstSrcs(..)
-  , RemoteSrc(..)
   , RemoteSrcs(..)
-  , LocalSrc(..)
+  , LocalSrcs(..)
 
   , URL(..)
 
@@ -41,8 +42,9 @@ module Data.SrcDst
   -- * Transformers
 
   , partitionSrcs
-  , fromSrc
+  , unifySrcs
 
+  , fromSrc
   , fromLocalSrc
   , fromRemoteSrc 
 
@@ -177,7 +179,7 @@ instance IsList DstSrcs where
 --------------------------------------------------
 --------------------------------------------------
 
-{- | A set of remote sources.
+{- | A set of /remote/ sources.
 
 -}
 
@@ -197,6 +199,33 @@ newtype RemoteSrcs = RemoteSrcs
 instance IsList RemoteSrcs where
 
   type Item RemoteSrcs = RemoteSrc
+
+  fromList = Set.fromList > coerce
+  toList   = coerce > Set.toList
+
+--------------------------------------------------
+--------------------------------------------------
+
+{- | A set of /local/ sources.
+
+-}
+
+newtype LocalSrcs = LocalSrcs
+
+  (Set LocalSrc)
+
+  deriving stock    (Generic)
+  deriving stock    (Show, Read)
+  deriving newtype  (Eq, Ord)
+
+  deriving newtype  (Semigroup, Monoid)
+  deriving newtype  (NFData{-, Hashable-})
+
+--------------------------------------------------
+
+instance IsList LocalSrcs where
+
+  type Item LocalSrcs = LocalSrc
 
   fromList = Set.fromList > coerce
   toList   = coerce > Set.toList
@@ -371,15 +400,42 @@ toDstSrcsM srcdsts = do
 
 --------------------------------------------------
 
-{- | Distinguish `LocalSrc`s from `RemoteSrc`s. -}
+{- | Distinguish `LocalSrc`s from `RemoteSrc`s.
 
-partitionSrcs :: [Src] -> ( [RemoteSrc], [LocalSrc] )
-partitionSrcs sources = ( remotes, locals )
+Inverted by `unifySrcs`.
+
+== Laws
+
+@
+∀ xs.  sort xs ≡ sort ((uncurry unifySrcs) (partitionSrcs xs))
+@
+
+-}
+
+partitionSrcs :: [Src] -> ( RemoteSrcs, LocalSrcs )
+partitionSrcs sources = ( fromList remotes, fromList locals )
   where
 
   ( remotes, locals ) = partitionEithers sources'
 
   sources' = fromSrc <$> sources
+
+--------------------------------------------------
+
+{- | Generalize `LocalSrc`s and `RemoteSrc`s (to `Src`s).
+
+Inverts `partitionSrcs`.
+
+-}
+
+unifySrcs :: RemoteSrcs -> LocalSrcs -> [Src]
+unifySrcs (RemoteSrcs remotes) (LocalSrcs locals) = sources
+  where
+
+  sources = locals' <> remotes'
+
+  remotes' = (fromRemoteSrc <$> Set.toList remotes)
+  locals'  = (fromLocalSrc  <$> Set.toList locals)
 
 --------------------------------------------------
 
@@ -403,7 +459,7 @@ fromLocalSrc :: LocalSrc -> Src
 fromLocalSrc = \case
 
   LocalSrcBytes bs  -> SrcBytes bs
-  LocalSrcStdin      -> SrcStdin
+  LocalSrcStdin     -> SrcStdin
   LocalSrcFile  fp  -> SrcFile fp
 
 --------------------------------------------------
