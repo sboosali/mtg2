@@ -665,12 +665,13 @@ library srcdst
   -- Standard Libraries
   --------------------
 
-             , containers ^>= 0.6
+             , text             ^>= 1.2
+             , case-insensitive ^>= 1.2
 
              , bytestring ^>= 0.10
-             , text       ^>= 1.2
-
              , binary     ^>= 0.8
+
+             , containers ^>= 0.6
 
              , filepath   ^>= 1.4
              , directory  ^>= 1.3

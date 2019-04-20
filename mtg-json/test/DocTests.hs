@@ -22,7 +22,7 @@ main :: IO ()
 main = do
 
   putStrLn "----------------------------------------"
-  putStrLn "-- DocTest: Librarie -------------------"
+  putStrLn "-- DocTest: Libraries ------------------"
   putStrLn "----------------------------------------"
 
   doctestLib1

@@ -62,6 +62,14 @@ module Data.SrcDst
   , prettySrc
   , prettyDst
 
+  -- * Parsing
+
+  , startsWithKnownHttpMethod
+
+  -- * Printing
+
+  
+
   -- * Validation
 
   , CheckDstSrcs(..)
@@ -77,6 +85,13 @@ module Data.SrcDst
   , toDstSrcsStringentlyM
 
   , isUrlHttps
+
+  -- * Constants
+
+  , knownHttpMethods
+  , knownWebSchemes
+  , knownTopLevelDomain
+  , knownFileExtensions
 
   ) where
 
@@ -95,6 +110,11 @@ import qualified "containers" Data.Set as Set
 
 --------------------------------------------------
 
+import qualified "case-insensitive" Data.CaseInsensitive as CI
+import           "case-insensitive" Data.CaseInsensitive as CI
+
+--------------------------------------------------
+
 import qualified "text" Data.Text as Text
 
 --------------------------------------------------
@@ -107,6 +127,8 @@ import qualified "bytestring" Data.ByteString.Lazy.Char8       as LazyASCII
 
 import qualified "base" Data.Char as Char
 import qualified "base" Data.List as List
+
+import           "base" Data.Semigroup ( First(..) )
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -863,7 +885,7 @@ toDstSrcsWithM CheckDstSrcs{..} srcdsts' = do
   sSecurity = "Insecure protocol"  -- TODO format.
 
 --------------------------------------------------
--- Functions: Printing / Parsing -----------------
+-- Functions: Parsing ----------------------------
 --------------------------------------------------
 
 {- | Parse a (human-readable) `Src`.
@@ -887,6 +909,29 @@ SrcStdin
 >>> parseSrc "stdin"
 SrcStdin
 
+-}
+
+parseSrc :: String -> Src
+parseSrc = munge > go
+
+  where
+
+  go s = guess s & maybe (defaultSrc s) id
+
+  guess s = getFirst <$> (mconcat
+
+    [ First <$> parseSrcAsHandle s
+    , First <$> parseSrcAsFile   s
+    , First <$> parseSrcAsUrl    s
+    ])
+
+  -- NOTE: --
+  -- « instance Alternative (Maybe _) » picks the first (leftmost) « Just ».
+
+  munge = lrstrip
+
+{- 
+
 e.g. /filepath/s:
 
 >>> parseSrc "./mtg.json"
@@ -897,48 +942,34 @@ SrcFile "./mtg.json"
 e.g. /URI/s:
 
 >>> parseSrc "https://mtgjson.com/json/AllCards.json.gz"
-SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+SrcUri "https://mtgjson.com/json/AllCards.json.gz"
 >>> parseSrc "http://mtgjson.com/json/AllCards.json.gz"
-SrcUri (URL "http://mtgjson.com/json/AllCards.json.gz")
+SrcUri "http://mtgjson.com/json/AllCards.json.gz"
 >>> parseSrc "mtgjson.com/json/AllCards.json.gz"
-SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+SrcUri "https://mtgjson.com/json/AllCards.json.gz"
 
 e.g. Guess whether a suffix a /File Extension/ or a /Top-Level Domain/ (“TLD”):
 
 >>> parseSrc "mtg.json"         -- guess a File ("json" is an uncommon TLD)
 SrcFile "./mtg.json"
 >>> parseSrc "mtg.org"          -- guess a URI ("com" is a common TLD)
-SrcUri (URL "GET https://mtg.org")
+SrcUri "GET https://mtg.org"
 
 e.g. Unabmiguous parsing (no guessing) via /URI Protocol/:
 
 >>> parseSrc "file://mtgjson.com/json/AllCards.json.gz"
 SrcFile "mtgjson.com/json/AllCards.json.gz"
 >>> parseSrc "https://./mtg.json"
-SrcUri (URL "https://mtg.json")
+SrcUri "https://mtg.json")
 
 e.g. Unabmiguous parsing (no guessing) via /Filepath Literals/:
 
 >>> parseSrc "mtg.org"
-SrcUri (URL "https://mtg.org")
+SrcUri "https://mtg.org"
 >>> parseSrc "./mtg.org"
 SrcFile "./mtg.org"
 
 -}
-
-parseSrc :: String -> Src
-parseSrc = munge > go
-
-  where
-
-  go s = guess s & maybe (defaultSrc s) id
-
-  guess s = parseSrcAsHandle s <|> parseSrcAsFile s <|> parseSrcAsUrl s
-
-  -- NOTE: --
-  -- « instance Alternative (Maybe _) » picks the first (leftmost) « Just ».
-
-  munge = lrstrip
 
 --------------------------------------------------
 
@@ -952,9 +983,7 @@ Guesses are based on the:
 -}
 
 parseSrcAsFile :: String -> Maybe Src
-parseSrcAsFile s = Just _
-
-  _ -> Nothing
+parseSrcAsFile _s = Nothing
 
 --------------------------------------------------
 
@@ -969,18 +998,57 @@ Guesses are based on the:
 -}
 
 parseSrcAsUrl :: String -> Maybe Src
-parseSrcAsUrl s = Just _
+parseSrcAsUrl s =
 
-  _ -> Nothing
+  if   startsWithMethod || startsWithScheme
+  then Just (SrcUri url)
+  else Nothing
+
+  where
+
+  ------------------------------
+
+  url :: URL
+  url = toUrl s
+
+  (method', url') = splitMethodScheme url
+
+  ------------------------------
+
+  startsWithMethod :: Bool
+  startsWithMethod = method'
+    & maybe2bool
+
+  startsWithScheme :: Bool
+  startsWithScheme = List.any
+    (doesUrlStartWithKnownWebScheme > maybe2bool)
+    (catMaybes [ Just url, url' ])
+
+  ------------------------------
+
+  splitMethodScheme :: URL -> ( Maybe Text, Maybe URL )
+  splitMethodScheme = splitHttpMethodFromHttpUri > \case
+
+      Nothing                 -> ( Nothing, Nothing )
+      Just ( prefix, suffix ) -> ( Just prefix, Just (URL suffix) )
 
 --------------------------------------------------
 
 {- | Parse a `SrcStdin` (if able).
 
+== Examples
+
+>>> parseSrcAsHandle "stdin"
+Just SrcStdin
+>>> parseSrcAsHandle "STDIN"
+Just SrcStdin
+>>> parseSrcAsHandle "stdout"
+Nothing
+
 -}
 
 parseSrcAsHandle :: String -> Maybe Src
-parseSrcAsHandle = toLower > \case
+parseSrcAsHandle = lowercase > \case
 
   "-"     -> Just SrcStdin
   "stdin" -> Just SrcStdin
@@ -989,7 +1057,7 @@ parseSrcAsHandle = toLower > \case
 
   where
 
-  toLower = fmap Char.toLower
+  lowercase = fmap Char.toLower
 
 --------------------------------------------------
 
@@ -1002,8 +1070,17 @@ defaultSrc = SrcFile
 -- defaultSrc = toUrl > SrcUri
 
 --------------------------------------------------
+--------------------------------------------------
 
 {- | Parse a (human-readable) `Dst`.
+
+`parseDst` tries these parsers (from top to bottom):
+
+* `parseDstAsHandle`
+
+`parseDst` defaults to a `DstFile`:
+
+* `defaultDst`
 
 == Examples
 
@@ -1020,17 +1097,54 @@ DstFile "./mtg.hs"
 -}
 
 parseDst :: String -> Dst
-parseDst = munge > \case
-
-  "-"      -> DstStdout
-  "stdout" -> DstStdout
-
-  s -> DstFile s
+parseDst = munge > go
 
   where
 
+  go s = guess s & maybe (defaultDst s) id
+
+  guess s = parseDstAsHandle s
+
   munge = lrstrip
 
+--------------------------------------------------
+
+{- | Parse a `DstStdout` (if able).
+
+== Examples
+
+>>> parseDstAsHandle "stdout"
+Just DstStdout
+>>> parseDstAsHandle "STDOUT"
+Just DstStdout
+>>> parseDstAsHandle "stdin"
+Nothing
+
+-}
+
+parseDstAsHandle :: String -> Maybe Dst
+parseDstAsHandle = lowercase > \case
+
+  "-"      -> Just DstStdout
+  "stdout" -> Just DstStdout
+
+  _ -> Nothing
+
+  where
+
+  lowercase = fmap Char.toLower
+
+--------------------------------------------------
+
+{- | -}
+
+defaultDst :: String -> Dst
+defaultDst = DstFile
+
+-- defaultDst = toFile > DstFile
+-- defaultDst = const DstStdout
+
+--------------------------------------------------
 --------------------------------------------------
 
 {- | Like `parseSrc`, but doesn't parse @URL@s.
@@ -1062,20 +1176,21 @@ parseLocalSrc = munge > \case
   munge = lrstrip
 
 --------------------------------------------------
+--------------------------------------------------
 
-{- | Like `parseSrc`, but doesn't parse @filepath@s / @handle@s.
+{- | Like `parseSrc`, but doesn't parse @filepath@s or @handle@s.
 
 == Examples
 
 >>> parseRemoteSrc "-"
-RemoteSrcUri (URL "-")
+RemoteSrcUri "-"
 >>> parseRemoteSrc "./mtg.json"
-RemoteSrcUri (URL "./mtg.json")
+RemoteSrcUri "./mtg.json"
 
 >>> parseRemoteSrc ""
-RemoteSrcUri (URL "")
+RemoteSrcUri ""
 >>> parseRemoteSrc ""
-RemoteSrcUri (URL "")
+RemoteSrcUri ""
 
 -}
 
@@ -1087,6 +1202,10 @@ parseRemoteSrc = munge > fromString > RemoteSrcUri
   munge = lrstrip
 
 --------------------------------------------------
+-- Functions: Printing ---------------------------
+--------------------------------------------------
+
+{- | Pretty-Print a (human-readable) `Src`. -}
 
 prettySrc :: (IsString string) => Src -> string
 prettySrc = go > fromString
@@ -1097,11 +1216,16 @@ prettySrc = go > fromString
    SrcBytes  bs -> LazyASCII.unpack   bs
    SrcBytes' bs -> StrictASCII.unpack bs
 
-   SrcStdin   -> "<<stdin>>"
+   SrcStdin   -> "STDIN"
    SrcFile fp -> "" <> fp
    SrcUri url -> "" <> Text.unpack (fromURL url)
 
+-- TODO --
+-- "<<stdin>>" or "STDIN"?
+
 --------------------------------------------------
+
+{- | Pretty-Print a (human-readable) `Dst`. -}
 
 prettyDst :: (IsString string) => Dst -> string
 prettyDst = go > fromString
@@ -1109,11 +1233,164 @@ prettyDst = go > fromString
 
   go = \case
 
-   DstStdout  -> "<<stdout>>"
+   DstStdout  -> "STDOUT"
    DstFile fp -> "" <> fp
 
+-- TODO --
+-- "stderr" too?
+
 --------------------------------------------------
--- Functions: URLs -------------------------------
+-- Constants: URL --------------------------------
+--------------------------------------------------
+
+{- | Standard /HTTP methods/ (a.k.a /HTTP verbs/).
+
+== Links
+
+* <https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods>
+* <https://hackage.haskell.org/package/http-types-0.12.1/docs/Network-HTTP-Types-Method.html#t:StdMethod>
+
+-}
+
+knownHttpMethods :: [Text]
+knownHttpMethods = 
+
+  [ "GET"
+  , "POST"
+  , "HEAD"
+  , "PUT"
+  , "DELETE"
+  , "TRACE"
+  , "CONNECT"
+  , "OPTIONS"
+  , "PATCH"
+  ]
+
+--------------------------------
+
+{- | Standard /HTTP(S) schemes/ (a.k.a. “/protocols/”).
+
+== Links
+
+* <https://tools.ietf.org/html/rfc3986#section-3.1>
+
+-}
+
+knownWebSchemes :: Set (CI Text)
+knownWebSchemes = Set.fromList
+
+  [ "https"
+  , "http"
+  ]
+
+--------------------------------
+
+{- | Common /Top-Level Domains/ for websites.
+
+== Links
+
+* <https://en.wikipedia.org/wiki/Top-level_domain>
+* <https://en.wikipedia.org/wiki/Country_code_top-level_domain>
+
+-}
+
+knownTopLevelDomain :: Set (CI Text)
+knownTopLevelDomain = Set.fromList
+
+  [ "com"
+  , "org"
+  , "edu"
+  , "net"
+
+  -- countries:
+
+  , "uk"
+  , "il"
+  , "us"
+  , "au"
+  , "de"
+  , "fi"
+  , "fr"
+  , "jp"
+  , "kr"
+  , "nl"
+  , "se"
+  , "ru"
+
+  -- new:
+
+  , "io"
+  ]
+
+--------------------------------------------------
+
+{- | /File Extensions/ we know how to process.
+
+== Links
+
+* <>
+
+-}
+
+knownFileExtensions :: Set (CI Text)
+knownFileExtensions
+
+  = allExtensions
+  & fmap (Text.pack > CI.mk)
+  & Set.fromList
+
+  where
+
+  allExtensions :: [String]
+  allExtensions = concat
+
+    [ baseExtensions
+
+    , archivedExtensions
+
+    , tarballExtensions
+
+    , do ext1 <- baseExtensions
+         ext3 <- compressedExtensions
+         return (ext1 <.> ext3)
+
+    , do ext2 <- archivedExtensions
+         ext3 <- compressedExtensions
+         return (ext2 <.> ext3)
+
+    , do ext1 <- baseExtensions
+         ext4 <- tarballExtensions
+         return (ext1 <.> ext4)
+
+    ]
+
+  baseExtensions =
+
+    [ "txt"
+    , "json"
+    , "csv"
+    ]
+
+  archivedExtensions =
+
+    [ "tar"
+  --  , ""
+    ]
+
+  compressedExtensions =
+
+    [ "gz"
+    , "bz2"
+    , "xz"
+    ]
+
+  tarballExtensions =
+
+    [ "zip"
+    ]
+
+--------------------------------------------------
+-- Functions: URL --------------------------------
 --------------------------------------------------
 
 {- | /Smart Constructor/ for `URL`s. -}
@@ -1129,15 +1406,198 @@ toUrl s = URL t
 
 --------------------------------------------------
 
-{- |
+{- | Whether a `URL` starts with one of the `knownHttpMethods`.
+
+== Examples
+
+>>> :set -XOverloadedStrings 
+>>> startsWithKnownHttpMethod "https://hackage.haskell.org/package/srcdst"
+Nothing
+>>> startsWithKnownHttpMethod "GET https://hackage.haskell.org/package/srcdst"
+Just "GET"
+
+Case-sensitive:
+
+>>> :set -XOverloadedStrings 
+>>> startsWithKnownHttpMethod "get https://hackage.haskell.org/package/srcdst"
+Nothing
+
+Whitespace is required to separate the method from the rest of the URL:
+
+>>> :set -XOverloadedStrings 
+>>> startsWithKnownHttpMethod "GEThttps://hackage.haskell.org/package/srcdst"
+Nothing
+
+== Definition
+
+@
+≡ fmap `fst` . `splitHttpMethodFromHttpUri`
+@
+
+== Output
+
+Returns the /HTTP Method/ that's a prefix.
+
+== Input
+
+Assumes the input has already been munged (e.g. by whitespace stripping).
+
+== Naming
+
+This function is named like a predicate (c.f. @“startsWith...”@).
+See /Boolean Blindness/ (at <>) for more information.
+
+-}
+
+startsWithKnownHttpMethod :: URL -> Maybe Text
+startsWithKnownHttpMethod = splitHttpMethodFromHttpUri > fmap fst 
+
+--------------------------------
+
+{- | Parse a /`URL`-with-Method/.
+
+See `startsWithKnownHttpMethod`.
+
+== Examples
+
+>>> :set -XOverloadedStrings 
+>>> splitHttpMethodFromHttpUri "https://hackage.haskell.org/package/srcdst"
+Nothing
+>>> splitHttpMethodFromHttpUri "GET https://hackage.haskell.org/package/srcdst"
+Just ("GET","https://hackage.haskell.org/package/srcdst")
+
+-}
+
+splitHttpMethodFromHttpUri :: URL -> Maybe (Text, Text)
+splitHttpMethodFromHttpUri (URL t)
+
+  = getFirst <$> go t
+
+  where
+
+  go text = (text `isPrefixedBy`) `foldMap` knownHttpMethods
+
+  isPrefixedBy :: Text -> Text -> Maybe (First (Text, Text))
+  isPrefixedBy text prefix
+
+      = Text.stripPrefix prefix text
+    >>= isSeparatedByWhitespace prefix
+
+    -- ... the prefix matches.
+
+  isSeparatedByWhitespace :: Text -> Text -> Maybe (First (Text, Text))
+  isSeparatedByWhitespace prefix suffix
+
+      = Text.uncons suffix
+    >>= (\(c, cs) -> if Char.isSpace c then isSuffixNonempty prefix cs else Nothing)
+
+    -- ... at least one space between prefix and suffix.
+
+  isSuffixNonempty :: Text -> Text -> Maybe (First (Text, Text))
+  isSuffixNonempty prefix suffix =
+
+    let
+      text = Text.dropWhile Char.isSpace suffix
+    in
+      if   Text.any isGraphic text
+      then Just (First (prefix, suffix))
+      else Nothing
+
+    -- ... at least one non-space after suffix.
+
+  isGraphic :: Char -> Bool
+  isGraphic c = Char.isPrint c && not (Char.isSpace c)
+
+    --NOTE--
+    --
+    -- « First »:
+    --
+    -- getFirst <$> (Nothing <> Just (First 'a') <> Just (First 'b')) == Just 'a'
+    --
+    -- « foldMap »:
+    --
+    -- foldMap :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
+    -- foldMap :: (Text -> Maybe (First Text)) -> [Text] -> Maybe (First Text)
+    --
+    -- « Text »:
+    --
+    -- uncons :: Text -> Maybe (Char, Text)
+    --
+    --
+
+  --List.any Text. knownHttpMethods t
+
+-- TODO -- Text.dropWhile isWithinUrlMethod
+
+--------------------------------------------------
+
+{-  Whether a string looks like a /Web @URI@/.
+
+-}
+
+--------------------------------------------------
+
+{- | Whether a `URL` looks like a /Web @URI@/ (i.e. /@HTTP(S)@/).
 
 == Examples
 
 >>> :set -XOverloadedStrings
->>> isUrlHttps "https://mtgjson.com/json/Vintage.json.gz"
+>>> doesUrlStartWithKnownWebScheme "https://mtgjson.com"
+Just "https"
+>>> doesUrlStartWithKnownWebScheme "http://mtgjson.com"
+Just "http"
+>>> doesUrlStartWithKnownWebScheme "file://mtgjson.com"
+Nothing
+>>> doesUrlStartWithKnownWebScheme "mtgjson.com"
+Nothing
+
+The /URI Spec/ requires schemes be case-insensitive,
+and thus requires accepting uppercase schemes (e.g. @HTTPS:// ...@)
+as equivalent to their lowercase for (i.e. @https:// ...@).
+
+>>> :set -XOverloadedStrings
+>>> doesUrlStartWithKnownWebScheme "HTTPS://mtgjson.com"
+Just "https"
+>>> doesUrlStartWithKnownWebScheme "HTTP://mtgjson.com"
+Just "http"
+
+-}
+
+doesUrlStartWithKnownWebScheme :: URL -> Maybe Text
+doesUrlStartWithKnownWebScheme (URL tSensitive) = mScheme
+  where
+
+  tInsensitive :: CI Text
+  tInsensitive = CI.mk tSensitive
+
+  mScheme = schemes
+    & Map.foldMapWithKey (\scheme match -> if match then Just (First scheme) else Nothing)
+    & fmap getFirst
+    & fmap CI.foldedCase
+
+  schemes
+    = knownWebSchemes
+    & Map.fromSet (\scheme -> let prefix = scheme <> "://" in CI.foldedCase prefix `Text.isPrefixOf` CI.foldedCase tInsensitive)
+
+--------------------------------------------------
+-- Utilities: URL --------------------------------
+--------------------------------------------------
+
+{- | Whether a `URL` looks like an @HTTPS@ one.
+
+== Examples
+
+>>> :set -XOverloadedStrings
+>>> isUrlHttps "https://mtgjson.com"
 True
->>> isUrlHttps "GET https://mtgjson.com/json/Vintage.json.gz"
+>>> isUrlHttps "GET https://mtgjson.com"
 True
+>>> isUrlHttps "GET HTTPS://mtgjson.com"
+True
+
+The /URI Spec/ requires schemes be case-insensitive,
+and thus requires accepting uppercase schemes (e.g. @HTTPS:// ...@)
+as equivalent to their lowercase for (i.e. @https:// ...@).
 
 >>> :set -XOverloadedStrings
 >>> isUrlHttps "mtgjson.com"
@@ -1146,20 +1606,25 @@ False
 False
 >>> isUrlHttps "GET http://mtgjson.com"
 False
+>>> isUrlHttps "GET HTTP://mtgjson.com"
+False
 
 -}
 
 isUrlHttps :: URL -> Bool
-isUrlHttps (URL t) = hasHttpsPrefix t || hasHttpsPrefix t'
-  where
+isUrlHttps (URL url1) = List.any id
 
-  t' = t & Text.dropWhile isWithinUrlMethod
+  [ hasHttpsPrefix url1
 
-  hasHttpsPrefix :: Text -> Bool
-  hasHttpsPrefix = Text.isPrefixOf "https://"
+  , case splitHttpMethodFromHttpUri (URL url1) of
+      Just (_, url2) -> hasHttpsPrefix url2
+      Nothing        -> False
+  ]
+ 
+--------------------------------
 
-  isWithinUrlMethod :: Char -> Bool
-  isWithinUrlMethod c = Char.isUpper c || Char.isSpace c 
+hasHttpsPrefix :: Text -> Bool
+hasHttpsPrefix = Text.toLower > Text.isPrefixOf "https://"
 
 --------------------------------------------------
 -- Utilities -------------------------------------
@@ -1171,7 +1636,10 @@ isUrlHttps (URL t) = hasHttpsPrefix t || hasHttpsPrefix t'
 -- Notes -----------------------------------------
 --------------------------------------------------
 
--- 
+-- « Data.Map »:
+--
+-- foldMapWithKey :: Monoid m => (k -> a -> m) -> Map k a -> m
+--
 
 --------------------------------------------------
 -- EOF -------------------------------------------

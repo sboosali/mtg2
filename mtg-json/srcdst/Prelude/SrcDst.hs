@@ -26,7 +26,7 @@ import "spiros" Prelude.Spiros as EXPORT
 
 --------------------------------------------------
 
-import "filepath" System.FilePath as EXPORT ( (</>) )
+import "filepath" System.FilePath as EXPORT ( (</>), (<.>) )
 
 --------------------------------------------------
 -- Imports ---------------------------------------
