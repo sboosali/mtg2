@@ -4542,6 +4542,221 @@ parseSrcAsHandle s = \case
 
 
 
+{- | Whether a `URL` starts with one of the `knownHttpMethods`.
+
+Returns the /HTTP Method/ that's a prefix.
+
+== Examples
+
+>>> startsWithKnownHttpMethod "https://hackage.haskell.org/package/srcdst"
+Nothing
+>>> startsWithKnownHttpMethod "GET https://hackage.haskell.org/package/srcdst"
+Just "GET"
+
+Case-sensitive:
+
+>>> startsWithKnownHttpMethod "get https://hackage.haskell.org/package/srcdst"
+Nothing
+
+Whitespace is required to separate the method from the rest of the URL:
+
+>>> startsWithKnownHttpMethod "GEThttps://hackage.haskell.org/package/srcdst"
+Nothing
+
+-}
+
+startsWithKnownHttpMethod :: Text -> Maybe Text
+startsWithKnownHttpMethod t = List.any Text. knownHttpMethods t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  guess s
+      = parseSrcAsHandle s
+    <|> parseSrcAsFile   s
+    <|> parseSrcAsUrl    s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{- 
+
+e.g. /filepath/s:
+
+>>> parseSrc "./mtg.json"
+SrcFile "./mtg.json"
+>>> parseSrc "          ./mtg.json          "
+SrcFile "./mtg.json"
+
+e.g. /URI/s:
+
+>>> parseSrc "https://mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+>>> parseSrc "http://mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "http://mtgjson.com/json/AllCards.json.gz")
+>>> parseSrc "mtgjson.com/json/AllCards.json.gz"
+SrcUri (URL "https://mtgjson.com/json/AllCards.json.gz")
+
+e.g. Guess whether a suffix a /File Extension/ or a /Top-Level Domain/ (“TLD”):
+
+>>> parseSrc "mtg.json"         -- guess a File ("json" is an uncommon TLD)
+SrcFile "./mtg.json"
+>>> parseSrc "mtg.org"          -- guess a URI ("com" is a common TLD)
+SrcUri (URL "GET https://mtg.org")
+
+e.g. Unabmiguous parsing (no guessing) via /URI Protocol/:
+
+>>> parseSrc "file://mtgjson.com/json/AllCards.json.gz"
+SrcFile "mtgjson.com/json/AllCards.json.gz"
+>>> parseSrc "https://./mtg.json"
+SrcUri (URL "https://mtg.json")
+
+e.g. Unabmiguous parsing (no guessing) via /Filepath Literals/:
+
+>>> parseSrc "mtg.org"
+SrcUri (URL "https://mtg.org")
+>>> parseSrc "./mtg.org"
+SrcFile "./mtg.org"
+
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+checkdocs:
+	@printf "\n%s\n" "========================================"
+	@printf "%s\n\n" "Testing Documentation..."
+
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-types:test:doc"
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-json:test:doc"
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-csv:test:doc"
+	$(Cabal) new-test $(CabalOptions) --enable-tests "mtg-sql:test:doc"
+
+#	@printf "\n%s\n" "========================================"
+#	@printf "%s\n\n" "Generating Documentation..."
+#
+#	$(Cabal) new-haddock $(CabalTargets)
+#
+#	@printf "\n%s\n" "========================================"
+
+.PHONY: checkdocs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+maybe2bool = maybe False (const True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+isUrlHttps :: URL -> Bool
+isUrlHttps (URL t) = hasHttpsPrefix t || hasHttpsPrefix t'
+  where
+
+  t' = t & Text.dropWhile isWithinUrlMethod
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+isUrlHttps :: URL -> Bool
+isUrlHttps url = hasHttpsPrefix url1 || hasHttpsPrefix url2
+
+  where
+
+  URL url1 = url
+
+  (_, url2) = splitHttpMethodFromHttpUri url
+
+
+
+
+
+
+
+
+
+
 
 
 
