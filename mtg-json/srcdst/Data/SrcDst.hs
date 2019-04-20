@@ -90,8 +90,10 @@ module Data.SrcDst
 
   , knownHttpMethods
   , knownWebSchemes
-  , knownTopLevelDomain
+  , knownTopLevelDomains
+
   , knownFileExtensions
+  , knownFilePrefices
 
   ) where
 
@@ -103,6 +105,10 @@ import Prelude.SrcDst
 
 --------------------------------------------------
 --- Imports --------------------------------------
+--------------------------------------------------
+
+import qualified "filepath" System.FilePath as File
+
 --------------------------------------------------
 
 import qualified "containers" Data.Map as Map
@@ -909,6 +915,47 @@ SrcStdin
 >>> parseSrc "stdin"
 SrcStdin
 
+e.g. /filepath/s:
+
+>>> parseSrc "./mtg.json"
+SrcFile "./mtg.json"
+>>> parseSrc "~/mtg.json"
+SrcFile "~/mtg.json"
+>>> parseSrc "          ./mtg.json          "
+SrcFile "./mtg.json"
+
+e.g. /URI/s:
+
+>>> parseSrc "https://mtgjson.com/json/AllCards.json.gz"
+SrcUri "https://mtgjson.com/json/AllCards.json.gz"
+>>> parseSrc "http://mtgjson.com/json/AllCards.json.gz"
+SrcUri "http://mtgjson.com/json/AllCards.json.gz"
+
+>> parseSrc "mtgjson.com/json/AllCards.json.gz"
+SrcUri "https://mtgjson.com/json/AllCards.json.gz"
+
+e.g. Guess whether a suffix a /File Extension/ or a /Top-Level Domain/ (“TLD”):
+
+>>> parseSrc "mtg.json"         -- guess a File ("json" is an uncommon TLD)
+SrcFile "mtg.json"
+>>> parseSrc "mtg.org"          -- guess a URI ("org" is a common TLD)
+SrcUri "mtg.org"
+
+e.g. Unabmiguous parsing (no guessing) via /URI Protocol/:
+
+>>> parseSrc "file://mtgjson.com/json/AllCards.json.gz"
+SrcFile "file://mtgjson.com/json/AllCards.json.gz"
+
+>> parseSrc "https://./mtg.json"
+SrcUri "https://./mtg.json"
+
+e.g. Unabmiguous parsing (no guessing) via /Filepath Literals/:
+
+>>> parseSrc "mtg.com"
+SrcUri "mtg.com"
+>>> parseSrc "./mtg.com"
+SrcFile "./mtg.com"
+
 -}
 
 parseSrc :: String -> Src
@@ -930,47 +977,6 @@ parseSrc = munge > go
 
   munge = lrstrip
 
-{- 
-
-e.g. /filepath/s:
-
->>> parseSrc "./mtg.json"
-SrcFile "./mtg.json"
->>> parseSrc "          ./mtg.json          "
-SrcFile "./mtg.json"
-
-e.g. /URI/s:
-
->>> parseSrc "https://mtgjson.com/json/AllCards.json.gz"
-SrcUri "https://mtgjson.com/json/AllCards.json.gz"
->>> parseSrc "http://mtgjson.com/json/AllCards.json.gz"
-SrcUri "http://mtgjson.com/json/AllCards.json.gz"
->>> parseSrc "mtgjson.com/json/AllCards.json.gz"
-SrcUri "https://mtgjson.com/json/AllCards.json.gz"
-
-e.g. Guess whether a suffix a /File Extension/ or a /Top-Level Domain/ (“TLD”):
-
->>> parseSrc "mtg.json"         -- guess a File ("json" is an uncommon TLD)
-SrcFile "./mtg.json"
->>> parseSrc "mtg.org"          -- guess a URI ("com" is a common TLD)
-SrcUri "GET https://mtg.org"
-
-e.g. Unabmiguous parsing (no guessing) via /URI Protocol/:
-
->>> parseSrc "file://mtgjson.com/json/AllCards.json.gz"
-SrcFile "mtgjson.com/json/AllCards.json.gz"
->>> parseSrc "https://./mtg.json"
-SrcUri "https://mtg.json")
-
-e.g. Unabmiguous parsing (no guessing) via /Filepath Literals/:
-
->>> parseSrc "mtg.org"
-SrcUri "https://mtg.org"
->>> parseSrc "./mtg.org"
-SrcFile "./mtg.org"
-
--}
-
 --------------------------------------------------
 
 {- | Parse a `SrcFile` (if able).
@@ -980,10 +986,48 @@ Guesses are based on the:
 * Prefix — looks like a /filepath literal/ (e.g. @"./_"@ org @"C:\\_"@).
 * Suffix — is a (common) /file extension/ (e.g. @"_.tar.gz"@).
 
+== Related
+
+* `knownFilePrefices`
+* `knownFileExtensions`
+
 -}
 
 parseSrcAsFile :: String -> Maybe Src
-parseSrcAsFile _s = Nothing
+parseSrcAsFile string =
+
+  if   startsAsLiteral || endsWithExtension
+  then Just (SrcFile fp)
+  else Nothing
+
+  where
+
+  ------------------------------
+
+  fp :: FilePath
+  fp = string
+
+  text :: Text
+  text = fp & Text.pack
+
+  ------------------------------
+
+  extension :: Maybe (CI Text)
+  extension = grabExtension fp
+
+  ------------------------------
+
+  startsAsLiteral :: Bool
+  startsAsLiteral = List.any
+    (\prefix -> prefix `Text.isPrefixOf` text)
+    (Text.pack <$> Set.toList knownFilePrefices)
+
+  endsWithExtension :: Bool
+  endsWithExtension
+    = extension
+    & maybe False (`Set.member` knownFileExtensions)
+
+  ------------------------------
 
 --------------------------------------------------
 
@@ -995,12 +1039,18 @@ Guesses are based on the:
 * Prefix — is a (common) /URI Scheme/ for the Internet (e.g. @"http://_"@).
 * Suffix — is a (common) /Top-Level Domain/ (e.g. @"_.com"@).
 
+== Related
+
+* `knownHttpMethods`
+* `knownWebSchemes`
+* `knownTopLevelDomains`
+
 -}
 
 parseSrcAsUrl :: String -> Maybe Src
-parseSrcAsUrl s =
+parseSrcAsUrl string =
 
-  if   startsWithMethod || startsWithScheme
+  if   startsWithMethod || startsWithScheme || endsWithTLD
   then Just (SrcUri url)
   else Nothing
 
@@ -1009,20 +1059,37 @@ parseSrcAsUrl s =
   ------------------------------
 
   url :: URL
-  url = toUrl s
+  url = toUrl string
+
+  t :: Text
+  URL t = url
+
+  s :: String
+  s = Text.unpack t
+
+  ------------------------------
 
   (method', url') = splitMethodScheme url
+
+  extension :: Maybe (CI Text)
+  extension = grabExtension s
 
   ------------------------------
 
   startsWithMethod :: Bool
-  startsWithMethod = method'
+  startsWithMethod
+    = method'
     & maybe2bool
 
   startsWithScheme :: Bool
   startsWithScheme = List.any
     (doesUrlStartWithKnownWebScheme > maybe2bool)
     (catMaybes [ Just url, url' ])
+
+  endsWithTLD :: Bool
+  endsWithTLD
+    = extension
+    & maybe False (`Set.member` knownTopLevelDomains)
 
   ------------------------------
 
@@ -1294,8 +1361,8 @@ knownWebSchemes = Set.fromList
 
 -}
 
-knownTopLevelDomain :: Set (CI Text)
-knownTopLevelDomain = Set.fromList
+knownTopLevelDomains :: Set (CI Text)
+knownTopLevelDomains = Set.fromList
 
   [ "com"
   , "org"
@@ -1387,6 +1454,65 @@ knownFileExtensions
   tarballExtensions =
 
     [ "zip"
+    ]
+
+--------------------------------------------------
+
+{- | Strings which looks like the start of a /FilePath Literal/.
+
+== Links
+
+* <https://nixos.wiki/wiki/Nix_Expression_Language>
+
+-}
+
+knownFilePrefices :: Set FilePath
+knownFilePrefices = allPrefices & Set.fromList
+
+  where
+
+  ------------------------------
+
+  allPrefices :: [FilePath]
+  allPrefices = concat
+
+    [ posixPrefices
+    , windowsPrefices
+    ]
+
+  posixPrefices :: [FilePath]
+  posixPrefices =
+
+    ("/" : ((<> "/") <$> knownDirectorySymbols))
+
+  windowsPrefices :: [FilePath]
+  windowsPrefices = concat
+
+    [ concat do
+        s <- knownDriveLetters
+        return [ s <> "://", s <> ":\\\\" ]
+    ]
+
+  ------------------------------
+
+  knownDirectorySymbols :: [FilePath]
+  knownDirectorySymbols = 
+
+    [ "."
+    , "~"
+    ]
+
+  ------------------------------
+
+  knownDriveLetters :: [FilePath]
+  knownDriveLetters = 
+
+    [ "C"
+    , "D"
+    , "E"
+    , "F"
+    , "G"
+    , "H"
     ]
 
 --------------------------------------------------
@@ -1630,7 +1756,18 @@ hasHttpsPrefix = Text.toLower > Text.isPrefixOf "https://"
 -- Utilities -------------------------------------
 --------------------------------------------------
 
---TODO-- ordered-containers Data-Set-Ordered
+grabExtension :: FilePath -> Maybe (CI Text)
+grabExtension fp =
+
+  if   null ext
+  then Nothing
+  else Just (fromString ext)
+
+  where
+
+    ext  = ext2
+    ext2 = ext1 & dropWhile (== '.')
+    ext1 = fp & File.takeExtension
 
 --------------------------------------------------
 -- Notes -----------------------------------------
@@ -1640,6 +1777,8 @@ hasHttpsPrefix = Text.toLower > Text.isPrefixOf "https://"
 --
 -- foldMapWithKey :: Monoid m => (k -> a -> m) -> Map k a -> m
 --
+
+--TODO-- ordered-containers Data-Set-Ordered
 
 --------------------------------------------------
 -- EOF -------------------------------------------
