@@ -4119,6 +4119,41 @@ conduitRemoteSrcs (RemoteSrcs srcs) = do
 
 
 
+{- | Generalize `LocalSrc`s and `RemoteSrc`s (to `Src`s).
+
+Inverts `partitionSrcs`.
+
+-}
+
+unifySrcs :: RemoteSrcs -> LocalSrcs -> [Src]
+unifySrcs (RemoteSrcs remotes) (LocalSrcs locals) = sources
+  where
+
+  sources = (Set.toList remotes') <> (Set.toList locals')
+
+  remotes' = (fromRemoteSrc <$> remotes)
+  locals'  = (fromLocalSrc  <$> locals)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
