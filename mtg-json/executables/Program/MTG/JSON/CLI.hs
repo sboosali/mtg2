@@ -355,8 +355,9 @@ pPrint = P.argument rPrint fields
 
   cs :: [(String, Subcommand)]
   cs =
-    [ "version"-: PrintVersion
-    , "license"-: PrintLicense
+    [ "version"  -: PrintVersion
+    , "license"  -: PrintLicense
+    , "examples" -: PrintExamples
     ]
 
 {-# INLINEABLE pPrint #-}

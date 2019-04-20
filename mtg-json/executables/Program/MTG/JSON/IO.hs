@@ -74,18 +74,6 @@ import qualified "directory" System.Directory as Directory
 
 --------------------------------------------------
 
-import qualified "bytestring" Data.ByteString            as Strict
-import qualified "bytestring" Data.ByteString.Lazy       as Lazy
-import qualified "bytestring" Data.ByteString.Lazy.Char8 as ASCII
-
-import           "bytestring" Data.ByteString ( ByteString )
-
---------------------------------------------------
-
-import qualified "base" System.IO as IO
-
-import qualified "base" Prelude
-
 --------------------------------------------------
 -- IO --------------------------------------------
 --------------------------------------------------
@@ -116,6 +104,9 @@ runCommand Command{ subcommand, options } = go subcommand
       PrintLicense -> do
         printLicense options
 
+      PrintExamples -> do
+        printExamples options
+
 --------------------------------------------------
 
 {- | 
@@ -124,6 +115,8 @@ runCommand Command{ subcommand, options } = go subcommand
 
 @
 $ mtg-json fetch --input ... --output ... (all | vintage | ...)
+
+$ mtg-json fetch --input=vintage --output=stdout > ./mtg.json.gz
 @
 
 TODO: multiple inputs/outputs:
@@ -145,7 +138,7 @@ $ mtg-json fetch --input="https://mtgjson.com/json/AllCards.json.gz" --output=./
 
 -}
 
-fetchMTG :: Options -> SrcDst -> IO ()
+fetchMTG :: Options -> SrcDst -> IO ()  -- TODO -- ExitCode
 fetchMTG Options{..} SrcDst{src,dst} = do
 
   putStdErr sSrc
@@ -163,7 +156,29 @@ fetchMTG Options{..} SrcDst{src,dst} = do
   runTruly :: IO ()
   runTruly = do
 
-      Conduit.runConduitRes mSrcDst
+      bGood <- case dst of
+
+        DstFile fp -> case forcefulness of
+
+          RespectExisting -> do
+
+            let e = runFormat ("\n[ERROR] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< " % Format.string % " >>> with the <<< --force >>> option to overwrite.\n") fp programExecutable
+            -- TODO -- prompt user to confirm.
+
+            bExists <- Directory.doesPathExist fp
+            if   bExists
+            then do putStdErr e -- TODO -- async printing
+                    return False
+            else return True
+
+          OverwriteExisting -> return True
+
+        _ -> return True
+
+      if   bGood
+      then do
+             Conduit.runConduitRes mSrcDst -- ExitSuccess
+      else nothing              -- ExitFailure 1
 
   ------------------------------
 
@@ -196,24 +211,6 @@ fetchMTG Options{..} SrcDst{src,dst} = do
   sDst = runFormat ("\nSaving to:     {{{ " % Format.string % " }}}...\n") s
       where
       s = prettyDst dst
-
-  ------------------------------
-
-  writeDst :: FilePath -> (MTGHS String) -> IO ()
-  writeDst fp (MTGHS mtg) = case forcefulness of
-
-      RespectExisting -> do
-
-        let e = runFormat ("\n[ERROR] Filepath {{{ " % Format.string % " }}} already exists. Rerun <<< " % Format.string % " >>> with the <<< --force >>> option to overwrite.\n") fp programExecutable -- TODO -- prompt user to confirm.
-
-        bExists <- Directory.doesPathExist fp
-        if   bExists
-        then putStdErr e
-        else IO.writeFile fp mtg
-
-      OverwriteExisting -> do
-
-        IO.writeFile fp mtg
 
   ------------------------------
 
@@ -299,6 +296,43 @@ printLicense Options{..} = do
     putStrLn $ programLicenseContents
 
 {-# INLINEABLE printLicense #-}
+
+--------------------------------------------------
+
+{- | 
+
+== CLI
+
+@
+$ mtg-json print examples
+@
+
+-}
+
+printExamples :: Options -> IO ()
+printExamples Options{..} = do
+
+  go verbose
+
+  where
+
+  go = \case
+
+    Quiet   -> printExamplesConcise
+    Concise -> printExamplesConcise
+
+    Verbose -> printExamplesVerbose
+    Loud    -> printExamplesVerbose
+
+  printExamplesConcise = do
+
+    putStrLn `traverse_` programExamples
+
+  printExamplesVerbose = do
+
+    printExamplesConcise
+
+{-# INLINEABLE printExamples #-}
 
 --------------------------------------------------
 -- Functions -------------------------------------

@@ -84,6 +84,7 @@ data Subcommand
 
   = PrintVersion
   | PrintLicense
+  | PrintExamples
 
   | Fetch SrcDst
 
