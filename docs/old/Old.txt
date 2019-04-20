@@ -4759,6 +4759,244 @@ isUrlHttps url = hasHttpsPrefix url1 || hasHttpsPrefix url2
 
 
 
+parseSrcAsUrl :: String -> Maybe Src
+parseSrcAsUrl s =
+
+  if   hasMethod || hasScheme
+  then Just (SrcUri url)
+  else Nothing
+
+  where
+
+  url = toUrl s
+
+  hasMethod
+    = startsWithKnownHttpMethod url
+    & maybe2bool
+
+  hasScheme
+    = startsWithKnownHttpScheme url
+    & maybe2bool
+
+
+
+
+
+
+
+
+
+
+
+  where
+
+  ------------------------------
+
+  url :: URL
+  url = toUrl s
+
+  (method', url') = 
+
+  ------------------------------
+
+  hasMethod :: Bool
+  hasMethod
+    = startsWithMethod url
+    & maybe2bool
+
+  hasScheme :: Bool
+  hasScheme
+    = startsWithKnownHttpScheme url
+    & maybe2bool
+
+  ------------------------------
+
+  startsWithMethod :: URL -> Bool
+  startsWithMethod = _
+
+  startsWithScheme :: URL -> Bool
+  startsWithScheme = _
+
+  ------------------------------
+
+  splitMethodScheme :: URL -> ( Maybe Text, Maybe URL )
+  splitMethodScheme url = case splitHttpMethodFromHttpUri url of
+
+    Nothing                 -> ( Nothing, Nothing )
+    Just ( prefix, suffix ) -> ( Just prefix, Just (toURL suffix) )
+
+
+
+
+
+
+
+
+
+  startsWithScheme :: Bool
+  startsWithScheme
+      = (url  & doesUrlStartWithKnownHttpScheme)
+     || (url' & doesUrlStartWithKnownHttpScheme)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+doesUrlStartWithKnownWebScheme :: URL -> Maybe Text
+doesUrlStartWithKnownWebScheme (URL tSensitive) = mScheme
+  where
+
+  tInsensitive :: CI Text
+  tInsensitive = CI.mk tSensitive
+
+  mScheme = schemes
+
+  schemes
+    = knownWebSchemes
+    & Map.fromSet (\scheme -> scheme `Text.isPrefixOf` tSensitive)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  allExtensions = concat
+
+    [ baseExtensions
+
+    , do ext1 <- baseExtensions
+         ext2 <- archivedExtensions
+         return (ext1 <.> ext2)
+
+    , do ext1 <- baseExtensions
+         ext3 <- compressedExtensions
+         return (ext1 <.> ext3)
+
+    , do ext1 <- baseExtensions
+         ext2 <- archivedExtensions
+         ext3 <- compressedExtensions
+         return (ext1 <.> ext2 <.> ext3)
+
+    , do ext1 <- baseExtensions
+         ext2 <- tarballExtensions
+         return (ext1 <.> ext2)
+
+    ]
+
+  baseExtensions =
+
+    [ "json"
+    , "txt"
+    ]
+
+  archivedExtensions =
+
+    [ "tar"
+  --  , ""
+    ]
+
+  compressedExtensions =
+
+    [ "gz"
+    , "bz2"
+    , "xz"
+    ]
+
+  tarballExtensions =
+
+    [ "zip"
+    ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
