@@ -93,13 +93,21 @@ pattern TereseNielsen = Artist "Terese Nielsen"
 
 -- | @≡ 'ppArtist'@
 
-instance Pretty Artist where
-
-  pretty = ppArtist def
+instance Pretty Artist where pretty = ppArtist def
 
 --------------------------------------------------
 
-{- | -}
+{- | Pretty-Prist an artist's name.
+
+== Examples
+
+>>> show (ppArtist PrettyConfig{ unicode = Enable } QuintonHoover) == "🖌 Quinton Hoover"
+True
+
+>>> show (ppArtist PrettyConfig{ unicode = Enable } QuintonHoover)
+"🖌 Quinton Hoover"
+
+-}
 
 ppArtist :: PrettyConfig -> Artist -> Doc i
 ppArtist PrettyConfig{..} (Artist t) =
@@ -108,10 +116,10 @@ ppArtist PrettyConfig{..} (Artist t) =
 
   where
 
-  prefix =
-    if   useUnicode
-    then u_LOWER_LEFT_PAINTBRUSH <> " "
-    else mempty
+  prefix = case unicode of
+
+    Enable  -> pretty LOWER_LEFT_PAINTBRUSH <> " "
+    Disable -> mempty
 
 --------------------------------------------------
 -- Parse -----------------------------------------

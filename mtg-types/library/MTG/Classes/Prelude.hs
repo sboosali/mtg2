@@ -43,6 +43,23 @@ import           "prettyprinter" Data.Text.Prettyprint.Doc ( Doc )
 type Assoc a = [( Text, a )]
 
 --------------------------------------------------
+
+{- | Whether a setting has been /enabled/ or /disabled/.
+
+-}
+
+data Able
+
+  = Enable
+  | Disable
+
+  deriving stock    (Enum,Bounded,Ix)
+  deriving anyclass (GEnum)
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 

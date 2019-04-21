@@ -25,6 +25,7 @@ module MTG.Types.Prelude
 
   ( module MTG.Types.Prelude
 
+  , module MTG.Constants
   , module MTG.Types.Errors
   , module MTG.Classes.Print
   , module MTG.Classes.Parse
@@ -37,11 +38,12 @@ module MTG.Types.Prelude
 -- Exports ---------------------------------------
 --------------------------------------------------
 
+import MTG.Constants
+
 import MTG.Types.Errors
 
 import MTG.Classes.Print
 import MTG.Classes.Parse
-
 import MTG.Classes.Prelude
 
 --------------------------------------------------

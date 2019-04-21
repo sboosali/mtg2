@@ -20,7 +20,7 @@ module MTG.Constants.Unicode where
 -- Imports ---------------------------------------
 --------------------------------------------------
 
---import qualified "text" Data.Text as Text
+import "spiros" Prelude.Spiros
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -29,11 +29,41 @@ module MTG.Constants.Unicode where
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
+-- printed...
 
--- | @≡ "🖌"@
-pattern LOWER_LEFT_PAINTBRUSH :: String
-pattern LOWER_LEFT_PAINTBRUSH = "🖌"
+{- | @—@ -}
+pattern EM_DASH :: Char
+pattern EM_DASH = '—'
+
+{- | @🖌@ -}
+pattern LOWER_LEFT_PAINTBRUSH :: Char
+pattern LOWER_LEFT_PAINTBRUSH = '🖌'
 
 --------------------------------------------------
+-- numbers...
+
+{- | @①@ -}
+pattern CIRCLED_DIGIT_ONE :: Char
+pattern CIRCLED_DIGIT_ONE = '①'
+
+{- | @②@ -}
+pattern CIRCLED_DIGIT_TWO :: Char
+pattern CIRCLED_DIGIT_TWO = '②'
+
+{- | @③@ -}
+pattern CIRCLED_DIGIT_THREE :: Char
+pattern CIRCLED_DIGIT_THREE = '③'
+
+--------------------------------------------------
+
+-- '●' BLACK CIRCLE
+
+-- '∅' EMPTY SET
+
+--------------------------------------------------
+-- Notes -----------------------------------------
+{-------------------------------------------------
+
+-------------------------------------------------}
 -- EOF -------------------------------------------
 --------------------------------------------------

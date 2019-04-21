@@ -434,6 +434,8 @@ library
 
                 ---------------
 
+                , MTG.Struct.Typeline
+
                 , MTG.Enum.Color
 
                 ---------------
@@ -444,6 +446,7 @@ library
 
                 , MTG.Text.List.Colors
                 , MTG.Text.List.ManaCost
+--                , MTG.Text.List.Types
 
                 , MTG.Text.Artist
                 , MTG.Text.Block

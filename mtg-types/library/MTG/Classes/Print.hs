@@ -102,6 +102,37 @@ data MTGAnnotation
   deriving anyclass (NFData,Hashable)
 
 --------------------------------------------------
+--------------------------------------------------
+
+{- | Configurable pretty-printing.
+
+-}
+
+data PrettyConfig = PrettyConfig
+
+  { unicode :: Able
+  }
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'defaultPrettyConfig'@
+
+instance Default PrettyConfig where def = defaultPrettyConfig
+
+--------------------------------------------------
+
+{- |  -}
+
+defaultPrettyConfig :: PrettyConfig
+defaultPrettyConfig = PrettyConfig{..}
+  where
+  unicode = Disable
+
+--------------------------------------------------
 -- Constants -------------------------------------
 --------------------------------------------------
 

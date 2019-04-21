@@ -21,32 +21,32 @@
 
 Construction:
 
-e.g. 'toColors':
+e.g. 'toTypes':
 
->>> toColors [ Blue, Green, Green, Blue ]
-Colors ["Green","Blue"]
->>> toColors ["Green","Blue"] == toColors ["Blue","Green"]
+>>> toTypes [ Blue, Green, Green, Blue ]
+Types ["Green","Blue"]
+>>> toTypes ["Green","Blue"] == toTypes ["Blue","Green"]
 True
 
 Printing (see 'pretty'):
 
-e.g. 'prettyColors':
+e.g. 'prettyTypes':
 
 >>> pretty Simic
 GU
 
 Parsing (see 'parser'):
 
-e.g. 'parseColors':
+e.g. 'parseTypes':
 
->>> parseColors "UG"
-Colors ["Green","Blue"]
+>>> parseTypes "UG"
+Types ["Green","Blue"]
 
 -}
 
-module MTG.Text.List.Colors
+module MTG.Text.List.Types
 
-  ( module MTG.Text.List.Colors
+  ( module MTG.Text.List.Types
   ) where
 
 --------------------------------------------------
@@ -55,8 +55,10 @@ module MTG.Text.List.Colors
 
 import MTG.Types.Prelude
 
-import qualified MTG.Enum.Color as Color
-import           MTG.Text.Color
+--import qualified MTG.Enum.Type as Type
+import           MTG.Text.Subtype
+import           MTG.Text.Cardtype
+import           MTG.Text.Supertype
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -82,13 +84,13 @@ import qualified "text" Data.Text as Text
 
 == Constructors
 
-* 'toColors'
+* 'toTypes'
 
 -}
 
-newtype Colors = Colors
+newtype Types = Types
 
-  [Color]
+  [Type]
 
   deriving stock    (Show,Read)
   deriving stock    (Data,Generic)
@@ -98,67 +100,67 @@ newtype Colors = Colors
 
 --------------------------------------------------
 
--- | @≡ 'toColors'@
+-- | @≡ 'toTypes'@
 
-instance IsList Colors where
-  type Item Colors = Color
-  fromList = toColors
+instance IsList Types where
+  type Item Types = Color
+  fromList = toTypes
   toList   = coerce
 
 --------------------------------------------------
 
--- | @≡ 'parseColors'@
+-- | @≡ 'parseTypes'@
 
-instance IsString Colors where
-  fromString = fromString_MonadThrow parseColors
+instance IsString Types where
+  fromString = fromString_MonadThrow parseTypes
 
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
--- Guilds (ally-colors)...
+-- Guilds (ally-types)...
 
 -- | @≡ ['White', 'Blue']@
-pattern Azorius :: Colors
-pattern Azorius = Colors [White, Blue]
+pattern Azorius :: Types
+pattern Azorius = Types [White, Blue]
 
 -- | @≡ ['Blue', 'Black']@
-pattern Dimir :: Colors
-pattern Dimir = Colors [Blue, Black]
+pattern Dimir :: Types
+pattern Dimir = Types [Blue, Black]
 
 -- | @≡ ['Black', 'Red']@
-pattern Rakdos :: Colors
-pattern Rakdos = Colors [Black, Red]
+pattern Rakdos :: Types
+pattern Rakdos = Types [Black, Red]
 
 -- | @≡ ['Red', 'Green']@
-pattern Gruul :: Colors
-pattern Gruul = Colors [Red, Green]
+pattern Gruul :: Types
+pattern Gruul = Types [Red, Green]
 
 -- | @≡ ['Green', 'White']@
-pattern Selesnya :: Colors
-pattern Selesnya = Colors [Green, White]
+pattern Selesnya :: Types
+pattern Selesnya = Types [Green, White]
 
 --------------------------------------------------
 -- Guilds (enemy-color)...
 
 -- | @≡ ['White', 'Black']@
-pattern Orzhov :: Colors
-pattern Orzhov = Colors [White, Black]
+pattern Orzhov :: Types
+pattern Orzhov = Types [White, Black]
 
 -- | @≡ ['Blue', 'Red']@
-pattern Izzet :: Colors
-pattern Izzet = Colors [Blue, Red]
+pattern Izzet :: Types
+pattern Izzet = Types [Blue, Red]
 
 -- | @≡ ['Black', 'Green']@
-pattern Golgari :: Colors
-pattern Golgari = Colors [Black, Green]
+pattern Golgari :: Types
+pattern Golgari = Types [Black, Green]
 
 -- | @≡ ['Red', 'White']@
-pattern Boros :: Colors
-pattern Boros = Colors [Red, White]
+pattern Boros :: Types
+pattern Boros = Types [Red, White]
 
 -- | @≡ ['Green', 'Blue']@
-pattern Simic :: Colors
-pattern Simic = Colors [Green, Blue]
+pattern Simic :: Types
+pattern Simic = Types [Green, Blue]
 
 --------------------------------------------------
 -- Shards...
@@ -170,7 +172,7 @@ pattern Simic = Colors [Green, Blue]
 -- Constants -------------------------------------
 --------------------------------------------------
 
-allGuilds :: [Colors]
+allGuilds :: [Types]
 allGuilds =
 
   [ Azorius
@@ -187,7 +189,7 @@ allGuilds =
 
 --------------------------------------------------
 {-
-knownTrichromes :: Colors
+knownTrichromes :: Types
 knownTrichromes =
 
   [ 
@@ -196,7 +198,7 @@ knownTrichromes =
 
 --------------------------------------------------
 
-knownTetrachromes :: Colors
+knownTetrachromes :: Types
 knownTetrachromes =
 
   [ 
@@ -208,35 +210,35 @@ knownTetrachromes =
 -- Functions -------------------------------------
 --------------------------------------------------
 
--- | Accessor for 'Colors'.
+-- | Accessor for 'Types'.
 
-getColors :: Colors -> [Color]
-getColors (Colors cs) = cs
+getTypes :: Types -> [Color]
+getTypes (Types cs) = cs
 
 --------------------------------------------------
 
--- | Smart Constructor for 'Colors'.
+-- | Smart Constructor for 'Types'.
 
-toColors :: [Color] -> Colors
-toColors unsortedColors = Colors sortedColors
+toTypes :: [Color] -> Types
+toTypes unsortedTypes = Types sortedTypes
   where
 
-  sortedColors = sortColors uniqueColors
-  uniqueColors = ordNub unsortedColors
+  sortedTypes = sortTypes uniqueTypes
+  uniqueTypes = ordNub unsortedTypes
 
 --------------------------------------------------
 
-{- | Wraps `Color.sortMTGColors`.
+{- | Wraps `Color.sortMTGTypes`.
 
 Outputs:
 
-* an /idiomatically sorted/ prefix of known colors.
-* an “unsorted” (i.e. sorted by 'Ord') suffix of unknown colors.
+* an /idiomatically sorted/ prefix of known types.
+* an “unsorted” (i.e. sorted by 'Ord') suffix of unknown types.
 
 -}
 
-sortColors :: [Color] -> [Color]
-sortColors
+sortTypes :: [Color] -> [Color]
+sortTypes
 
   = fmap isColorKnown
   > partitionEithers
@@ -244,21 +246,21 @@ sortColors
 
   where
 
-  go ( unknownColors, knownColors )
-    = sortKnownColors knownColors
-   ++ sortUnknownColors unknownColors
+  go ( unknownTypes, knownTypes )
+    = sortKnownTypes knownTypes
+   ++ sortUnknownTypes unknownTypes
 
-  sortKnownColors :: [Color.Color] -> [Color]
-  sortKnownColors
-    = Color.sortMTGColors
+  sortKnownTypes :: [Color.Color] -> [Color]
+  sortKnownTypes
+    = Color.sortMTGTypes
     > fmap (show > Text.pack > Color)
 
-  sortUnknownColors :: [Text] -> [Color] 
-  sortUnknownColors
+  sortUnknownTypes :: [Text] -> [Color] 
+  sortUnknownTypes
     = sort
     > fmap Color
 
-{-# INLINEABLE sortColors #-}
+{-# INLINEABLE sortTypes #-}
 
 --------------------------------------------------
 
@@ -279,56 +281,58 @@ isColorKnown = \case
 -- Pretty ----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'ppColors'@
+-- | @≡ 'ppTypes'@
 
-instance Pretty Colors where
+instance Pretty Types where
 
-  pretty = ppColors
+  pretty = ppTypes
 
 --------------------------------------------------
 
 -- | 
 
-ppColors :: Colors -> Doc i
-ppColors (Colors cs) = PP.hcat (pretty <$> cs)
+ppTypes :: Types -> Doc i
+ppTypes (Types cs) = PP.hcat (pretty <$> cs)
 
 --------------------------------------------------
 
--- | @≡ 'runPrinter' 'ppColors'@
+-- | @≡ 'runPrinter' 'ppTypes'@
 
-prettyColors :: Colors -> String
-prettyColors = runPrinter ppColors
+prettyTypes :: Types -> String
+prettyTypes = runPrinter ppTypes
+
+-- '—'
 
 --------------------------------------------------
 -- Parse -----------------------------------------
 --------------------------------------------------
 
--- | @≡ 'pColors'@
+-- | @≡ 'pTypes'@
 
-instance Parse Colors where
+instance Parse Types where
 
-  parser = pColors
+  parser = pTypes
 
 --------------------------------------------------
 
-pColors :: (MTGParsing m) => m Colors
-pColors = toColors <$> p
+pTypes :: (MTGParsing m) => m Types
+pTypes = toTypes <$> p
   where
 
   p = many pColor
 
 --------------------------------------------------
 
--- | @≡ 'pColors'@
+-- | @≡ 'pTypes'@
 
-parseColors :: (MonadThrow m) => String -> m Colors
-parseColors = runParser 'Colors pColors 
+parseTypes :: (MonadThrow m) => String -> m Types
+parseTypes = runParser 'Types pTypes 
 
 --------------------------------------------------
 -- Optics ----------------------------------------
 --------------------------------------------------
 
-makePrisms ''Colors
+makePrisms ''Types
 
 --------------------------------------------------
 -- Doctest ---------------------------------------
@@ -346,7 +350,7 @@ makePrisms ''Colors
 --------------------------------------------------
 {-
 
-(defvar sboo-mtg-color-list '(white blue black red green) "All MTG colors.")
+(defvar sboo-mtg-color-list '(white blue black red green) "All MTG types.")
 
 (cl-defun sboo-mtg-read-color (&key prompt)
   (interactive)
@@ -373,7 +377,7 @@ makePrisms ''Colors
          (COLOR1 (s-capitalize color1))
          (COLOR2 (s-capitalize color2))
 
-         (TEXT (format "\n-- | @≡ ['%s', '%s']@\npattern %s :: Colors\npattern %s = Colors [%s, %s]\n" COLOR1 COLOR2 NAME NAME COLOR1 COLOR2))
+         (TEXT (format "\n-- | @≡ ['%s', '%s']@\npattern %s :: Types\npattern %s = Types [%s, %s]\n" COLOR1 COLOR2 NAME NAME COLOR1 COLOR2))
         )
     (insert TEXT)))
 
