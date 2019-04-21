@@ -94,6 +94,7 @@ extra-source-files: LICENSE
 data-dir: data
 
 data-files: json/*.json
+          , schemata/*.schema.json
 
 --------------------------------------------------
 
@@ -462,8 +463,6 @@ common Haskell2020Program
    --------------------
    -- Compilation -----
    --------------------
-
-             -O2
 
    --------------------
    -- Runtime ---------
