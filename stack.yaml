@@ -19,4 +19,6 @@ extra-deps:
 - ../spiros/spiros
 - ../enumerate/enumerate
 
+- conduit-find-0.1.0.3
+
 ##################################################

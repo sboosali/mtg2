@@ -5030,6 +5030,161 @@ import           "bytestring" Data.ByteString ( ByteString )
 
 
 
+data CardObject = CardObject 
+
+  { _uuid                   :: UUID  -- ^ e.g. @"b408de19-f203-502d-8325-28304ec21602"@
+
+  , _artist                 :: String -- ^ e.g. @"\"Ryan Yee\""@. /"Name of the artist that illustrated the card art."/
+
+  , _borderColor            :: String -- ^ e.g. @"Black"@. /"Color of the border. Can be {{code:black}}, {{code:borderless}}, {{code:gold}}, {{code:silver}} or {{code:white}}"@.
+  
+  , _colorIdentity          :: [String] -- ^ e.g. @"[\"B\,\"R\"]"@. /"List of all colors in card’s mana cost, rules text and any color indicator."/
+
+  , _colorIndicator         :: String      -- ^ e.g. @"[\"B\",\"R\"]"@. /"List of all colors in card’s mana cost and any color indicator. Some cards are special (such as Devoid cards or other cards with certain rules text)."/
+
+  , _convertedManaCost      :: Float       -- ^ @"5.0"@. /"The converted mana cost of the card."/
+
+  , _duelDeck               :: String      -- ^ @"\"a\""@. /"If the card is in a duel deck product, can be {{code:a}}(left) or {{code:b}}(right). (If not in duel deck product, duelDeck is usually ommitted.)"/
+
+  , _faceConvertedManaCost  :: Float       -- ^ @"5.0"@. /"The converted mana cost of the face of either half or part of the card."/
+
+  , _flavorText             :: String      -- ^ @"\"Whatever hatred destroys, a single act of trust can revive.\""@. /"Italicized text found below the rules text that has no game function."/
+
+  , _foreignData            :: [String]    -- ^ @"{{link:foreign-data}}"@. /"See the {{link:foreign-data}} structure."/
+
+  , _frameEffect            :: String      -- ^ @"\"legendary\""@. /"Values can be {{code:colorshifted}}, {{code:compasslanddfc}}, {{code:devoid}}, {{code:draft}}, {{code:legendary}}, {{code:miracle}}, {{code:mooneldrazidfc}}, {{code:nyxtouched}}, {{code:originpwdfc}}, {{code:sunmoondfc}} or {{code:tombstone}}."/
+
+  , _frameVersion           :: String      -- ^ @"\"2015\""@. /"Version of the card frame style. Can be {{code:1993}}, {{code:1997}}, {{code:2003}}, {{code:2015}} or {{code:future}}."/
+
+  , _hand                   :: String      -- ^ @"\"+0\""@. /"Starting maximum hand size total modifier. A plus or minus character preceeds an integer. Used only on Vanguard cards."/
+
+  , _hasFoil                :: Bool        -- ^ @"true"@. /"Can the card be found in foil? (If false, it is usually omitted.)"/
+
+  , _hasNonFoil             :: Bool        -- ^ @"true"@. /"Can the card be found in non-foil? (If false, it is usually omitted.)"/
+
+  , _isOnlineOnly           :: Bool        -- ^ @"false"@. /"Is the card only available online? (If false, it is usually omitted.)"/
+
+  , _isOversized            :: Bool        -- ^ @"false"@. /"Is the card oversized? (If false, it is usually omitted.)"/
+
+  , _isTimeshifted          :: Bool        -- ^ e.g. @"false"@. Whether /"card is “timeshifted”, a feature from Time Spiral block. (If false, it is usually omitted.)"/
+
+  , _isReserved             :: Bool        -- ^ @"false"@. /"Is the card on the MTG Reserved List? (If false, it is usually omitted.)"/
+
+  , _isStarter              :: Bool        -- ^ @"false"@. /"If this card is found in a booster pack. (If false, it is usually omitted.)"/
+
+  , _layout                 :: String      -- ^ @"\"normal\""@. /"Type of card layout. Can be {{code:normal}}, {{code:split}}, {{code:flip}}, {{code:transform}}, {{code:meld}}, {{code:leveler}}, {{code:saga}}, {{code:planar}}, {{code:scheme}}, {{code:vanguard}}, {{code:token}}, {{code:double_faced_token}}, {{code:emblem}}, {{code:augment}} or {{code:host}}. (If normal, it is usually omitted.)"/
+
+  , _legalities             :: JSON.Object -- ^ @"{{link:legalities}}"@. /"See the {{link:legalities}} structure."/
+
+  , _life                   :: String      -- ^ @"\"+0\""@. /"Starting life total modifier. A plus or minus character preceeds an integer. Used only on Vanguard cards."/
+
+  , _loyalty                :: String      -- ^ @"\"7\""@. /"Planeswalker loyalty value."/
+
+  , _manaCost               :: String      -- ^ @"\"{3}{W}{W}\""@. /"Mana cost of the card."/
+
+  , _multiverseId           :: Integer     -- ^ @"457145"@. /"An integer most cards have which Wizards uses as a card identifier."/
+
+  , _name                   :: String      -- ^ @"\"Angel of Grace\""@. /"Name of the card. (If the card is in an Un-set and has multiple printings, a space and letter enclosed in parentheses, starting with (b), follows the name.)"/
+
+  , _names                  :: [String]    -- ^ @"[\"Nicol Bolas, the Ravager\",\"Nicol Bolas, the Arisen\"]"@. /"Names of each face on the card. Meld cards are listed in the order of CardA, Meld, CardB."/
+
+  , _number                 :: String      -- ^ @"\"218\""@. /"Number of the card."/
+
+  , _originalText           :: String      -- ^ @"\"Reach (This creature can block creatures with flying.)\\nDeathtouch (Any amount of damage this deals to a creature is enough to destroy it.)\""@. /"Text on the card as originally printed."/
+
+  , _originalType           :: String      -- ^ @"\"Legendary Creature — Angel\""@. /"Type as originally printed. Includes any supertypes and subtypes. (\"Legendary Creature — Angel\")"/
+
+  , _power                  :: String      -- ^ @"\"5\""@. /"Power of the creature."/
+
+  , _printings              :: [String]    -- ^ @"[\"M19\",\"PM19\"]"@. /"List of sets the card was printed in, in uppercase."/
+
+  , _rarity                 :: String      -- ^ @"\"mythic\""@. /"Rarity. Can be basic, common, uncommon, rare or mythic"/
+
+  , _rulings                :: [String]    -- ^ @"{{link:rulings}}"@. /"See the {{link:rulings}} structure."/
+
+  , _scryfallId             :: String      -- ^ @"\"80164e61-3e94-4e10-9bd1-518b8dc7fc4c\""@. /"A universal unique id (v4) generated by Scryfall. Note that cards with multiple faces are not unique."/
+
+  , _scryfallOracleId       :: String      -- ^ @"\"9b7870df-6bca-499f-bc6e-e57f2ddfe640\""@. /"A unique ID for this card’s oracle identity. This value is consistent across reprinted card editions, and unique among different cards with the same name (tokens, Unstable variants, etc)."/
+
+  , _scryfallIllustrationId :: String      -- ^ @"\"4ab49865-ff4c-4dae-94e8-a5ce273138da\""@. /"A unique identifier for the card artwork that remains consistent across reprints. Newly spoiled cards may not have this field yet."/
+
+  , _side                   :: String      -- ^ @"\"a\""@. /"Identifier of the side. Used on cards with multiple faces, such as flip, split, transform cards. Can be {{code:a}}, {{code:b}} or {{code:c}}."/
+
+  , _subtypes               :: [String]    -- ^ @"[\"Angel\"]"@. /"List of card subtypes found after em-dash. (\"Legendary Creature — Angel\")"/
+
+  , _supertypes             :: [String]    -- ^ @"[\"Legendary\"]"@. /"List of card supertypes found before em-dash. (\"Legendary Creature — Angel\")"/
+
+  , _text                   :: String      -- ^ @"\"Reach (This creature can block creatures with flying.)\\nDeathtouch (Any amount of damage this deals to a creature is enough to destroy it.)\""@. /"Rules text of the card."/
+
+  , _toughness              :: String      -- ^ @"\"4\""@. /"Toughness of the card."/
+
+  , _type                   :: String      -- ^ @"\"Legendary Creature — Angel\""@. /"Type of the card. Includes any supertypes and subtypes. (\"Creature — Angel\")"/
+
+  , _types                  :: [String]    -- ^ @"[\"Creature\"]"@. /"List of types of the card."/
+
+  , _uuid                   :: String      -- ^ @"\"7eb0f276-5e32-5a1e-acfd-9b0ddc19b845\""@. /"A universal unique id (v5) generated by MTGJSON. Each entry is unique."/
+
+  , _variations             :: [String]    -- ^ @"[\"7eb0f276-5e32-5a1e-acfd-9b0ddc19b845\"]"@. /"List of uuid id's of this card with alternate printings in the same set. Excludes Un-sets."/
+
+  , _watermark              :: String      -- ^ @"\"wotc\""@. /"Name of the watermark on the card. If there isn’t one, it can be an empty string, but it is usually omitted."/
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  u_LOWER_LEFT_PAINTBRUSH :: Text
+  u_LOWER_LEFT_PAINTBRUSH = "🖌"
+
+
+
+
+
+
+
+
+
+
+-- | @≡ "🖌"@
+pattern LOWER_LEFT_PAINTBRUSH :: String
+pattern LOWER_LEFT_PAINTBRUSH = "🖌"
+
+
+
+
+
+
+
+
+
 
 
 

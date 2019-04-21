@@ -313,6 +313,16 @@ docs:
 .PHONY: docs
 
 #------------------------------------------------#
+# Cabal...
+
+docs-mtg-json:
+
+	stack haddock mtg-json
+	$(Open) ./mtg-json/.stack-work/dist/x86_64-linux/Cabal-2.4.0.1/doc/html/mtg-json/index.html
+
+.PHONY: docs-mtg-json
+
+#------------------------------------------------#
 
 update:
 
