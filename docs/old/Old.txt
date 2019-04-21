@@ -5186,6 +5186,204 @@ pattern LOWER_LEFT_PAINTBRUSH = "🖌"
 
 
 
+-- | @≡ "🖌"@
+pattern LOWER_LEFT_PAINTBRUSH :: Char
+pattern LOWER_LEFT_PAINTBRUSH = unsafeHead "🖌"
+
+
+
+
+
+
+
+
+
+  prefix =
+    if   unicode == Enable
+    then u_LOWER_LEFT_PAINTBRUSH <> " "
+    else mempty
+
+
+
+
+
+
+
+{- |
+>>> [LOWER_LEFT_PAINTBRUSH] == "🖌"
+True
+-}
+pattern LOWER_LEFT_PAINTBRUSH :: Char
+pattern LOWER_LEFT_PAINTBRUSH = '🖌'
+
+
+
+
+
+
+
+;;;###autoload
+(defun sboo-haskell-insert-unicode-pattern-synonym (char name)
+
+  "`insert' a « PatternSynonym » for Unicode Character CHAR with name NAME."
+
+  (interactive (list
+                (sboo-read-character)
+                (sboo-read-character-name)
+                ))
+
+  (let* ((CHAR char)
+         (NAME name)
+         )
+
+    (format "{- | @%c@ -}\npattern %s :: Char\npattern %s = '%c'\n" CHAR NAME NAME CHAR)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
+-- Extensions ------------------------------------
+--------------------------------------------------
+
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE PatternSynonyms       #-}
+
+--------------------------------------------------
+
+{- | The *typeline* along the middle of a /Magic: The Gathering/ card.
+
+== Examples
+
+-}
+
+module MTG.Struct.Typeline where
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import MTG.Types.Prelude
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import "lens" Control.Lens (makeLenses)
+
+--------------------------------------------------
+
+import qualified "formatting" Formatting as Format
+import           "formatting" Formatting ((%))
+
+--------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "base" Control.Exception as E
+import           "base" Control.Exception (PatternMatchFail(..))
+
+--------------------------------------------------
+-- Types -----------------------------------------
+--------------------------------------------------
+
+{- | 
+
+-}
+
+data Typeline = Typeline
+
+  { _subtypes   :: [Subtype]
+  , _cardtypes  :: [Cardtype]
+  , _supertypes :: [Supertype]
+  }
+
+  deriving stock    (Show,Read,Eq,Ord)
+  deriving stock    (Generic,Data,Lift)
+  deriving anyclass (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @≡ 'emptyTypeline'@
+
+instance Default Typeline where def = emptyTypeline
+
+--------------------------------------------------
+
+{- | All fields are empty (i.e. @*types = []@).
+
+/NOTE/ this isn't a valid typeline.
+Each card should have at least one card type.
+
+-}
+
+emptyTypeline :: Typeline
+emptyTypeline = Typeline{..}
+  where
+
+  _subtypes   = []
+  _cardtypes  = []
+  _supertypes = []
+
+--------------------------------------------------
+-- Optics ----------------------------------------
+--------------------------------------------------
+
+makeLenses ''Typeline
+
+--------------------------------------------------
+-- EOF -------------------------------------------
+--------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
