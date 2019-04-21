@@ -434,15 +434,18 @@ library
 
                 ---------------
 
-                , MTG.Struct.Typeline
-
+                , MTG.Enum
                 , MTG.Enum.Color
+
+                , MTG.Struct.Typeline
 
                 ---------------
 
                 , MTG.Number.CMC
 
                 ---------------
+
+                , MTG.Text
 
                 , MTG.Text.List.Colors
                 , MTG.Text.List.ManaCost

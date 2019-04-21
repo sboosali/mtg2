@@ -2,7 +2,15 @@
 -- Extensions ------------------------------------
 --------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell #-}
+
+--------------------------------------------------
+
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedLists   #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE PatternSynonyms       #-}
 
@@ -21,6 +29,10 @@ module MTG.Struct.Typeline where
 --------------------------------------------------
 
 import MTG.Types.Prelude
+
+import MTG.Text.Supertype
+import MTG.Text.Cardtype
+import MTG.Text.Subtype
 
 --------------------------------------------------
 -- Imports ---------------------------------------
