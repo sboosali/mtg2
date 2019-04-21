@@ -324,13 +324,32 @@ printExamples Options{..} = do
     Verbose -> printExamplesVerbose
     Loud    -> printExamplesVerbose
 
+  ------------------------------
+
   printExamplesConcise = do
 
-    putStrLn `traverse_` programExamples
+    printDivider
+
+    printExample `traverse_` programExamples
+
+    printDivider
+    putStrLn ""
+
+  ------------------------------
 
   printExamplesVerbose = do
 
     printExamplesConcise
+
+  ------------------------------
+
+  promptString = "# "
+
+  printExample s = do
+    putStrLn ""
+    putStr promptString
+    putStrLn s
+ 
 
 {-# INLINEABLE printExamples #-}
 

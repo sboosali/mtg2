@@ -5,10 +5,17 @@
 --------------------------------------------------
 
 {-# LANGUAGE NoImplicitPrelude #-}
-
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BlockArguments    #-}
 
 --------------------------------------------------
+
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE InstanceSigs   #-}
+{-# LANGUAGE ApplicativeDo  #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedWildCards #-}
+
 --------------------------------------------------
 
 {-| Each card is represented as a JSON object (see 'CardObject').
@@ -230,11 +237,21 @@ module MTG.JSON.Schema.Card where
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import MTG.JSON.UUID
 import MTG.JSON.Prelude
 
 --------------------------------------------------
 -- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "aeson"      Data.Aeson       as JSON
+import qualified "aeson"      Data.Aeson.Types as JSON
+import qualified "lens-aeson" Data.Aeson.Lens  as JSON
+
+--------------------------------------------------
+
+import qualified "uuid"       Data.UUID.V5    as UUID
+import qualified "uuid-types" Data.UUID.Types as UUID
+
 --------------------------------------------------
 
 import qualified "attoparsec" Data.Attoparsec.Text as P
@@ -243,12 +260,20 @@ import qualified "attoparsec" Data.Attoparsec.Text as P
 -- Types -----------------------------------------
 --------------------------------------------------
 
-{-| 
+{- |
+
+== Fields
+
+* `_uuid` — the `UUID` is a /Version 5 UUID/.
 
 -}
+
 data CardObject = CardObject 
 
-  { _uuid          :: UUID
+  { _uuid          :: UUID  -- ^ e.g. @"b408de19-f203-502d-8325-28304ec21602"@
+
+  , _isTimeshifted :: Bool -- ^ e.g. @"false"@
+
   }
 
 {-
@@ -331,9 +356,36 @@ data CardObject = CardObject
   deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable,Binary)
 -}
+
+--------------------------------------------------
+-- Instances -------------------------------------
+--------------------------------------------------
+
+instance FromJSON CardObject where
+
+  parseJSON :: JSON.Value -> JSON.Parser CardObject
+  parseJSON = JSON.withObject "CardObject" \o -> do
+
+    _uuid          <- o .: "uuid"
+
+    _isTimeshifted <- o .:? "isTimeshifted" .!= False
+
+    return CardObject { .. }
+
 --------------------------------------------------
 -- Notes -----------------------------------------
 --------------------------------------------------
+
+-- « aeson »:
+-- 
+-- (.:) :: FromJSON a => Object -> Text -> Parser a
+-- (.:?) :: FromJSON a => Object -> Text -> Parser (Maybe a)
+-- (.:!) :: FromJSON a => Object -> Text -> Parser (Maybe a)
+-- (.!=) :: Parser (Maybe a) -> a -> Parser a
+-- 
+
+--------------------------------------------------
+
 {-
 
   {

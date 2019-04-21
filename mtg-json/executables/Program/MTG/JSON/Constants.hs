@@ -108,7 +108,16 @@ programLicenseContents = "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007\n\n
 programExamples :: [String]
 programExamples =
 
-  [ 
+  [ "mtg-json print version"
+  , "mtg-json print version -v"
+
+  , "mtg-json print license"
+  , "mtg-json print license -v"
+
+  , "mtg-json print examples"
+  , "mtg-json print examples -v"
+
+  , "mtg-json fetch --input=vintage --output=stdout > ./mtg.json.gz"
   ]
 
 -- ============================================ --

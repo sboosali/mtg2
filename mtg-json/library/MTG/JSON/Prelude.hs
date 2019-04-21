@@ -28,7 +28,7 @@ import "mtg-types" MTG.Types
 
 --------------------------------------------------
 
-import "spiros" Prelude.Spiros as EXPORT
+import "spiros" Prelude.Spiros                   as EXPORT
 
 --------------------------------------------------
 
@@ -38,7 +38,16 @@ import "prettyprinter" Data.Text.Prettyprint.Doc as EXPORT ( Pretty(..) )
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import "attoparsec" Data.Attoparsec.Text as EXPORT ( Parser )
+import           "aeson" Data.Aeson              as EXPORT ( FromJSON(..), ToJSON(..) )
+import           "aeson" Data.Aeson              as EXPORT ( (.:), (.:?), (.:!), (.!=) )
+
+--------------------------------------------------
+
+import "uuid-types" Data.UUID.Types              as EXPORT ( UUID )
+
+--------------------------------------------------
+
+import "attoparsec" Data.Attoparsec.Text         as EXPORT ( Parser )
 
 --------------------------------------------------
 
