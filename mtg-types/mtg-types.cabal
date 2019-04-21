@@ -467,6 +467,11 @@ library
 
                 ---------------
 
+                , MTG.Constants
+                , MTG.Constants.Unicode
+
+                ---------------
+
                 , MTG.Types.Prelude
                 , MTG.Classes.Prelude
 

@@ -70,17 +70,20 @@ knownArtists =
 --------------------------------------------------
 
 -- | @≡ ""@
-pattern NoArtist :: Artist
-pattern NoArtist = Artist ""
+pattern UnknownArtist :: Artist
+pattern UnknownArtist = Artist ""
 
 --------------------------------------------------
 
+-- | @≡ "Quinton Hoover"@
 pattern QuintonHoover :: Artist
 pattern QuintonHoover = Artist "Quinton Hoover"
 
+-- | @≡ "Rebecca Guay"@
 pattern RebeccaGuay :: Artist
 pattern RebeccaGuay = Artist "Rebecca Guay"
 
+-- | @≡ "Terese Nielsen"@
 pattern TereseNielsen :: Artist
 pattern TereseNielsen = Artist "Terese Nielsen"
 
@@ -92,16 +95,23 @@ pattern TereseNielsen = Artist "Terese Nielsen"
 
 instance Pretty Artist where
 
-  pretty = ppArtist
+  pretty = ppArtist def
 
 --------------------------------------------------
 
 {- | -}
 
-ppArtist :: Artist -> Doc i
-ppArtist (Artist t) =
+ppArtist :: PrettyConfig -> Artist -> Doc i
+ppArtist PrettyConfig{..} (Artist t) =
 
-  pretty t
+  prefix <> pretty t
+
+  where
+
+  prefix =
+    if   useUnicode
+    then u_LOWER_LEFT_PAINTBRUSH <> " "
+    else mempty
 
 --------------------------------------------------
 -- Parse -----------------------------------------
