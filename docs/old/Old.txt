@@ -5384,6 +5384,42 @@ makeLenses ''Typeline
 
 
 
+  as :: JSON.Parser Text -> (Text -> a) -> JSON.Parser a
+  as parser dumbConstructor = dumbConstructor <$> parser
+
+
+
+
+(<&?>) :: JSON.Parser (Maybe Text) -> (Text -> a) -> JSON.Parser a
+(<&?>) parser dumbConstructor = fmap dumbConstructor <$> parser 
+
+
+
+
+pOptional o "artist" Artist UnknownArtist
+
+
+
+
+pOptional Artist "artist" UnknownArtist o
+
+
+
+pOptional "artist" Artist UnknownArtist o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
