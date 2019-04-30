@@ -98,7 +98,7 @@ newtype Colors = Colors
 
 --------------------------------------------------
 
--- | @≡ 'toColors'@
+-- | @≡ `toColors`@
 
 instance IsList Colors where
   type Item Colors = Color
@@ -107,13 +107,25 @@ instance IsList Colors where
 
 --------------------------------------------------
 
--- | @≡ 'parseColors'@
+-- | @≡ `parseColors`@
 
 instance IsString Colors where
   fromString = fromString_MonadThrow parseColors
 
 --------------------------------------------------
+
+-- | @= `Colorless`@
+
+instance Default Colors where def = Colorless
+
+--------------------------------------------------
 -- Patterns --------------------------------------
+--------------------------------------------------
+
+-- | @≡ []@
+pattern Colorless :: Colors
+pattern Colorless = Colors []
+
 --------------------------------------------------
 -- Guilds (ally-colors)...
 

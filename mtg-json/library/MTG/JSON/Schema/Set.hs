@@ -119,9 +119,18 @@ import "base" Prelude
 -- Types -----------------------------------------
 --------------------------------------------------
 
-{-| 
+
+{- | @JSON Object@ which represents a "Set" (of `CardObject`s).
+
+== Fields
+
+== Links
+
+* schema — <https://mtgjson.com/structures/set/>
 
 -}
+
+
 
 --------------------------------------------------
 -- Functions -------------------------------------

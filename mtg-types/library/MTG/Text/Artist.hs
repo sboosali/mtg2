@@ -31,7 +31,7 @@ import "lens" Control.Lens (makePrisms)
 -- Imports ---------------------------------------
 --------------------------------------------------
 
---import qualified "text" Data.Text as Text
+import qualified "text" Data.Text as Text
 
 --------------------------------------------------
 -- Types -----------------------------------------
@@ -45,13 +45,18 @@ newtype Artist = Artist
   deriving stock    (Lift,Data,Generic)
 
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
 
 --------------------------------------------------
 
--- | @≡ 'noArtist'@
-instance Default Artist where def = Artist ""
+-- | @= 'toArtist'@
+instance IsString Artist where
+  fromString = fromString > toArtist
+
+--------------------------------------------------
+
+-- | @≡ 'UnknownArtist'@
+instance Default Artist where def = UnknownArtist
 
 --------------------------------------------------
 -- Constants -------------------------------------
@@ -137,6 +142,16 @@ instance Parse Artist where
 
 pArtist :: (MTGParsing m) => m Artist
 pArtist = Artist <$> pFreeText <?> "Artist"
+
+--------------------------------------------------
+-- Functions -------------------------------------
+--------------------------------------------------
+
+toArtist :: Text -> Artist
+toArtist = munge > Artist
+  where
+
+  munge = Text.toLower
 
 --------------------------------------------------
 -- Optics ----------------------------------------

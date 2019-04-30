@@ -110,7 +110,7 @@ These typeclasses' methods are available to 'parser' implementations
 
 class Parse a where
 
-  parser :: MTGParsing m => m a
+  parser :: ( MTGParsing m ) => m a
 
 --------------------------------------------------
 -- Functions -------------------------------------

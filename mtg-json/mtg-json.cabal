@@ -685,7 +685,6 @@ library srcdst
              , conduit-extra       ^>= 1.3
              , conduit-combinators 
              , http-conduit        ^>= 2.3
-             , ftp-client-conduit  ^>= 0.5
 
                -- « conduit-extra » subsumes « conduit-zlib ».
 
@@ -694,6 +693,7 @@ library srcdst
              , http-types
 
           -- , conduit-find        ^>= 0.1
+          -- , ftp-client-conduit  ^>= 0.5
 
   --------------------
   -- Tarball Libraries

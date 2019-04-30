@@ -245,9 +245,12 @@ module MTG.JSON.Schema.Card
 -- Imports ---------------------------------------
 --------------------------------------------------
 
-import MTG.Text
-
 import MTG.JSON.Prelude
+
+--------------------------------------------------
+
+import qualified MTG.Classes.Parse as MTG
+import           MTG.Text
 
 --------------------------------------------------
 -- Imports ---------------------------------------
@@ -282,7 +285,7 @@ import qualified "aeson"      Data.Aeson.Types as JSON
 
 == Links
 
-* schema — <https://mtgjson.com/files/all-cards/>
+* schema — <https://mtgjson.com/structures/card/>
 
 -}
 
@@ -292,11 +295,11 @@ data CardObject = CardObject
 
   , _artist                 :: Artist      -- ^ e.g. @"\"Ryan Yee\""@. /"Name of the artist that illustrated the card art."/
 
-  , _borderColor            :: Text        -- ^ e.g. @"Black"@. /"Color of the border. Can be {{code:black}}, {{code:borderless}}, {{code:gold}}, {{code:silver}} or {{code:white}}"@.
+  , _borderColor            :: Border      -- ^ e.g. @"Black"@. /"Color of the border. Can be {{code:black}}, {{code:borderless}}, {{code:gold}}, {{code:silver}} or {{code:white}}"@.
   
-  , _colorIdentity          :: Vector Text -- ^ e.g. @"[\"B\,\"R\"]"@. /"List of all colors in card’s mana cost, rules text and any color indicator."/
+  , _colorIdentity          :: Colors      -- ^ e.g. @"[\"B\,\"R\"]"@. /"List of all colors in card’s mana cost, rules text and any color indicator."/
 
-  , _colorIndicator         :: Vector Text -- ^ e.g. @"[\"B\",\"R\"]"@. /"List of all colors in card’s mana cost and any color indicator. Some cards are special (such as Devoid cards or other cards with certain rules text)."/
+  , _colorIndicator         :: Colors      -- ^ e.g. @"[\"B\",\"R\"]"@. /"List of all colors in card’s mana cost and any color indicator. Some cards are special (such as Devoid cards or other cards with certain rules text)."/
 
   , _convertedManaCost      :: Float       -- ^ e.g. @"5.0"@. /"The converted mana cost of the card."/
 
@@ -490,13 +493,13 @@ parseCardObjectJSON = JSON.withObject "CardObject" pO
 
     _uuid                   <- o .:  "uuid"
 
-    _artist                 <- pOptional "artist" Artist UnknownArtist o
+    _artist                 <- pOptional "artist" toArtist def o
 
-    _borderColor            <- o .:  "borderColor"
+    _borderColor            <- pOptional "borderColor" toBorder def o
   
-    _colorIdentity          <- o .:  "colorIdentity"
+    _colorIdentity          <- pMTG "colorIdentity" o
 
-    _colorIndicator         <- o .:  "colorIndicator"
+    _colorIndicator         <- pMTG "colorIndicator" o
 
     _convertedManaCost      <- o .:? "convertedManaCost"      .!= 0.0
 
@@ -588,6 +591,25 @@ parseCardObjectJSON = JSON.withObject "CardObject" pO
 -- Utils -----------------------------------------
 --------------------------------------------------
 
+pMTG :: ( MTG.Parse a, Default a ) => Text -> JSON.Object -> JSON.Parser a
+pMTG fieldName o =
+
+  (JSON.explicitParseFieldMaybe p o fieldName) .!= def
+
+  where
+
+  p value = JSON.withObject object (toParseJSON MTG.parser)
+
+--------------------------------------------------
+
+{- | Instantiate a @TokenParsing@ parser (from @parsers@) as a @Parser@ parser (from @attoparsec@),
+for @aeson@. -}
+
+toParseJSON :: ( MTG.MTGParsing p ) => p a -> JSON.Parser a
+toParseJSON = _
+
+--------------------------------------------------
+
 pRequired :: Text -> (Text -> a) -> JSON.Object -> JSON.Parser a
 pRequired fieldName toValue o =
 
@@ -621,7 +643,20 @@ pOptional fieldName toValue defaultValue o =
 -- infix .:!
 --
 -- infix .!= 
-
+--
+-- -- | Variant of '.:' with explicit parser function.
+-- explicitParseField :: (Value -> Parser a) -> Object -> Text -> Parser a
+-- explicitParseField p obj key = _
+--
+-- -- | Variant of '.:?' with explicit parser function.
+-- explicitParseFieldMaybe :: (Value -> Parser a) -> Object -> Text -> Parser (Maybe a)
+-- explicitParseFieldMaybe p obj key = _
+--
+--
+-- withObject :: String -> (Object -> Parser a) -> (Value -> Parser a)
+--
+-- 
+--
 
 --------------------------------------------------
 -- EOF -------------------------------------------

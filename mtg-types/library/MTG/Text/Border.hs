@@ -3,9 +3,15 @@
 --------------------------------------------------
 
 {-# LANGUAGE TemplateHaskell            #-}
+
+--------------------------------------------------
+
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+--------------------------------------------------
+
+{-# LANGUAGE PatternSynonyms            #-}
 
 --------------------------------------------------
 
@@ -28,6 +34,12 @@ import MTG.Types.Prelude
 import "lens" Control.Lens (makePrisms)
 
 --------------------------------------------------
+-- Imports ---------------------------------------
+--------------------------------------------------
+
+import qualified "text" Data.Text as Text
+
+--------------------------------------------------
 -- Types -----------------------------------------
 --------------------------------------------------
 
@@ -37,10 +49,14 @@ newtype Border = Border
  
   deriving stock    (Show,Read)
   deriving stock    (Lift,Data,Generic)
-
   deriving newtype  (Eq,Ord,Semigroup,Monoid)
-  deriving newtype  (IsString)
   deriving newtype  (NFData,Hashable)
+
+--------------------------------------------------
+
+-- | @= 'toBorder'@
+instance IsString Border where
+  fromString = fromString > toBorder
 
 --------------------------------------------------
 
@@ -50,6 +66,9 @@ instance Default Border where def = BlackBorder
 --------------------------------------------------
 -- Patterns --------------------------------------
 --------------------------------------------------
+
+pattern Borderless :: Border
+pattern Borderless = "borderless"
 
 -- | Most cards are block-bordered.
 
@@ -62,12 +81,18 @@ pattern WhiteBorder = "white"
 pattern SilverBorder :: Border
 pattern SilverBorder = "silver"
 
+pattern GoldBorder :: Border
+pattern GoldBorder = "gold"
+
 --------------------------------------------------
 -- Functions -------------------------------------
 --------------------------------------------------
 
 toBorder :: Text -> Border
-toBorder = Border
+toBorder = munge > Border
+  where
+
+  munge = Text.toLower
 
 --------------------------------------------------
 -- Optics ----------------------------------------
