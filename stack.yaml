@@ -1,5 +1,5 @@
 ##################################################
-resolver: lts-13.15
+resolver: lts-13.17
 
           # ^ ghc-8.6.4
 
@@ -19,6 +19,7 @@ extra-deps:
 - ../spiros/spiros
 - ../enumerate/enumerate
 
-- conduit-find-0.1.0.3
+# - conduit-find-0.1.0.3
+- th-lift-instances-0.1.11@sha256:b292498b7dd1bc609e6618e00641bd918722ca2af19a216376e5fdb0a9ae9251
 
 ##################################################
